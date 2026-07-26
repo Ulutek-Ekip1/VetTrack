@@ -1,2 +1,2 @@
 # VetTrack
-ULUTEK YAzılım Vadisi Staj Programı kapsamında Ekip 1 Tarafından geliştirilen ürün
+ULUTEK YAzılım Vadisi Staj Programı kapsamında Ekip 1 Tarafından geliştirilecek ürün
