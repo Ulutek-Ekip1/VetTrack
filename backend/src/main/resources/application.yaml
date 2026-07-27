@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: api
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://<your-supabase-project>.supabase.co/auth/v1/certs
