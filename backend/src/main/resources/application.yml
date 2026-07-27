@@ -13,6 +13,11 @@ spring:
       max-request-size: 15MB
   flyway:
     enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${SUPABASE_JWKS_URL}
 
 supabase:
   jwt:
