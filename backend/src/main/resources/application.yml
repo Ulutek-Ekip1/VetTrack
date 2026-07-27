@@ -26,7 +26,7 @@ firebase:
   credentials-path: ${FIREBASE_CREDENTIALS_PATH}
 
 sentry:
-  dsn: ${SENTRY_DSN}
+  dsn: ${SENTRY_DSN:}
 
 server:
   port: 8080
