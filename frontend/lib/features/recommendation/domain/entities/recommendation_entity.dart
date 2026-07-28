@@ -1,0 +1,2 @@
+// Recommendation Entity
+class RecommendationEntity {}

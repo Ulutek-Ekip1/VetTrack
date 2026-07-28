@@ -1,0 +1,29 @@
+name: vettrack_frontend
+description: VetTrack Flutter Frontend Application
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^8.1.3
+  supabase_flutter: ^2.0.0
+  firebase_messaging: ^14.7.10
+  dio: ^5.4.0
+  go_router: ^13.0.0
+  get_it: ^7.6.0
+  equatable: ^2.0.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  # assets:
+  #   - assets/icons/
+  #   - assets/images/
