@@ -17,3 +17,13 @@ Thumbs.db
 .env
 *.env.local
 firebase-service-account.json
+
+# Flutter/Dart
+**/doc/api/
+**/ios/Flutter/.last_build_id
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/build/
