@@ -1,5 +1,5 @@
 # VetTrack Frontend Web Hosting (Nginx)
-FROM plugger/flutter:latest AS build
+FROM plugger/flutter:3.24.5 AS build
 WORKDIR /app
 COPY . .
 RUN flutter pub get
