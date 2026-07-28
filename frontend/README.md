@@ -22,7 +22,7 @@ lib/
    ```bash
    flutter pub get
    ```
-2. `.env.example` dosyasını `.env` olarak kopyalayın ve gerekli anahtarları doldurun.
+2. `.env` dosyasını oluşturun ve gerekli anahtarları doldurun.
 3. Uygulamayı çalıştırın:
    ```bash
    flutter run
