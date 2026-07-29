@@ -1,4 +1,5 @@
 package com.vettrack.api.pet;
+
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
@@ -74,21 +75,32 @@ public class PetController {
 
         return ResponseEntity.ok(petService.updatePet(id, petDetails));
     }
+
     @PostMapping("/{id}/photo")
     @Operation(summary = "Pet Fotoğrafı Yükle", description = "Fotoğrafı Supabase Storage'a yükler. Max 15MB, JPEG/PNG/WebP.")
     public ResponseEntity<Map<String, String>> uploadPhoto(
-        @AuthenticationPrincipal Jwt jwt,
-        @PathVariable UUID id,
-        @RequestParam("file") MultipartFile file
-    ) 
-    {
-    Pet pet = petService.getPetById(id);
-    UUID ownerId = UUID.fromString(jwt.getSubject());
-    if (!pet.getOwnerId().equals(ownerId)) {
-        throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id,
+            @RequestParam("file") MultipartFile file
+    ) {
+        Pet pet = petService.getPetById(id);
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        if (!pet.getOwnerId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+        }
+
+        String photoUrl = petService.uploadPhoto(id, file);
+        return ResponseEntity.ok(Map.of("photoUrl", photoUrl));
     }
 
-    String photoUrl = petService.uploadPhoto(id, file);
-    return ResponseEntity.ok(Map.of("photoUrl", photoUrl));
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Pet Sil (Soft Delete)", description = "Hayvanı pasife alır. Tıbbi geçmiş saklanır, sahibe görünmez (EC-05).")
+    public ResponseEntity<Void> deletePet(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        petService.softDeletePet(id, ownerId);
+        return ResponseEntity.noContent().build();
     }
 }

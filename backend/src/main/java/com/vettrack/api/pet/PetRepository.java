@@ -10,4 +10,6 @@ public interface PetRepository extends JpaRepository<Pet, UUID> {
     Optional<Pet> findByUniqueCodeIgnoreCase(String uniqueCode);
     List<Pet> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId);
     boolean existsByUniqueCode(String uniqueCode);
+    List<Pet> findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID ownerId);
+    Optional<Pet> findByUniqueCodeIgnoreCaseAndDeletedAtIsNull(String uniqueCode);
 }
