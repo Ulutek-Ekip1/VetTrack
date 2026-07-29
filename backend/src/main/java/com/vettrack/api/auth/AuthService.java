@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -62,8 +63,16 @@ public class AuthService {
 
             AuthResponse authResponse = mapToAuthResponse(resp.getBody());
 
-            if (request.getEmail() != null) {
-                saveOwnerIfNotExist(request.getEmail(), request.getName(), request.getPhone());
+            // Supabase'den dönen UUID'yi alarak Owner'ı kaydediyoruz
+            if (request.getEmail() != null && authResponse != null && authResponse.getUser() instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> userMap = (Map<String, Object>) authResponse.getUser();
+                String supabaseUserIdStr = (String) userMap.get("id");
+                
+                if (supabaseUserIdStr != null) {
+                    UUID supabaseUserId = UUID.fromString(supabaseUserIdStr);
+                    saveOwnerIfNotExist(supabaseUserId, request.getEmail(), request.getName(), request.getPhone());
+                }
             }
 
             return authResponse;
@@ -85,9 +94,10 @@ public class AuthService {
         }
     }
 
-    private void saveOwnerIfNotExist(String email, String name, String phone) {
+    private void saveOwnerIfNotExist(UUID id, String email, String name, String phone) {
         if (ownerRepository.findByEmail(email).isEmpty()) {
             Owner owner = Owner.builder()
+                    .id(id) // Supabase User ID'si set ediliyor
                     .email(email)
                     .name(name)
                     .phone(phone)

@@ -21,6 +21,10 @@ spring:
         jwt:
           jwk-set-uri: ${SUPABASE_JWKS_URL}
 
+# Çevre değişkenlerinin standart olarak okunabilmesi için
+SUPABASE_URL: ${SUPABASE_URL:https://your-supabase-url.supabase.co}
+SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY:}
+
 supabase:
   jwt:
     jwks-url: ${SUPABASE_JWKS_URL}
@@ -37,5 +41,3 @@ sentry:
 
 server:
   port: 8080
-
-
