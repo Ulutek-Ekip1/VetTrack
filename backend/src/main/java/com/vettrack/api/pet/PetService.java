@@ -46,8 +46,12 @@ public class PetService {
      */
     @Transactional(readOnly = true)
     public Pet getPetById(UUID id) {
-        return petRepository.findById(id)
+        Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Evcil hayvan bulunamadı ID: " + id));
+        if (pet.getDeletedAt() != null) {
+            throw new ResourceNotFoundException("Evcil hayvan bulunamadı ID: " + id);
+        }
+        return pet;
     }
 
     /**
