@@ -13,6 +13,8 @@ spring:
       max-request-size: 15MB
   flyway:
     enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
   security:
     oauth2:
       resourceserver:
@@ -35,3 +37,5 @@ sentry:
 
 server:
   port: 8080
+
+
