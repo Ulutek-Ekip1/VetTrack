@@ -26,12 +26,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, Object> body = new HashMap<>();
-        Map<String, String> errors = new HashMap<>();
+    Map<String, Object> body = new HashMap<>();
+    Map<String, String> errors = new HashMap<>();
 
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
-            errors.put(error.getField(), error.getDefaultMessage())
-        );
+    ex.getBindingResult().getFieldErrors().forEach(error -> 
+    errors.put(error.getField(), error.getDefaultMessage())
+    );
 
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST.value());
@@ -39,5 +39,45 @@ public class GlobalExceptionHandler {
         body.put("validationErrors", errors);
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(com.vettrack.api.storage.FileTooLargeException.class)
+    public ResponseEntity<Map<String, Object>> handleFileTooLarge(
+        com.vettrack.api.storage.FileTooLargeException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("timestamp", LocalDateTime.now());
+    body.put("status", 413);
+    body.put("error", "FILE_TOO_LARGE");
+    body.put("message", ex.getMessage());
+    return new ResponseEntity<>(body, HttpStatus.valueOf(413));
+    }
+
+    @ExceptionHandler(com.vettrack.api.storage.UnsupportedFileTypeException.class)
+    public ResponseEntity<Map<String, Object>> handleUnsupportedFileType(com.vettrack.api.storage.UnsupportedFileTypeException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("timestamp", LocalDateTime.now());
+    body.put("status", 415);
+    body.put("error", "UNSUPPORTED_FILE_TYPE");
+    body.put("message", ex.getMessage());
+    return new ResponseEntity<>(body, HttpStatus.valueOf(415));
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("timestamp", LocalDateTime.now());
+    body.put("status", 403);
+    body.put("error", "FORBIDDEN");
+    body.put("message", ex.getMessage());
+    return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleMaxUploadSize(
+    org.springframework.web.multipart.MaxUploadSizeExceededException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("timestamp", LocalDateTime.now());
+    body.put("status", 413);
+    body.put("error", "FILE_TOO_LARGE");
+    body.put("message", "Dosya boyutu 15MB'ı aşamaz");
+    return new ResponseEntity<>(body, HttpStatus.valueOf(413));
     }
 }

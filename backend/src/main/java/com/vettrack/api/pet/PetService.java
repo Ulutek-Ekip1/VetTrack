@@ -1,4 +1,6 @@
 package com.vettrack.api.pet;
+import com.vettrack.api.storage.StorageService;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import java.util.UUID;
 public class PetService {
 
     private final PetRepository petRepository;
+    private final StorageService storageService;
 
     // Görsel olarak karıştırılabilecek karakterler (0, O, 1, I, L) çıkarılmış 31 karakterlik güvenli alfabe
     private static final String ALPHANUMERIC = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -70,6 +73,14 @@ public class PetService {
         existingPet.setBreed(petDetails.getBreed());
 
         return petRepository.save(existingPet);
+    }
+    @Transactional
+    public String uploadPhoto(UUID petId, MultipartFile file) {
+    Pet pet = getPetById(petId);
+    String photoUrl = storageService.uploadPetPhoto(file, petId);
+    pet.setPhotoUrl(photoUrl);
+    petRepository.save(pet);
+    return photoUrl;
     }
 
     /**
