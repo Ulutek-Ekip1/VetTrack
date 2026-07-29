@@ -5,7 +5,8 @@ import 'token_local_data_source.dart';
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> loginWithEmail(String email, String password);
-  Future<UserModel> register(String email, String password, String name, String? phone, UserRole role);
+  Future<UserModel> register(
+      String email, String password, String name, String? phone, UserRole role);
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
 }
@@ -25,14 +26,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       });
 
       if (response.statusCode == 200) {
-        // API Sözleşmesine göre: response.data içinde 'user' ve 'accessToken' var.
         final userData = response.data['user'];
         final token = response.data['accessToken'];
-        
+
         if (token != null) {
           await localDataSource.cacheToken(token);
         }
-        
+
         return UserModel.fromJson(userData);
       } else {
         throw Exception("Giriş başarısız: ${response.statusCode}");
@@ -48,10 +48,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<UserModel> register(String email, String password, String name, String? phone, UserRole role) async {
+  Future<UserModel> register(String email, String password, String name,
+      String? phone, UserRole role) async {
     try {
       final roleStr = role == UserRole.vet ? 'vet_staff' : 'owner';
-      
+
       final data = {
         'email': email,
         'password': password,
@@ -68,7 +69,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (response.statusCode == 201 || response.statusCode == 200) {
         final userData = response.data['user'];
         final token = response.data['accessToken'];
-        
+
         if (token != null) {
           await localDataSource.cacheToken(token);
         }
@@ -105,7 +106,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
       return null;
     } catch (e) {
-      // Hata durumunda (örneğin token yoksa veya geçersizse) null dönüyoruz
       return null;
     }
   }

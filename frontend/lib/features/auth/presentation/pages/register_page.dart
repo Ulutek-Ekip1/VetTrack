@@ -12,6 +12,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -48,34 +49,50 @@ class _RegisterPageState extends State<RegisterPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Ad Soyad'),
-                  keyboardType: TextInputType.name,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'E-posta'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(labelText: 'Telefon (Opsiyonel)'),
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Şifre'),
-                  obscureText: true,
-                ),
+          return Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(labelText: 'Ad Soyad'),
+                    keyboardType: TextInputType.name,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return 'Ad Soyad boş olamaz';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: 'E-posta'),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return 'E-posta boş olamaz';
+                      if (!value.contains('@')) return 'Geçerli bir e-posta girin';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _phoneController,
+                    decoration: const InputDecoration(labelText: 'Telefon (Opsiyonel)'),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(labelText: 'Şifre'),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Şifre boş olamaz';
+                      if (value.length < 8) return 'Şifre en az 8 karakter olmalıdır';
+                      return null;
+                    },
+                  ),
                 const SizedBox(height: 24),
                 const Text('Hesap Türü Seçin', style: TextStyle(fontWeight: FontWeight.bold)),
                 SegmentedButton<UserRole>(
@@ -99,20 +116,23 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<AuthCubit>().signUp(
-                          _emailController.text,
-                          _passwordController.text,
-                          _nameController.text,
-                          _phoneController.text.isEmpty ? null : _phoneController.text,
-                          _selectedRole,
-                        );
+                    if (_formKey.currentState!.validate()) {
+                      context.read<AuthCubit>().signUp(
+                            _emailController.text,
+                            _passwordController.text,
+                            _nameController.text,
+                            _phoneController.text.isEmpty ? null : _phoneController.text,
+                            _selectedRole,
+                          );
+                    }
                   },
                   child: const Text('Kayıt Ol'),
                 ),
               ],
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }
