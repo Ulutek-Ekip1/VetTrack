@@ -1,2 +1,0 @@
-// CloseVisit UseCase
-class CloseVisitUseCase {}

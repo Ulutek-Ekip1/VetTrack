@@ -1,2 +1,0 @@
-// Pet Entity
-class PetEntity {}

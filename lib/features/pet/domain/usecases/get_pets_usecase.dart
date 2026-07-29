@@ -1,2 +1,0 @@
-// GetOwnerPets UseCase
-class GetOwnerPetsUseCase {}

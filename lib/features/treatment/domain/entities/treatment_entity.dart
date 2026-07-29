@@ -1,2 +1,0 @@
-// Treatment Entity
-class TreatmentEntity {}

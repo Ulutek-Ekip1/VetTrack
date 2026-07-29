@@ -1,2 +1,0 @@
-// SearchByCode UseCase
-class SearchByCodeUseCase {}

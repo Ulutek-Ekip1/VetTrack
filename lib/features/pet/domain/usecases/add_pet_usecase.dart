@@ -1,2 +1,0 @@
-// AddPet UseCase
-class AddPetUseCase {}

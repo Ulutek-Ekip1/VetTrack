@@ -1,2 +1,0 @@
-// TreatmentEntry Model
-class TreatmentEntryModel {}

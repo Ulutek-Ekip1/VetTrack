@@ -1,2 +1,0 @@
-// GetNotifications UseCase
-class GetNotificationsUseCase {}

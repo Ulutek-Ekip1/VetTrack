@@ -1,2 +1,0 @@
-// AddTreatment UseCase
-class AddTreatmentUseCase {}

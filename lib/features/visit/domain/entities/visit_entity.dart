@@ -1,2 +1,0 @@
-// Visit Entity
-class VisitEntity {}

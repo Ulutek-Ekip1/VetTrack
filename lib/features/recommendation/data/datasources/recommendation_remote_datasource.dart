@@ -1,2 +1,0 @@
-// Remote Datasource
-class RecommendationRemoteDataSource {}

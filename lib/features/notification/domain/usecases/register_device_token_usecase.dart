@@ -1,2 +1,0 @@
-// RegisterDeviceToken UseCase
-class RegisterDeviceTokenUseCase {}

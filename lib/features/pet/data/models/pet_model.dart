@@ -1,2 +1,0 @@
-// Pet Model
-class PetModel {}
