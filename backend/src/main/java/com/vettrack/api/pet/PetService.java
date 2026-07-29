@@ -1,5 +1,6 @@
 package com.vettrack.api.pet;
 
+import com.vettrack.api.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ public class PetService {
     @Transactional(readOnly = true)
     public Pet getPetByUniqueCode(String uniqueCode) {
         return petRepository.findByUniqueCodeIgnoreCase(uniqueCode)
-                .orElseThrow(() -> new IllegalArgumentException("Bu koda sahip evcil hayvan bulunamadı: " + uniqueCode));
+                .orElseThrow(() -> new ResourceNotFoundException("Bu koda sahip evcil hayvan bulunamadı: " + uniqueCode));
     }
 
     /**
@@ -43,7 +44,7 @@ public class PetService {
     @Transactional(readOnly = true)
     public Pet getPetById(UUID id) {
         return petRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Evcil hayvan bulunamadı ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Evcil hayvan bulunamadı ID: " + id));
     }
 
     /**

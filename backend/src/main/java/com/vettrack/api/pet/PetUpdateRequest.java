@@ -1,6 +1,7 @@
 package com.vettrack.api.pet;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -11,6 +12,9 @@ public class PetUpdateRequest {
 
     private String photoUrl;
     private Integer age;
-    private String gender;
+
+    @NotNull(message = "Cinsiyet alanı MALE, FEMALE veya UNKNOWN olmalıdır")
+    private Gender gender;
+
     private String breed;
 }

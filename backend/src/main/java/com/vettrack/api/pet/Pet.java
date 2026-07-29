@@ -29,8 +29,9 @@ public class Pet {
 
     private Integer age;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 10)
-    private String gender;
+    private Gender gender;
 
     @Column(length = 100)
     private String breed;

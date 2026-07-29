@@ -17,6 +17,9 @@ public class PetCreateRequest {
 
     private String photoUrl;
     private Integer age;
-    private String gender;
+
+    @NotNull(message = "Cinsiyet alanı MALE, FEMALE veya UNKNOWN olmalıdır")
+    private Gender gender;
+
     private String breed;
 }
