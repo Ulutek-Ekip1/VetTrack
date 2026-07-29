@@ -43,7 +43,9 @@ public class StorageService {
                     .retrieve()
                     .toBodilessEntity();
         } catch (IOException e) {
-            throw new StorageException("Dosya yüklenirken hata oluştu", e);
+        throw new StorageException("Dosya yüklenirken hata oluştu", e);
+        } catch (org.springframework.web.client.RestClientException e) {
+        throw new StorageException("Supabase Storage isteği başarısız: " + e.getMessage(), e);
         }
 
         return storageUrl + "/object/public/" + BUCKET + "/" + filePath;

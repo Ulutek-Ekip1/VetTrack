@@ -70,4 +70,14 @@ public class GlobalExceptionHandler {
     body.put("message", ex.getMessage());
     return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleMaxUploadSize(
+    org.springframework.web.multipart.MaxUploadSizeExceededException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("timestamp", LocalDateTime.now());
+    body.put("status", 413);
+    body.put("error", "FILE_TOO_LARGE");
+    body.put("message", "Dosya boyutu 15MB'ı aşamaz");
+    return new ResponseEntity<>(body, HttpStatus.valueOf(413));
+    }
 }
