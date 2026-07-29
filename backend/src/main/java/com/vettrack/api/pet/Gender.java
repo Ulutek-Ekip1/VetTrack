@@ -1,7 +1,14 @@
 package com.vettrack.api.pet;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public enum Gender {
-    MALE,
-    FEMALE,
-    UNKNOWN
+    @JsonProperty("male")
+    male,
+
+    @JsonProperty("female")
+    female,
+
+    @JsonProperty("unknown")
+    unknown
 }
