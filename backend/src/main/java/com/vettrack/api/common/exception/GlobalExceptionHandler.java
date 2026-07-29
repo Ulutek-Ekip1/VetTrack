@@ -25,7 +25,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Map<String, Object>> handleUnauthorized(UnauthorizedException ex) {
-        // Generic message to avoid user enumeration vulnerability
         String message = (ex.getMessage() != null && !ex.getMessage().isBlank()) 
                 ? ex.getMessage() 
                 : "E-posta veya şifre hatalı";
@@ -51,13 +50,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    // Fallback for any unexpected exceptions — ensure Global handler produces consistent JSON
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGlobalException(Exception ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Beklenmeyen bir hata oluştu");
     }
 
-    // Yardımcı Metodlar (Helper Methods)
     private Map<String, Object> createBaseBody(HttpStatus status, String error) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
