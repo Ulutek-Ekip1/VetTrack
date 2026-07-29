@@ -1,0 +1,2 @@
+// StartVisit UseCase
+class StartVisitUseCase {}

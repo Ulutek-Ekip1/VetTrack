@@ -1,0 +1,2 @@
+// SearchByCode UseCase
+class SearchByCodeUseCase {}

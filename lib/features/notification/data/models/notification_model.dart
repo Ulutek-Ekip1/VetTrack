@@ -1,0 +1,2 @@
+// Notification Model
+class NotificationModel {}

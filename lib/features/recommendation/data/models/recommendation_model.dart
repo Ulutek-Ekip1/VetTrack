@@ -1,0 +1,2 @@
+// Recommendation Model
+class RecommendationModel {}

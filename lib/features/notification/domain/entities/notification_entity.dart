@@ -1,0 +1,2 @@
+// Notification Entity
+class NotificationEntity {}
