@@ -1,2 +1,8 @@
-// Auth Repository Arayüzü
-abstract class AuthRepository {}
+import '../entities/user_entity.dart';
+
+abstract class AuthRepository {
+  Future<UserEntity> loginWithEmail(String email, String password);
+  Future<UserEntity> register(String email, String password, String name, String? phone, UserRole role);
+  Future<void> logout();
+  Future<UserEntity?> getCurrentUser();
+}

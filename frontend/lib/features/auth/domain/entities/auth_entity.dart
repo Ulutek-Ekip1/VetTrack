@@ -1,2 +1,0 @@
-// Auth Entity
-class AuthEntity {}
