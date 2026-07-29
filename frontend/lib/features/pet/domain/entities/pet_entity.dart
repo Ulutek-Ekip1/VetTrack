@@ -1,0 +1,2 @@
+// Pet Entity
+class PetEntity {}

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # VetTrack Frontend (Flutter)
 
 Bu proje VetTrack sisteminin Flutter Web ve Mobil frontend uygulamasıdır.
@@ -28,7 +27,3 @@ lib/
    ```bash
    flutter run
    ```
-=======
-# VetTrack
-ULUTEK Yazılım Vadisi Staj Programı Kapsamında Ekip 1 Tarafından Geliştirilen Ürün
->>>>>>> origin/main

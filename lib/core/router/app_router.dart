@@ -47,7 +47,7 @@ abstract class AppRoutes {
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
 
-  // 🐾 Pet Modülü Rotaları
+  //Pet Modülü Rotaları
   static const String ownerPets = '/owner/pets';
   static const String addPet = '/owner/pets/add';
   static const String petDetail = '/owner/pets/:petId';
@@ -55,22 +55,23 @@ abstract class AppRoutes {
   static const String ownerProfile = '/owner/profile';
   static const String ownerVisitHistoryList = '/owner/visits';
 
-  // 🩺 Visit (Ziyaret / Muayene) Modülü Rotaları
+  //Visit (Ziyaret / Muayene) Modülü Rotaları
   static const String vetSearch = '/vet/search';
   static const String activeVisit = '/vet/visit/active/:visitId';
   static const String petVisitHistory = '/owner/pets/:petId/visits';
   static const String vetProfile = '/vet/profile';
   static const String vetVisitHistory = '/vet/history';
 
-  // 💉 Treatment & Recommendation Rotaları
+  //Treatment & Recommendation Rotaları
   static const String addTreatment = '/vet/visit/:visitId/treatment/add';
-  static const String addRecommendation = '/vet/visit/:visitId/recommendation/add';
+  static const String addRecommendation =
+      '/vet/visit/:visitId/recommendation/add';
   static const String petTreatments = '/owner/pets/:petId/treatments';
 
-  // 🤖 Recommendation Modülü Rotaları
+  //Recommendation Modülü Rotaları
   static const String petRecommendations = '/owner/pets/:petId/recommendations';
 
-  // 🔔 Notification Modülü Rotaları
+  //Notification Modülü Rotaları
   static const String notifications = '/notifications';
 }
 
@@ -80,11 +81,11 @@ class AppRouter {
       initialLocation: AppRoutes.login,
       refreshListenable:
           authBloc != null ? GoRouterRefreshStream(authBloc.stream) : null,
-      
-      // 🚫 404 / Sayfa Bulunamadı Katmanı
+
+      //404 / Sayfa Bulunamadı Katmanı
       errorBuilder: (context, state) => const NotFoundScreen(),
 
-      // 🛡️ Auth & Rol Bazlı Redirect
+      //Auth & Rol Bazlı Redirect
       redirect: (BuildContext context, GoRouterState state) {
         final authState = authBloc?.state;
         final isLoggedIn = authState is AuthenticatedState;
@@ -133,7 +134,7 @@ class AppRouter {
           builder: (context, state) => const ForgotPasswordScreen(),
         ),
 
-        // 🐾 Hayvan Sahibi StatefulShellRoute
+        //Hayvan Sahibi StatefulShellRoute
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
             return OwnerShellScreen(navigationShell: navigationShell);
@@ -202,7 +203,8 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.ownerVisitHistoryList,
                   name: 'ownerVisitHistoryList',
-                  builder: (context, state) => const OwnerVisitHistoryListScreen(),
+                  builder: (context, state) =>
+                      const OwnerVisitHistoryListScreen(),
                 ),
               ],
             ),
@@ -218,7 +220,7 @@ class AppRouter {
           ],
         ),
 
-        // 🩺 Veteriner Hekim StatefulShellRoute
+        //Veteriner Hekim StatefulShellRoute
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
             return VetShellScreen(navigationShell: navigationShell);
@@ -263,7 +265,7 @@ class AppRouter {
           ],
         ),
 
-        // 🩺 Muayene Yaşam Döngüsü & Hiyerarşik Muayene Akışı (Nested Visit Routes)
+        //Muayene Yaşam Döngüsü & Hiyerarşik Muayene Akışı (Nested Visit Routes)
         GoRoute(
           path: AppRoutes.activeVisit,
           name: 'activeVisit',
@@ -272,7 +274,7 @@ class AppRouter {
             return ActiveVisitScreen(visitId: visitId);
           },
         ),
-        // 💉 Tedavi Girişi Rotası: /vet/visit/:visitId/treatment/add
+        //Tedavi Girişi Rotası: /vet/visit/:visitId/treatment/add
         GoRoute(
           path: AppRoutes.addTreatment,
           name: 'addTreatment',
@@ -281,7 +283,7 @@ class AppRouter {
             return AddTreatmentScreen(visitId: visitId);
           },
         ),
-        // 💡 Öneri Girişi Rotası: /vet/visit/:visitId/recommendation/add
+        //Öneri Girişi Rotası: /vet/visit/:visitId/recommendation/add
         GoRoute(
           path: AppRoutes.addRecommendation,
           name: 'addRecommendation',

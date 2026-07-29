@@ -1,0 +1,2 @@
+// Visit Model
+class VisitModel {}
