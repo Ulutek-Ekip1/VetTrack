@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface PetRepository extends JpaRepository<Pet, UUID> {
     Optional<Pet> findByUniqueCodeIgnoreCase(String uniqueCode);
-    List<Pet> findByOwnerId(UUID ownerId);
+    List<Pet> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId);
     boolean existsByUniqueCode(String uniqueCode);
 }

@@ -6,13 +6,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/pets")
+@RequestMapping("/pets")
 @RequiredArgsConstructor
 @Tag(name = "Pet Yönetimi", description = "Evcil hayvan kayıt, güncelleme, listeleme ve benzersiz kod ile arama API'leri")
 public class PetController {
@@ -21,9 +23,12 @@ public class PetController {
 
     @PostMapping
     @Operation(summary = "Yeni Pet Ekle", description = "Sisteme yeni bir pet kaydeder ve otomatik olarak 6 haneli benzersiz kod üretir.")
-    public ResponseEntity<Pet> createPet(@Valid @RequestBody PetCreateRequest request) {
+    public ResponseEntity<Pet> createPet(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody PetCreateRequest request
+    ) {
         Pet pet = Pet.builder()
-                .ownerId(request.getOwnerId())
+                .ownerId(UUID.fromString(jwt.getSubject()))
                 .name(request.getName())
                 .photoUrl(request.getPhotoUrl())
                 .age(request.getAge())
@@ -33,6 +38,13 @@ public class PetController {
 
         Pet createdPet = petService.createPet(pet);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPet);
+    }
+
+    @GetMapping
+    @Operation(summary = "Sahibin Petlerini Listele", description = "JWT'den alınan ownerId ile o kullanıcıya ait tüm petleri listeler.")
+    public ResponseEntity<List<Pet>> getCurrentUserPets(@AuthenticationPrincipal Jwt jwt) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(petService.getPetsByOwner(ownerId));
     }
 
     @GetMapping("/{id}")
@@ -45,12 +57,6 @@ public class PetController {
     @Operation(summary = "Benzersiz Kod ile Pet Bul", description = "Hekimlerin 6 haneli unique_code ile arama yapmasını sağlar.")
     public ResponseEntity<Pet> getPetByUniqueCode(@PathVariable String uniqueCode) {
         return ResponseEntity.ok(petService.getPetByUniqueCode(uniqueCode));
-    }
-
-    @GetMapping("/owner/{ownerId}")
-    @Operation(summary = "Sahibinin Petlerini Listele", description = "Belirtilen owner_id'ye ait tüm petleri listeler.")
-    public ResponseEntity<List<Pet>> getPetsByOwner(@PathVariable UUID ownerId) {
-        return ResponseEntity.ok(petService.getPetsByOwner(ownerId));
     }
 
     @PutMapping("/{id}")
