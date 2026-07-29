@@ -52,7 +52,7 @@ public class PetService {
      */
     @Transactional(readOnly = true)
     public List<Pet> getPetsByOwner(UUID ownerId) {
-        return petRepository.findByOwnerId(ownerId);
+        return petRepository.findByOwnerIdOrderByCreatedAtDesc(ownerId);
     }
 
     /**
