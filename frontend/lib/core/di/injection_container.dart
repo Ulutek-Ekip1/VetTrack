@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/delete_pet_usecase.dart';
 import '../network/auth_interceptor.dart';
 import '../../features/auth/data/datasources/token_local_data_source.dart';
 
@@ -98,6 +99,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetPetByIdUseCase(sl()));
   sl.registerLazySingleton(() => UpdatePetUseCase(sl()));
   sl.registerLazySingleton(() => UpdatePetPhotoUseCase(sl()));
+  sl.registerLazySingleton(() => DeletePetUseCase(sl()));
 
   // Cubits
   sl.registerFactory(
@@ -107,6 +109,7 @@ Future<void> init() async {
       getPetByIdUseCase: sl(),
       updatePetUseCase: sl(),
       updatePetPhotoUseCase: sl(),
+      deletePetUseCase: sl(),
     ),
   );
 }

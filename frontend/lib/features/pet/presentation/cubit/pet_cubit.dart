@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/add_pet_usecase.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/delete_pet_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/get_pet_by_id_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/get_pets_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_photo_usecase.dart';
@@ -13,6 +14,7 @@ class PetCubit extends Cubit<PetState> {
   final GetPetByIdUseCase getPetByIdUseCase;
   final UpdatePetUseCase updatePetUseCase;
   final UpdatePetPhotoUseCase updatePetPhotoUseCase;
+  final DeletePetUseCase deletePetUseCase;
   //final GetPetVisitsUseCase getPetVisitsUseCase;
   //final GetPetRecommendationsUseCase getPetRecommendationsUseCase;
 
@@ -21,7 +23,8 @@ class PetCubit extends Cubit<PetState> {
       required this.addPetUseCase,
       required this.getPetByIdUseCase,
       required this.updatePetUseCase,
-      required this.updatePetPhotoUseCase})
+      required this.updatePetPhotoUseCase,
+      required this.deletePetUseCase})
       : super(PetInitial());
 
   Future<void> fetchPets() async {
@@ -102,6 +105,16 @@ class PetCubit extends Cubit<PetState> {
       );
       emit(const PetActionSuccess(message: 'Pet photo updated successfully'));
       fetchPets(); // Refresh the list of pets after updating the photo
+    } catch (e) {
+      emit(PetActionError(message: e.toString()));
+    }
+  }
+  Future<void> deletePet({required String id}) async {
+    emit(PetActionLoading());
+    try {
+      await deletePetUseCase.call(id: id);
+      emit(const PetActionSuccess(message: 'Evcil hayvan başarıyla silindi'));
+      fetchPets(); // Silme işleminden sonra listeyi güncelle
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }

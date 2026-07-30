@@ -13,6 +13,7 @@ class PetModel extends PetEntity {
     required super.uniqueCode,
     super.photoUrl,
     required super.createdAt,
+    super.deletedAt,
   });
 
   factory PetModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +36,9 @@ class PetModel extends PetEntity {
       uniqueCode: json['uniqueCode'] as String,
       photoUrl: json['photoUrl'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.parse(json['deletedAt'] as String)
+          : null,
     );
   }
 
@@ -49,6 +53,7 @@ class PetModel extends PetEntity {
       'uniqueCode': uniqueCode,
       if (photoUrl != null) 'photoUrl': photoUrl,
       'createdAt': createdAt.toIso8601String(),
+      if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
     };
   }
 }

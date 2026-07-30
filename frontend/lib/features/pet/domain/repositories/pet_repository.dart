@@ -17,6 +17,7 @@ abstract class PetRepository {
     String? breed,
   });
   Future<String> updatePetPhoto(String id, String photoFilePath);
+  Future<void> deletePet({required String id});
   /* Future<List<VisitDetailEntity>> getPetVisits(String id); */
   /*  Future<List<RecommendationDetailEntity>> getPetRecommendations(String id); */
 }

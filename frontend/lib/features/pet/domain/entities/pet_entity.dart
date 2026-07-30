@@ -13,6 +13,7 @@ class PetEntity extends Equatable {
   final String uniqueCode;
   final String? photoUrl;
   final DateTime createdAt;
+  final DateTime? deletedAt;
 
   const PetEntity({
     required this.id,
@@ -24,6 +25,7 @@ class PetEntity extends Equatable {
     required this.uniqueCode,
     this.photoUrl,
     required this.createdAt,
+    this.deletedAt,
   });
 
   @override
@@ -37,5 +39,6 @@ class PetEntity extends Equatable {
         uniqueCode,
         photoUrl,
         createdAt,
+        deletedAt,
       ];
 }
