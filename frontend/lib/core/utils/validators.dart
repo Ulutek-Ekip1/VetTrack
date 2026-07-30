@@ -1,90 +1,56 @@
+// Form Doğrulayıcılar (Email, Şifre, Ad Soyad, Telefon, Hasta Kodu)
+// VetTrack API Sözleşmesi (docs/api-contract.md) kuralları temel alınmıştır.
+
 class Validators {
-  /// Validates that a value is not null and not empty.
-  static String? isNotEmpty(String? value, String fieldName) {
+  /// E-posta doğrulama (Zorunlu, geçerli e-posta formatı)
+  static String? validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return '$fieldName boş bırakılamaz.';
+      return 'E-posta adresi zorunludur';
     }
-    return null;
-  }
-
-  /// Validates an email address format.
-  static String? isValidEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'E-posta adresi boş bırakılamaz.';
-    }
-    final emailRegex = RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    );
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value.trim())) {
-      return 'Geçersiz e-posta adresi formatı.';
+      return 'Geçerli bir e-posta adresi giriniz';
     }
     return null;
   }
 
-  /// Validates password strength (minimum 8 characters).
-  static String? isValidPassword(String? value) {
+  /// Şifre doğrulama (Zorunlu, en az 8 karakter)
+  static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Şifre boş bırakılamaz.';
+      return 'Şifre zorunludur';
     }
     if (value.length < 8) {
-      return 'Şifre en az 8 karakter olmalıdır.';
+      return 'Şifre en az 8 karakter olmalıdır';
     }
     return null;
   }
 
-  /// Validates name length (1-100 characters).
-  static String? isValidName(String? value, String fieldName) {
-    final emptyCheck = isNotEmpty(value, fieldName);
-    if (emptyCheck != null) return emptyCheck;
-
-    if (value!.trim().length > 100) {
-      return '$fieldName en fazla 100 karakter olabilir.';
-    }
-    return null;
-  }
-
-  /// Validates phone number format.
-  static String? isValidPhone(String? value) {
+  /// Ad Soyad doğrulama (Zorunlu, 1-100 karakter)
+  static String? validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return null; // Phone is optional in some endpoints, null is handled externally if required.
+      return 'Ad soyad zorunludur';
     }
-    // Clean spaces, parentheses, dashes, and dots: "0 (555) 123-45.67" -> "05551234567"
-    final cleaned = value.replaceAll(RegExp(r'[\s\(\)\-\.]'), '');
-    final phoneRegex = RegExp(r'^\+?[0-9]{9,15}$');
-    if (!phoneRegex.hasMatch(cleaned)) {
-      return 'Geçersiz telefon numarası formatı.';
+    if (value.trim().length > 100) {
+      return 'Ad soyad en fazla 100 karakter olabilir';
     }
     return null;
   }
 
-  /// Validates unique code for pets (exactly 6 alphanumeric characters ignoring spaces).
-  static String? isValidUniqueCode(String? value) {
+  /// Telefon doğrulama (Opsiyonel, max 20 karakter)
+  static String? validatePhone(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Hayvan kodu boş bırakılamaz.';
+      return null; // Opsiyonel
     }
-    // Remove spaces before validation
-    final normalized = value.replaceAll(RegExp(r'\s+'), '');
-    if (normalized.length != 6) {
-      return 'Hayvan kodu tam olarak 6 haneli olmalıdır.';
-    }
-    final alphanumericRegex = RegExp(r'^[a-zA-Z0-9]+$');
-    if (!alphanumericRegex.hasMatch(normalized)) {
-      return 'Hayvan kodu sadece harf ve rakamlardan oluşmalıdır.';
+    if (value.trim().length > 20) {
+      return 'Telefon numarası en fazla 20 karakter olabilir';
     }
     return null;
   }
 
-  /// Validates pet age (must be an integer between 0 and 50).
-  static String? isValidAge(String? value) {
+  /// Hasta Kodu doğrulama (Kodu ile hasta bulma için - FR-01 / EC-01)
+  static String? validateUniqueCode(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return null; // Age is optional.
-    }
-    final age = int.tryParse(value.trim());
-    if (age == null) {
-      return 'Yaş geçerli bir sayı olmalıdır.';
-    }
-    if (age < 0 || age > 50) {
-      return 'Yaş 0 ile 50 arasında olmalıdır.';
+      return 'Hasta benzersiz kodu zorunludur';
     }
     return null;
   }
