@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
 
 class PetListScreen extends StatelessWidget {
   const PetListScreen({super.key});
@@ -32,7 +32,7 @@ class PetListScreen extends StatelessWidget {
             icon: const Icon(Icons.logout),
             tooltip: 'Çıkış Yap',
             onPressed: () {
-              context.read<AuthBloc>().add(LogoutSubmittedEvent());
+              context.read<AuthCubit>().signOut();
             },
           ),
         ],

@@ -42,7 +42,7 @@ class PetCubit extends Cubit<PetState> {
   }) async {
     emit(PetActionLoading());
     try {
-      final pet = await addPetUseCase.call(
+      await addPetUseCase.call(
         // ileri de bunu petactionSuccess ile uı tarafına gönderilebilir.
         //Şu anda sadece geri dönen değeri tutuyor listeyi sunucudan güncelliyoruz.
         name: name,
@@ -78,7 +78,7 @@ class PetCubit extends Cubit<PetState> {
   }) async {
     emit(PetActionLoading());
     try {
-      final updatedPet = await updatePetUseCase.call(
+      await updatePetUseCase.call(
         id: id,
         name: name,
         gender: gender,
@@ -96,7 +96,7 @@ class PetCubit extends Cubit<PetState> {
   }) async {
     emit(PetActionLoading());
     try {
-      final updatedPet = await updatePetPhotoUseCase.call(
+      await updatePetPhotoUseCase.call(
         id: id,
         photoPath: photoPath,
       );

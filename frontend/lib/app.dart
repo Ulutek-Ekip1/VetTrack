@@ -10,14 +10,16 @@ class VetTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthCubit>(
-      create: (_) => sl<AuthCubit>()..checkAuthStatus(),
+    final authCubit = sl<AuthCubit>()..checkAuthStatus();
+    
+    return BlocProvider<AuthCubit>.value(
+      value: authCubit,
       child: MaterialApp.router(
         title: 'VetTrack',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        routerConfig: AppRouter.router,
+        routerConfig: AppRouter.createRouter(authCubit),
       ),
     );
   }

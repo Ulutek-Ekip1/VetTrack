@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/auth_bloc.dart';
+import '../cubit/auth_cubit.dart';
 
 class OwnerProfileScreen extends StatelessWidget {
   const OwnerProfileScreen({super.key});
@@ -31,7 +31,7 @@ class OwnerProfileScreen extends StatelessWidget {
             const Spacer(),
             ElevatedButton.icon(
               onPressed: () {
-                context.read<AuthBloc>().add(LogoutSubmittedEvent());
+                context.read<AuthCubit>().signOut();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
