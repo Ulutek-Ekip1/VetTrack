@@ -170,6 +170,21 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+    delete:
+      tags: [Auth]
+      summary: Hesap sil
+      description: |
+        Kullanıcının hesabını siler. Tüm hayvanları soft delete olur.
+        Supabase Auth'tan kullanıcı deaktive edilir. Tıbbi geçmiş
+        saklanır (KVKK). Henüz implement edilmedi, Sprint 3'te planlanıyor.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Hesap silindi
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   # ---- Pets ----
   /pets:
     post:
@@ -265,6 +280,26 @@ paths:
                 $ref: '#/components/schemas/PetResponse'
         '400':
           $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Pets]
+      summary: Hayvan sil (soft delete)
+      description: |
+        Hayvanı pasife alır (EC-05). deleted_at doldurulur, kayıt silinmez.
+        Tıbbi geçmiş saklanır, listeleme ve kod aramasında görünmez.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: Hayvan pasife alındı
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
