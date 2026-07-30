@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/auth/domain/entities/auth_entity.dart';
-import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/domain/entities/user_entity.dart';
+import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/auth/presentation/cubit/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -76,19 +77,19 @@ abstract class AppRoutes {
 }
 
 class AppRouter {
-  static GoRouter createRouter([AuthBloc? authBloc]) {
+  static GoRouter createRouter([AuthCubit? authCubit]) {
     return GoRouter(
       initialLocation: AppRoutes.login,
       refreshListenable:
-          authBloc != null ? GoRouterRefreshStream(authBloc.stream) : null,
+          authCubit != null ? GoRouterRefreshStream(authCubit.stream) : null,
 
       //404 / Sayfa Bulunamadı Katmanı
       errorBuilder: (context, state) => const NotFoundScreen(),
 
       //Auth & Rol Bazlı Redirect
       redirect: (BuildContext context, GoRouterState state) {
-        final authState = authBloc?.state;
-        final isLoggedIn = authState is AuthenticatedState;
+        final authState = authCubit?.state;
+        final isLoggedIn = authState is Authenticated;
         final location = state.matchedLocation;
 
         final isLoggingIn = location == AppRoutes.login ||

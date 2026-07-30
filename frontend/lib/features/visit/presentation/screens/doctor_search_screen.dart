@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
 
 class DoctorSearchScreen extends StatefulWidget {
   const DoctorSearchScreen({super.key});
@@ -42,7 +42,7 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
             icon: const Icon(Icons.logout),
             tooltip: 'Çıkış Yap',
             onPressed: () {
-              context.read<AuthBloc>().add(LogoutSubmittedEvent());
+              context.read<AuthCubit>().signOut();
             },
           ),
         ],

@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/validators.dart';
-import '../../domain/entities/auth_entity.dart';
-import '../bloc/auth_bloc.dart';
+import '../../domain/entities/user_entity.dart';
+import '../cubit/auth_cubit.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,12 +37,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _onLogin() {
     if (_formKey.currentState!.validate()) {
-      context.read<AuthBloc>().add(
-            LoginSubmittedEvent(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-              role: _selectedRole,
-            ),
+      context.read<AuthCubit>().signInWithEmail(
+            _emailController.text.trim(),
+            _passwordController.text,
           );
     }
   }
