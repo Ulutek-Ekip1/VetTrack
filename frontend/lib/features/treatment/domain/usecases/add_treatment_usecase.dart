@@ -1,2 +1,4 @@
 // AddTreatment UseCase
-class AddTreatmentUseCase {}
+class AddTreatmentUseCase {
+  Future<void> call(dynamic treatment) async {}
+}

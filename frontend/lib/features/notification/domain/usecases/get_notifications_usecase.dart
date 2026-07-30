@@ -1,2 +1,8 @@
+import '../entities/notification_entity.dart';
+
 // GetNotifications UseCase
-class GetNotificationsUseCase {}
+class GetNotificationsUseCase {
+  Future<List<NotificationEntity>> call() async {
+    return [];
+  }
+}
