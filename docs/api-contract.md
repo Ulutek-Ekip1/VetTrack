@@ -585,3 +585,36 @@
 2. **EC-05 soft delete:** `pets` tablosuna `deleted_at` kolonu eklenmeli.
 3. **EC-08 audit log:** Tedavi silme/düzenleme denetim izi için `audit_logs` tablosu veya `treatment_entries`'e `updated_at` kolonu.
 4. **Dosya yükleme akışı:** Tedavi eki (röntgen/tahlil) nasıl yüklenecek? Ayrı bir `POST /uploads` endpoint'i mi, yoksa frontend doğrudan Supabase Storage SDK'sıyla mı yükleyecek?
+
+---
+
+### DELETE /pets/{id} — Hayvan sil (soft delete)
+
+**Kim:** Sadece hayvanın sahibi (`owner`). **PRD:** EC-05.
+
+**Path param:** `id` (UUID)
+
+**Response:** `204 No Content`
+
+**Hatalar:** 401, 403 (başkasının hayvanı), 404
+
+**Notlar:**
+- Hayvan tamamen silinmez, `deleted_at` alanı doldurulur (soft delete)
+- Silinen hayvan `GET /pets` ve `GET /visits/code/{code}` sorgularında görünmez
+- Tıbbi geçmiş (ziyaretler, tedaviler) saklanır
+
+---
+
+### DELETE /auth/me — Hesap sil
+
+**Kim:** JWT gerekli (kendi hesabını siler). **PRD:** EC-05.
+
+**Response:** `204 No Content`
+
+**Hatalar:** 401
+
+**Notlar:**
+- Kullanıcının tüm hayvanları da soft delete olur
+- Supabase Auth'tan kullanıcı deaktive edilir
+- Tıbbi geçmiş saklanır (KVKK ve kayıt zorunluluğu)
+- Bu endpoint henüz implement edilmedi, Sprint 3'te planlanıyor
