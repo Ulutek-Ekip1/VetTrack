@@ -5,6 +5,17 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../network/auth_interceptor.dart';
 import '../../features/auth/data/datasources/token_local_data_source.dart';
 
+// Pet Imports
+import 'package:vettrack_frontend/features/pet/data/datasources/pet_remote_datasource.dart';
+import 'package:vettrack_frontend/features/pet/data/repositories/pet_repository_impl.dart';
+import 'package:vettrack_frontend/features/pet/domain/repositories/pet_repository.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/add_pet_usecase.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/get_pet_by_id_usecase.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/get_pets_usecase.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_photo_usecase.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_usecase.dart';
+import 'package:vettrack_frontend/features/pet/presentation/cubit/pet_cubit.dart';
+
 // Auth Imports
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -21,11 +32,13 @@ Future<void> init() async {
   // EXTERNAL (Dış Kütüphaneler)
   // ---------------------------------------------------------------------------
   sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
-  sl.registerLazySingleton<FlutterSecureStorage>(() => const FlutterSecureStorage());
+  sl.registerLazySingleton<FlutterSecureStorage>(
+      () => const FlutterSecureStorage());
 
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio(BaseOptions(
-      baseUrl: 'http://10.0.2.2:8080/api', // Android Emulator default local backend
+      baseUrl:
+          'http://10.0.2.2:8080/api', // Android Emulator default local backend
       headers: {'Content-Type': 'application/json'},
     ));
     // Auth Interceptor ekliyoruz
@@ -62,6 +75,38 @@ Future<void> init() async {
       registerUseCase: sl(),
       logoutUseCase: sl(),
       authRepository: sl(),
+    ),
+  );
+
+  // ---------------------------------------------------------------------------
+  // PET FEATURE
+  // ---------------------------------------------------------------------------
+
+  // Data Sources
+  sl.registerLazySingleton<PetRemoteDataSource>(
+    () => PetRemoteDataSourceImpl(sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<PetRepository>(
+    () => PetRepositoryImpl(sl()),
+  );
+
+  // UseCases
+  sl.registerLazySingleton(() => GetPetsUseCase(sl()));
+  sl.registerLazySingleton(() => AddPetUseCase(sl()));
+  sl.registerLazySingleton(() => GetPetByIdUseCase(sl()));
+  sl.registerLazySingleton(() => UpdatePetUseCase(sl()));
+  sl.registerLazySingleton(() => UpdatePetPhotoUseCase(sl()));
+
+  // Cubits
+  sl.registerFactory(
+    () => PetCubit(
+      getPetsUseCase: sl(),
+      addPetUseCase: sl(),
+      getPetByIdUseCase: sl(),
+      updatePetUseCase: sl(),
+      updatePetPhotoUseCase: sl(),
     ),
   );
 }

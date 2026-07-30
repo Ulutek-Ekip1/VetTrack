@@ -5,7 +5,7 @@ class UpdatePetPhotoUseCase {
 
   UpdatePetPhotoUseCase(this.repository);
 
-  Future<String> call(String petId, String photoUrl) async {
-    return await repository.updatePetPhoto(petId, photoUrl);
+  Future<String> call({required String photoPath, required String id}) async {
+    return await repository.updatePetPhoto(id, photoPath);
   }
 }

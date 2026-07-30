@@ -28,3 +28,23 @@ class PetError extends PetState {
   @override
   List<Object> get props => [message];
 }
+
+class PetActionLoading extends PetState {}
+
+class PetActionSuccess extends PetState {
+  final String message;
+
+  const PetActionSuccess({required this.message});
+
+  @override
+  List<Object> get props => [message];
+}
+
+class PetActionError extends PetState {
+  final String message;
+
+  const PetActionError({required this.message});
+
+  @override
+  List<Object> get props => [message];
+}
