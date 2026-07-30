@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:vettrack_frontend/features/pet/data/models/pet_model.dart';
+import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
 
 abstract class PetState extends Equatable {
   const PetState();
@@ -12,9 +12,9 @@ class PetInitial extends PetState {}
 class PetLoading extends PetState {}
 
 class PetLoaded extends PetState {
-  final List<PetModel> pets;
+  final List<PetEntity> pets;
 
-  const PetLoaded(this.pets);
+  const PetLoaded({required this.pets});
 
   @override
   List<Object> get props => [pets];
@@ -23,7 +23,7 @@ class PetLoaded extends PetState {
 class PetError extends PetState {
   final String message;
 
-  const PetError(this.message);
+  const PetError({required this.message});
 
   @override
   List<Object> get props => [message];
