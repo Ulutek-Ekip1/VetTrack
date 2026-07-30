@@ -1,44 +1,34 @@
 package com.vettrack.api.notification;
 
 import com.vettrack.api.common.exception.UnauthorizedException;
-import com.vettrack.api.notification.dto.DeviceTokenRequest;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/devices")
-public class DeviceTokenController {
+@RequestMapping("/notifications")
+@RequiredArgsConstructor
+public class NotificationController {
 
-    private final DeviceTokenService service;
+    private final NotificationService notificationService;
 
-    public DeviceTokenController(DeviceTokenService service) {
-        this.service = service;
+    @GetMapping
+    public ResponseEntity<List<Notification>> getNotifications(Authentication authentication) {
+        UUID ownerId = extractOwnerId(authentication);
+        List<Notification> notifications = notificationService.getOwnerNotifications(ownerId);
+        return ResponseEntity.ok(notifications);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<Void> registerDevice(
+    @PutMapping("/{id}/read")
+    public ResponseEntity<Void> markAsRead(
             Authentication authentication,
-            @Valid @RequestBody DeviceTokenRequest request) {
-
+            @PathVariable UUID id) {
         UUID ownerId = extractOwnerId(authentication);
-        service.registerDevice(ownerId, request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-    @PostMapping("/unregister")
-    public ResponseEntity<Void> unregisterDevice(
-            Authentication authentication,
-            @Valid @RequestBody DeviceTokenRequest request) {
-
-        UUID ownerId = extractOwnerId(authentication);
-        service.unregisterDevice(ownerId, request.getFcmToken());
-
+        notificationService.markAsRead(id, ownerId);
         return ResponseEntity.noContent().build();
     }
 

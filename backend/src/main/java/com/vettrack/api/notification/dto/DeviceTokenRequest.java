@@ -19,19 +19,9 @@ public class DeviceTokenRequest {
         this.platform = platform;
     }
 
-    public String getFcmToken() { 
-        return fcmToken; 
-    }
+    public String getFcmToken() { return fcmToken; }
+    public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
 
-    public void setFcmToken(String fcmToken) { 
-        this.fcmToken = fcmToken; 
-    }
-
-    public String getPlatform() { 
-        return platform; 
-    }
-
-    public void setPlatform(String platform) { 
-        this.platform = platform; 
-    }
+    public String getPlatform() { return platform; }
+    public void setPlatform(String platform) { this.platform = platform; }
 }

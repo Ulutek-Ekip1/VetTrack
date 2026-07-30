@@ -63,7 +63,6 @@ public class AuthService {
 
             AuthResponse authResponse = mapToAuthResponse(resp.getBody());
 
-            // Supabase'den dönen UUID'yi alarak Owner'ı kaydediyoruz
             if (request.getEmail() != null && authResponse != null && authResponse.getUser() instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> userMap = (Map<String, Object>) authResponse.getUser();
@@ -97,7 +96,7 @@ public class AuthService {
     private void saveOwnerIfNotExist(UUID id, String email, String name, String phone) {
         if (ownerRepository.findByEmail(email).isEmpty()) {
             Owner owner = Owner.builder()
-                    .id(id) // Supabase User ID'si set ediliyor
+                    .id(id)
                     .email(email)
                     .name(name)
                     .phone(phone)

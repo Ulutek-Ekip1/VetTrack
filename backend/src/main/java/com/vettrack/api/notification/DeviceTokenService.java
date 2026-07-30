@@ -3,7 +3,8 @@ package com.vettrack.api.notification;
 import com.vettrack.api.notification.dto.DeviceTokenRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.OffsetDateTime;
+
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,26 +20,23 @@ public class DeviceTokenService {
     @Transactional
     public void registerDevice(UUID ownerId, DeviceTokenRequest request) {
         Optional<DeviceToken> existingTokenOpt = repository.findByFcmToken(request.getFcmToken());
+        DeviceToken.Platform platformEnum = parsePlatform(request.getPlatform());
 
         if (existingTokenOpt.isPresent()) {
             DeviceToken deviceToken = existingTokenOpt.get();
-            
-            // Eğer token zaten bu sahibe aitse sadece son erişim tarihini güncelle
-            if (deviceToken.getOwnerId().equals(ownerId)) {
-                deviceToken.setCreatedAt(OffsetDateTime.now());
-            } else {
-                // Token başka bir kullanıcıya aitse (cihaz el değiştirdiyse veya farklı biri girdi yaptıysa)
-                // Yetkisiz bildirim gönderimini engellemek için sahipliği güvenle güncelle.
-                deviceToken.setOwnerId(ownerId);
-                deviceToken.setPlatform(request.getPlatform());
-                deviceToken.setCreatedAt(OffsetDateTime.now());
-            }
+            deviceToken.setOwnerId(ownerId);
+            deviceToken.setPlatform(platformEnum);
+            deviceToken.setUpdatedAt(Instant.now());
             repository.save(deviceToken);
         } else {
-            // Tamamen yeni bir token kaydı oluştur
-            DeviceToken newToken = new DeviceToken(ownerId, request.getFcmToken(), request.getPlatform());
+            DeviceToken newToken = new DeviceToken(ownerId, request.getFcmToken(), platformEnum);
             repository.save(newToken);
         }
+    }
+
+    @Transactional
+    public void unregisterDevice(UUID ownerId, String fcmToken) {
+        repository.deleteByOwnerIdAndFcmToken(ownerId, fcmToken);
     }
 
     @Transactional
@@ -47,7 +45,16 @@ public class DeviceTokenService {
     }
 
     @Transactional
-    public int cleanStaleTokens(OffsetDateTime threshold) {
-        return repository.deleteByCreatedAtBefore(threshold);
+    public int cleanStaleTokens(Instant threshold) {
+        return repository.deleteByUpdatedAtBefore(threshold);
+    }
+
+    private DeviceToken.Platform parsePlatform(String platformStr) {
+        if (platformStr == null) return DeviceToken.Platform.ANDROID;
+        try {
+            return DeviceToken.Platform.valueOf(platformStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return DeviceToken.Platform.ANDROID;
+        }
     }
 }
