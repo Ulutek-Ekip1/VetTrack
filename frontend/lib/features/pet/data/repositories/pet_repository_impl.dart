@@ -54,14 +54,8 @@ class PetRepositoryImpl implements PetRepository {
     return await remoteDataSource.updatePetPhoto(id, photoFilePath);
   }
 
-  /* @override
-  Future<List<VisitDetailEntity>> getPetVisits(String id) async {
-    return await remoteDataSource.getPetVisits(id);
-  }
-
   @override
-  Future<List<RecommendationDetailEntity>> getPetRecommendations(
-      String id) async {
-    return await remoteDataSource.getPetRecommendations(id);
-  } */
+  Future<void> deletePet(String id) async {
+    await remoteDataSource.deletePet(id);
+  }
 }
