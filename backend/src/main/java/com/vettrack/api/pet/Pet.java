@@ -29,8 +29,9 @@ public class Pet {
 
     private Integer age;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 10)
-    private String gender;
+    private Gender gender;
 
     @Column(length = 100)
     private String breed;
@@ -41,6 +42,9 @@ public class Pet {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
+    
     @PrePersist
     protected void onCreate() {
         if (this.createdAt == null) {

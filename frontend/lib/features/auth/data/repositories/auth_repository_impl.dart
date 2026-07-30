@@ -13,7 +13,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<UserEntity> register(String email, String password, String name, String? phone, UserRole role) async {
+  Future<UserEntity> register(String email, String password, String name,
+      String? phone, UserRole role) async {
     return await remoteDataSource.register(email, password, name, phone, role);
   }
 

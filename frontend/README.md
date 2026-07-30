@@ -20,9 +20,10 @@ lib/
 
 1. Bağımlılıkları yükleyin:
    ```bash
+   cd frontend
    flutter pub get
    ```
-2. `.env` dosyasını oluşturun ve gerekli anahtarları doldurun.
+2. `.env` dosyasını oluşturun ve gerekli anahtarları doldurun.
 3. Uygulamayı çalıştırın:
    ```bash
    flutter run

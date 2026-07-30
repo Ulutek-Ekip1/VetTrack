@@ -145,8 +145,15 @@
 <!-- Sentry - hata izleme -->
 <dependency>
     <groupId>io.sentry</groupId>
-    <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
-    <version>7.22.0</version>
+    <artifactId>sentry-spring-boot-4-starter</artifactId>
+    <version>8.48.0</version>
+</dependency>
+
+<!-- H2 Database for Running Tests -->
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>test</scope>
 </dependency>
 	</dependencies>
 
