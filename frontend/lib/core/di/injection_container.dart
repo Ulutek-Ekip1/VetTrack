@@ -35,6 +35,23 @@ import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 
+// Treatment Imports
+import 'package:vettrack_frontend/features/treatment/domain/usecases/add_treatment_usecase.dart';
+import 'package:vettrack_frontend/features/treatment/domain/usecases/delete_treatment_usecase.dart';
+import 'package:vettrack_frontend/features/treatment/domain/usecases/get_treatment_usecase.dart';
+import 'package:vettrack_frontend/features/treatment/presentation/cubit/treatment_cubit.dart';
+import 'package:vettrack_frontend/features/treatment/data/repositories/treatment_repository_impl.dart';
+import 'package:vettrack_frontend/features/treatment/data/datasources/treatment_remote_datasource.dart';
+import 'package:vettrack_frontend/features/treatment/domain/repositories/treatment_repository.dart';
+
+// Notification Imports
+import 'package:vettrack_frontend/features/notification/domain/usecases/get_notifications_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/register_device_token_usecase.dart';
+import 'package:vettrack_frontend/features/notification/presentation/cubit/notification_cubit.dart';
+import 'package:vettrack_frontend/features/notification/data/repositories/notification_repository_impl.dart';
+import 'package:vettrack_frontend/features/notification/data/datasources/notification_remote_datasource.dart';
+import 'package:vettrack_frontend/features/notification/domain/repositories/notification_repository.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -47,8 +64,7 @@ Future<void> init() async {
 
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio(BaseOptions(
-      baseUrl:
-          'http://10.0.2.2:8080/api', // Android Emulator default local backend
+      baseUrl: 'http://10.0.2.2:8080/api',
       headers: {'Content-Type': 'application/json'},
     ));
     dio.interceptors.add(AuthInterceptor(sl()));
@@ -56,16 +72,14 @@ Future<void> init() async {
   });
 
   // ---------------------------------------------------------------------------
-  // AUTH FEATURE (Kimlik Doğrulama Özelliği)
+  // AUTH FEATURE
   // ---------------------------------------------------------------------------
-
   sl.registerLazySingleton<TokenLocalDataSource>(
     () => TokenLocalDataSourceImpl(sl()),
   );
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(sl(), sl()),
   );
-
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(sl()),
   );
@@ -86,11 +100,9 @@ Future<void> init() async {
   // ---------------------------------------------------------------------------
   // PET FEATURE
   // ---------------------------------------------------------------------------
-
   sl.registerLazySingleton<PetRemoteDataSource>(
     () => PetRemoteDataSourceImpl(sl()),
   );
-
   sl.registerLazySingleton<PetRepository>(
     () => PetRepositoryImpl(sl()),
   );
@@ -116,11 +128,9 @@ Future<void> init() async {
   // ---------------------------------------------------------------------------
   // VISIT FEATURE
   // ---------------------------------------------------------------------------
-
   sl.registerLazySingleton<VisitRemoteDataSource>(
     () => VisitRemoteDataSourceImpl(sl()),
   );
-
   sl.registerLazySingleton<VisitRepository>(
     () => VisitRepositoryImpl(sl()),
   );
@@ -135,6 +145,48 @@ Future<void> init() async {
       startVisitUseCase: sl(),
       closeVisitUseCase: sl(),
       repository: sl(),
+    ),
+  );
+
+  // ---------------------------------------------------------------------------
+  // TREATMENT FEATURE
+  // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<TreatmentRemoteDataSource>(
+    () => TreatmentRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<TreatmentRepository>(
+    () => TreatmentRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton(() => AddTreatmentUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteTreatmentUseCase(sl()));
+  sl.registerLazySingleton(() => GetTreatmentUseCase(sl()));
+
+  sl.registerFactory(
+    () => TreatmentCubit(
+      addTreatmentUseCase: sl(),
+      deleteTreatmentUseCase: sl(),
+      getTreatmentUseCase: sl(),
+    ),
+  );
+
+  // ---------------------------------------------------------------------------
+  // NOTIFICATION FEATURE
+  // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton(() => RegisterDeviceTokenUseCase(sl()));
+  sl.registerLazySingleton(() => GetNotificationsUseCase(sl()));
+
+  sl.registerFactory(
+    () => NotificationCubit(
+      registerDeviceTokenUseCase: sl(),
+      getNotificationsUseCase: sl(),
     ),
   );
 }

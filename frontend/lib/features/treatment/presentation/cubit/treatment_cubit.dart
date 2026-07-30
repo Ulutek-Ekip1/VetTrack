@@ -15,7 +15,7 @@ class TreatmentCubit extends Cubit<TreatmentState> {
     required this.deleteTreatmentUseCase,
   }) : super(TreatmentInitial());
 
-  Future<void> loadTreatment(String visitId) async {
+  Future<void> loadTreatments(String visitId) async {
     emit(TreatmentLoading());
 
     try {
@@ -26,11 +26,23 @@ class TreatmentCubit extends Cubit<TreatmentState> {
     }
   }
 
-  Future<void> addTreatment(dynamic treatment) async {
+  Future<void> addTreatment({
+    required String visitId,
+    required String type,
+    required String title,
+    String? description,
+    String? attachmentUrl,
+  }) async {
     emit(TreatmentLoading());
 
     try {
-      await addTreatmentUseCase(treatment);
+      await addTreatmentUseCase(
+        visitId: visitId,
+        type: type,
+        title: title,
+        description: description,
+        attachmentUrl: attachmentUrl,
+      );
       emit(const TreatmentActionSuccess("Tedavi başarı ile eklendi."));
     } catch (e) {
       emit(TreatmentError(e.toString()));

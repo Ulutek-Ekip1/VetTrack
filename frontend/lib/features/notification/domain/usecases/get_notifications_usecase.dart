@@ -1,8 +1,12 @@
 import '../entities/notification_entity.dart';
+import '../repositories/notification_repository.dart';
 
-// GetNotifications UseCase
 class GetNotificationsUseCase {
+  final NotificationRepository repository;
+
+  GetNotificationsUseCase(this.repository);
+
   Future<List<NotificationEntity>> call() async {
-    return [];
+    return await repository.getNotifications();
   }
 }

@@ -1,4 +1,11 @@
-// DeleteTreatment UseCase
+import '../repositories/treatment_repository.dart';
+
 class DeleteTreatmentUseCase {
-  Future<void> call(String treatmentId) async {}
+  final TreatmentRepository repository;
+
+  DeleteTreatmentUseCase(this.repository);
+
+  Future<void> call(String treatmentId) async {
+    await repository.deleteTreatment(treatmentId);
+  }
 }

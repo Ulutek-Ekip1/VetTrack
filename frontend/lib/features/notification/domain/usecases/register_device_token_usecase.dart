@@ -1,6 +1,11 @@
-// RegisterDeviceToken UseCase
+import '../repositories/notification_repository.dart';
+
 class RegisterDeviceTokenUseCase {
-  Future<void> call(String token) async {
-    //Todo: Bildirimler eklendikten sonra güncellenecek.
+  final NotificationRepository repository;
+
+  RegisterDeviceTokenUseCase(this.repository);
+
+  Future<void> call({required String fcmToken, String platform = 'android'}) async {
+    await repository.registerDeviceToken(fcmToken: fcmToken, platform: platform);
   }
 }
