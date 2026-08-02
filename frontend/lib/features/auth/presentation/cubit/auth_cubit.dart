@@ -20,7 +20,7 @@ class AuthCubit extends Cubit<AuthState> {
   }) : super(AuthInitial());
 
   Future<void> checkAuthStatus() async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
     try {
       final user = await authRepository.getCurrentUser();
       if (user != null) {
@@ -34,7 +34,8 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signInWithEmail(String email, String password) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
+
     try {
       final user = await loginWithEmail(email, password);
       emit(Authenticated(user));
@@ -45,7 +46,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> signUp(String email, String password, String name, String? phone,
       UserRole role) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
     try {
       final user = await registerUseCase(email, password, name, phone, role);
       emit(Authenticated(user));
@@ -55,7 +56,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signOut() async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
     try {
       await logoutUseCase();
       emit(Unauthenticated());
@@ -64,3 +65,4 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 }
+

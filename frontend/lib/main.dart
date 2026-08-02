@@ -16,3 +16,4 @@ void main() async {
   await di.init();
   runApp(const VetTrackApp());
 }
+
