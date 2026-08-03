@@ -30,6 +30,17 @@ public class TreatmentEntry {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private TreatmentStatus status = TreatmentStatus.PLANNED;
+
+    @Column(name = "start_date")
+    private OffsetDateTime startDate;
+
+    @Column(name = "end_date")
+    private OffsetDateTime endDate;
+
     @Column(name = "attachment_url", columnDefinition = "TEXT")
     private String attachmentUrl;
 
