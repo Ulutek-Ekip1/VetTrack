@@ -25,8 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController(text: 'demo@vettrack.com');
-    _passwordController = TextEditingController(text: '12345678');
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
   }
 
   @override
@@ -165,6 +165,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   decoration: InputDecoration(
                                     labelText: "E-posta Adresi",
                                     hintText: "E-posta adresinizi giriniz",
+                                    prefixIcon: const Icon(
+                                      Icons.mail_outline,
+                                      color: AppColors.outline,
+                                    ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -203,6 +207,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   decoration: InputDecoration(
                                     labelText: 'Şifre',
                                     hintText: 'Şifrenizi giriniz',
+                                    prefixIcon: const Icon(
+                                      Icons.lock_outline,
+                                      color: AppColors.outline,
+                                    ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -346,104 +354,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                             ],
                                           ),
                                   ),
-                                ),
-
-                                const SizedBox(height: 20),
-
-                                // VEYA Ayırıcı Çizgisi
-                                Row(
-                                  children: [
-                                    const Expanded(
-                                      child: Divider(
-                                        color: AppColors.surfaceContainerHigh,
-                                        thickness: 1,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12),
-                                      child: Text(
-                                        "VEYA",
-                                        style: theme.textTheme.labelMedium
-                                            ?.copyWith(
-                                          color: AppColors.outline,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.0,
-                                        ),
-                                      ),
-                                    ),
-                                    const Expanded(
-                                      child: Divider(
-                                        color: AppColors.surfaceContainerHigh,
-                                        thickness: 1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 20),
-
-                                // Google & Apple Sosyal Giriş Butonları
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        onPressed: () {},
-                                        icon: const Icon(
-                                          Icons.g_mobiledata,
-                                          size: 28,
-                                          color: AppColors.primary,
-                                        ),
-                                        label: Text(
-                                          "Google",
-                                          style: theme.textTheme.labelLarge
-                                              ?.copyWith(
-                                            color: AppColors.onSurface,
-                                          ),
-                                        ),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 12),
-                                          side: const BorderSide(
-                                            color: AppColors.outlineVariant,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        onPressed: () {},
-                                        icon: const Icon(
-                                          Icons.apple,
-                                          size: 24,
-                                          color: AppColors.onSurface,
-                                        ),
-                                        label: Text(
-                                          "Apple",
-                                          style: theme.textTheme.labelLarge
-                                              ?.copyWith(
-                                            color: AppColors.onSurface,
-                                          ),
-                                        ),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 12),
-                                          side: const BorderSide(
-                                            color: AppColors.outlineVariant,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ],
                             ),

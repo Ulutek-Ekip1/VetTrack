@@ -64,5 +64,19 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthError(e.toString()));
     }
   }
-}
 
+  Future<void> resetPassword(String email) async {
+    emit(const AuthLoading());
+    try {
+      final cleanEmail = email.trim();
+      if (cleanEmail.isEmpty || !cleanEmail.contains("@")) {
+        throw Exception("Lütfen geçerli bir e-posta adresi giriniz.");
+      }
+      // Gerçek repository veya mock şifre sıfırlama işlemi
+      await Future.delayed(const Duration(milliseconds: 800));
+      emit(PasswordResetEmailSent(cleanEmail));
+    } catch (e) {
+      emit(AuthError(e.toString().replaceAll("Exception: ", "")));
+    }
+  }
+}
