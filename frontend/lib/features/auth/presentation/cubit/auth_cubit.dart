@@ -17,7 +17,20 @@ class AuthCubit extends Cubit<AuthState> {
     required this.registerUseCase,
     required this.logoutUseCase,
     required this.authRepository,
-  }) : super(AuthInitial());
+  }) : super(AuthInitial()) {
+    emit(Authenticated(
+      // Mock user for testing purposes
+      UserEntity(
+        id: '123',
+        authId: 'auth_123',
+        email: 'test@example.com',
+        name: 'Oguz',
+        phone: '0555 555 55 55',
+        role: UserRole.owner,
+        createdAt: DateTime.now(),
+      ),
+    ));
+  }
 
   Future<void> checkAuthStatus() async {
     emit(AuthLoading());
