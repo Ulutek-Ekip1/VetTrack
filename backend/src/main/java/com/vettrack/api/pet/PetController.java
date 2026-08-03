@@ -146,7 +146,6 @@ public class PetController {
         }
         Pet petDetails = Pet.builder()
                 .name(request.getName())
-                .photoUrl(request.getPhotoUrl())
                 .age(request.getAge())
                 .gender(request.getGender())
                 .breed(request.getBreed())
