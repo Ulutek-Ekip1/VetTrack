@@ -66,15 +66,28 @@ public class PetService {
      * Pet bilgilerini günceller.
      * Dikkat: uniqueCode asla güncellenmez/değiştirilmez!
      */
+    /**
+     * Pet bilgilerini kısmen günceller (partial update).
+     * Sadece null olmayan alanlar güncellenir — API sözleşmesi gereği tüm alanlar opsiyoneldir.
+     * Dikkat: uniqueCode asla güncellenmez, photoUrl bu endpoint üzerinden değiştirilmez
+     * (bunun için POST /pets/{id}/photo kullanılır).
+     */
     @Transactional
     public Pet updatePet(UUID id, Pet petDetails) {
         Pet existingPet = getPetById(id);
 
-        existingPet.setName(petDetails.getName());
-        existingPet.setPhotoUrl(petDetails.getPhotoUrl());
-        existingPet.setAge(petDetails.getAge());
-        existingPet.setGender(petDetails.getGender());
-        existingPet.setBreed(petDetails.getBreed());
+        if (petDetails.getName() != null) {
+            existingPet.setName(petDetails.getName());
+        }
+        if (petDetails.getAge() != null) {
+            existingPet.setAge(petDetails.getAge());
+        }
+        if (petDetails.getGender() != null) {
+            existingPet.setGender(petDetails.getGender());
+        }
+        if (petDetails.getBreed() != null) {
+            existingPet.setBreed(petDetails.getBreed());
+        }
 
         return petRepository.save(existingPet);
     }
