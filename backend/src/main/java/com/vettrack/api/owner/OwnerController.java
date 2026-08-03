@@ -1,0 +1,61 @@
+package com.vettrack.api.owner;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/owners")
+@RequiredArgsConstructor
+@Tag(name = "Owner Profil Yönetimi", description = "Kullanıcı profil bilgilerini görüntüleme ve güncelleme API'leri")
+public class OwnerController {
+
+    private final OwnerService ownerService;
+
+    @GetMapping("/me")
+    @Operation(
+        summary = "Mevcut Kullanıcı Bilgisi",
+        description = "JWT'den alınan ID ile oturum açmış kullanıcının profil bilgilerini getirir.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Profil bilgileri başarıyla getirildi"),
+        @ApiResponse(responseCode = "401", description = "Yetkisiz erişim (JWT eksik veya geçersiz)"),
+        @ApiResponse(responseCode = "404", description = "Kullanıcı bulunamadı")
+    })
+    public ResponseEntity<Owner> getMe(@AuthenticationPrincipal Jwt jwt) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(ownerService.getOwnerById(ownerId));
+    }
+
+    @PutMapping("/me")
+    @Operation(
+        summary = "Profil Bilgilerini Güncelle",
+        description = "Kullanıcı profil bilgilerini (ad, soyad, telefon, adres) günceller. "
+                    + "Tüm alanlar opsiyoneldir, sadece gönderilen alanlar güncellenir. "
+                    + "Email bu endpoint üzerinden güncellenemez.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Profil başarıyla güncellendi"),
+        @ApiResponse(responseCode = "400", description = "Geçersiz istek parametreleri"),
+        @ApiResponse(responseCode = "401", description = "Yetkisiz erişim (JWT eksik veya geçersiz)"),
+        @ApiResponse(responseCode = "404", description = "Kullanıcı bulunamadı")
+    })
+    public ResponseEntity<Owner> updateMe(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody OwnerUpdateRequest request
+    ) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(ownerService.updateOwner(ownerId, request));
+    }
+}
