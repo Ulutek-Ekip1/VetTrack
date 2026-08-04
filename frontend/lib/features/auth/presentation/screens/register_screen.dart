@@ -24,7 +24,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  String _selectedRole = 'owner';
   bool _obscurePassword = true;
   bool _kvkkApproved = false;
   bool _explicitConsentApproved = false;
@@ -47,7 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _phoneController.text.trim().isEmpty
                 ? null
                 : _phoneController.text.trim(),
-            _selectedRole == 'vet_staff' ? UserRole.vet : UserRole.owner,
+            UserRole.owner,
           );
     }
   }
@@ -259,77 +258,6 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
 
                                 const SizedBox(height: 20),
 
-                                // Kullanıcı Tipi Seçimi (SegmentedButton)
-                                SegmentedButton<String>(
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        WidgetStateProperty.resolveWith<Color>(
-                                            (states) {
-                                      if (states
-                                          .contains(WidgetState.selected)) {
-                                        return AppColors.primary;
-                                      }
-                                      return AppColors.surfaceContainerLow;
-                                    }),
-                                    foregroundColor:
-                                        WidgetStateProperty.resolveWith<Color>(
-                                            (states) {
-                                      if (states
-                                          .contains(WidgetState.selected)) {
-                                        return AppColors.onPrimary;
-                                      }
-                                      return AppColors.onSurfaceVariant;
-                                    }),
-                                    iconColor:
-                                        WidgetStateProperty.resolveWith<Color>(
-                                            (states) {
-                                      if (states
-                                          .contains(WidgetState.selected)) {
-                                        return AppColors.onPrimary;
-                                      }
-                                      return AppColors.outline;
-                                    }),
-                                    side: WidgetStateProperty.all(
-                                      const BorderSide(
-                                          color: AppColors.outlineVariant),
-                                    ),
-                                    shape: WidgetStateProperty.all(
-                                      RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  ),
-                                  segments: const [
-                                    ButtonSegment<String>(
-                                      value: 'owner',
-                                      label: Text('Hayvan Sahibi'),
-                                      icon: Icon(Icons.pets_outlined),
-                                    ),
-                                    ButtonSegment<String>(
-                                      value: 'vet_staff',
-                                      label: Text('Veteriner Personeli'),
-                                      icon: Icon(Icons.local_hospital_outlined),
-                                    ),
-                                  ],
-                                  selected: {_selectedRole},
-                                  onSelectionChanged:
-                                      (Set<String> newSelection) {
-                                    final selected = newSelection.first;
-                                    setState(() {
-                                      _selectedRole = selected;
-                                    });
-                                    if (selected == 'vet_staff') {
-                                      AppSnackBar.showWarning(
-                                        context,
-                                        message:
-                                            'Bu uygulama hayvan sahipleri içindir. Klinik girişi için web panelini kullanınız.',
-                                      );
-                                    }
-                                  },
-                                ),
-
-                                const SizedBox(height: 20),
-
                                 // Ad-Soyad TextFormField
                                 TextFormField(
                                   controller: _nameController,
@@ -475,6 +403,12 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                       ),
                                     ),
                                     hintText: "Şifrenizi giriniz",
+                                    helperText:
+                                        "En az 8 karakter, harf ve rakam içermelidir",
+                                    helperStyle:
+                                        theme.textTheme.bodySmall?.copyWith(
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
                                     prefixIcon: const Icon(
                                       Icons.lock_outline,
                                       color: AppColors.outline,

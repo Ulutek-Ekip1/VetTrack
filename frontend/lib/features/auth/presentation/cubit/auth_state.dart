@@ -29,7 +29,9 @@ class Authenticated extends AuthState {
   List<Object?> get props => [user];
 }
 
-class Unauthenticated extends AuthState {}
+class Unauthenticated extends AuthState {
+  const Unauthenticated([String? message]) : super(errorMessage: message);
+}
 
 class PasswordResetEmailSent extends AuthState {
   final String email;

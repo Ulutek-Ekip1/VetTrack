@@ -70,11 +70,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 listener: (context, state) {
                   final error = state.errorMessage;
                   if (error != null) {
-                    AppSnackBar.showError(
-                      context,
-                      title: "Giriş Engellendi",
-                      message: error,
-                    );
+                    if (state is Unauthenticated) {
+                      AppSnackBar.showSessionExpired(
+                        context,
+                        message: error,
+                      );
+                    } else if (error.contains("İnternet bağlantınız koptu") ||
+                        error.contains("bağlantı hatası")) {
+                      AppSnackBar.showNetworkError(
+                        context,
+                        message: error,
+                      );
+                    } else {
+                      AppSnackBar.showError(
+                        context,
+                        title: "Giriş Engellendi",
+                        message: error,
+                      );
+                    }
                   }
                   if (state is Authenticated) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -153,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   style:
                                       theme.textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.onSurface,
+                                    color: AppColors.primary,
                                   ),
                                 ),
 

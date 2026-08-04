@@ -59,6 +59,14 @@ class AppColors {
   static const Color errorContainer = Color(0xFFFFDAD6);
   static const Color onErrorContainer = Color(0xFF93000A);
 
+  // Success
+  static const Color success = Color(0xFF10B981);
+  static const Color onSuccess = Color(0xFFFFFFFF);
+
+  // Warning
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color onWarning = Color(0xFFFFFFFF);
+
   // Background
   static const Color background = Color(0xFFFAF8FF);
   static const Color onBackground = Color(0xFF0F172A);

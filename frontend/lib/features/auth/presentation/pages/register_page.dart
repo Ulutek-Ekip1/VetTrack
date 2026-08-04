@@ -17,7 +17,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  UserRole _selectedRole = UserRole.owner;
 
   @override
   void dispose() {
@@ -93,46 +92,26 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                const SizedBox(height: 24),
-                const Text('Hesap Türü Seçin', style: TextStyle(fontWeight: FontWeight.bold)),
-                SegmentedButton<UserRole>(
-                  segments: const [
-                    ButtonSegment<UserRole>(
-                      value: UserRole.owner,
-                      label: Text('Evcil Hayvan Sahibi'),
-                    ),
-                    ButtonSegment<UserRole>(
-                      value: UserRole.vet,
-                      label: Text('Veteriner'),
-                    ),
-                  ],
-                  selected: <UserRole>{_selectedRole},
-                  onSelectionChanged: (Set<UserRole> newSelection) {
-                    setState(() {
-                      _selectedRole = newSelection.first;
-                    });
-                  },
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      context.read<AuthCubit>().signUp(
-                            _emailController.text,
-                            _passwordController.text,
-                            _nameController.text,
-                            _phoneController.text.isEmpty ? null : _phoneController.text,
-                            _selectedRole,
-                          );
-                    }
-                  },
-                  child: const Text('Kayıt Ol'),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        context.read<AuthCubit>().signUp(
+                              _emailController.text,
+                              _passwordController.text,
+                              _nameController.text,
+                              _phoneController.text.isEmpty ? null : _phoneController.text,
+                              UserRole.owner,
+                            );
+                      }
+                    },
+                    child: const Text('Kayıt Ol'),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
       ),
     );
   }

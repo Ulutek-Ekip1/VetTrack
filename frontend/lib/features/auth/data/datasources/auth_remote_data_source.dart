@@ -80,7 +80,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        throw Exception("Bu e-posta adresi zaten kullanımda");
+        throw Exception("Bu e-posta ile kayıtlı bir hesap var, lütfen farklı bir e-posta ile deneyin.");
       }
       throw Exception(_handleDioError(e));
     } catch (e) {
@@ -117,6 +117,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         if (errorMsg != null) return errorMsg.toString();
       } catch (_) {}
     }
-    return e.message ?? "Bilinmeyen bağlantı hatası";
+
+    final message = e.message ?? "";
+    if (e.type == DioExceptionType.connectionError ||
+        e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        message.contains('XMLHttpRequest') ||
+        message.contains('SocketException')) {
+      return "İnternet bağlantınız koptu veya sunucuya erişilemiyor. Lütfen internetinizi kontrol edin.";
+    }
+
+    return message.isNotEmpty ? message : "Bilinmeyen bağlantı hatası";
   }
 }

@@ -19,6 +19,8 @@ dependencies:
   google_fonts: ^6.1.0
   flutter_secure_storage: ^10.3.1
   flutter_svg: ^2.0.10
+  url_launcher: ^6.3.0 #magaza lnikini acmak icin
+  package_info_plus: ^8.0.0 #cihazdaki uygulama sürüm bilgilerini almak için
 
 dev_dependencies:
   flutter_test:

@@ -29,7 +29,8 @@ class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   Future<void> signInWithEmail(String email, String password) async {}
 
   @override
-  Future<void> signUp(String email, String password, String name, String? phone, dynamic role) async {}
+  Future<void> signUp(String email, String password, String name, String? phone,
+      dynamic role) async {}
 
   @override
   Future<void> signOut() async {}
@@ -40,6 +41,9 @@ class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   @override
   Future<void> resendVerificationEmail() async {}
 
+  @override
+  Future<void> handleSessionExpired() async {}
+
   void triggerError(String errorMessage) {
     emit(AuthError(errorMessage));
   }
@@ -49,7 +53,7 @@ void main() {
   late FakeAuthCubit fakeAuthCubit;
 
   setUp(() {
-    fakeAuthCubit = FakeAuthCubit(Unauthenticated());
+    fakeAuthCubit = FakeAuthCubit(const Unauthenticated());
   });
 
   Widget createWidgetToTest() {
@@ -62,7 +66,8 @@ void main() {
     );
   }
 
-  testWidgets('Test 1: 401 Hatalı e-posta veya şifre SnackBar gösterimi', (tester) async {
+  testWidgets('Test 1: 401 Hatalı e-posta veya şifre SnackBar gösterimi',
+      (tester) async {
     await tester.pumpWidget(createWidgetToTest());
     await tester.pump();
 
@@ -74,23 +79,28 @@ void main() {
     // Assert SnackBar Title & Message
     expect(find.text('Giriş Engellendi'), findsOneWidget);
     expect(find.text('E-posta veya şifre hatalı'), findsOneWidget);
-    expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
     expect(find.byIcon(Icons.close_rounded), findsOneWidget);
   });
 
-  testWidgets('Test 2: 429 Çok fazla hatalı deneme SnackBar gösterimi', (tester) async {
+  testWidgets('Test 2: 429 Çok fazla hatalı deneme SnackBar gösterimi',
+      (tester) async {
     await tester.pumpWidget(createWidgetToTest());
     await tester.pump();
 
     // Trigger Rate Limit AuthError
-    fakeAuthCubit.triggerError("Çok fazla hatalı deneme yaptınız. Lütfen 5 dakika sonra tekrar deneyin.");
+    fakeAuthCubit.triggerError(
+        "Çok fazla hatalı deneme yaptınız. Lütfen 5 dakika sonra tekrar deneyin.");
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     // Assert SnackBar Title & Message
     expect(find.text('Giriş Engellendi'), findsOneWidget);
-    expect(find.text('Çok fazla hatalı deneme yaptınız. Lütfen 5 dakika sonra tekrar deneyin.'), findsOneWidget);
-    expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+    expect(
+        find.text(
+            'Çok fazla hatalı deneme yaptınız. Lütfen 5 dakika sonra tekrar deneyin.'),
+        findsOneWidget);
+    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
   });
 
   testWidgets('Test 3: Bağlantı hatası SnackBar gösterimi', (tester) async {
@@ -103,7 +113,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Assert SnackBar Title & Message
-    expect(find.text('Giriş Engellendi'), findsOneWidget);
+    expect(find.text('Bağlantı Hatası'), findsOneWidget);
     expect(find.text('Bilinmeyen bağlantı hatası'), findsOneWidget);
+    expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
   });
 }

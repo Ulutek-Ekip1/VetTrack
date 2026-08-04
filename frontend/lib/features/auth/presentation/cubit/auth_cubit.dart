@@ -29,10 +29,10 @@ class AuthCubit extends Cubit<AuthState> {
       if (user != null) {
         emit(Authenticated(user));
       } else {
-        emit(Unauthenticated());
+        emit(const Unauthenticated());
       }
     } catch (e) {
-      emit(Unauthenticated());
+      emit(const Unauthenticated());
     }
   }
 
@@ -91,5 +91,12 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (e) {
       emit(AuthError(e.toString()));
     }
+  }
+
+  //Oturum süresi dolunca yerel tokenı silip uygulmayı unauthenticated duruma geçirmek için
+  Future<void> handleSessionExpired() async {
+    await logoutUseCase();
+    emit(const Unauthenticated(
+        'Oturumunuzun süresi doldu, lütfen tekrar giriş yapın.'));
   }
 }
