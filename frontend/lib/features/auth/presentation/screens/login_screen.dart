@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vettrack_frontend/core/utils/app_snackbar.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../cubit/auth_cubit.dart';
@@ -69,11 +70,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 listener: (context, state) {
                   final error = state.errorMessage;
                   if (error != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(error),
-                        backgroundColor: theme.colorScheme.error,
-                      ),
+                    AppSnackBar.showError(
+                      context,
+                      title: "Giriş Engellendi",
+                      message: error,
                     );
                   }
                   if (state is Authenticated) {
@@ -117,26 +117,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
-                      // Başlıklar
+                      // VetTrack Başlık
                       Text(
-                        "Giriş Yap",
+                        "VetTrack",
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.onSurface,
+                          color: AppColors.primary,
                         ),
                         textAlign: TextAlign.center,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      Text(
-                        "Devam etmek için e-posta ve şifrenizle\ngiriş yapın",
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
                       ),
 
                       const SizedBox(height: 28),
@@ -157,6 +147,27 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                // Başlıklar
+                                Text(
+                                  "Giriş Yap",
+                                  style:
+                                      theme.textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.onSurface,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                Text(
+                                  "Devam etmek için e-posta ve şifrenizle giriş yapın",
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 20),
+
                                 // E-posta TextFormField
                                 TextFormField(
                                   controller: _emailController,
@@ -386,6 +397,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Footer
+                      Text(
+                        "© 2026 VetTrack Health Systems. All rights reserved.",
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.outline,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   );

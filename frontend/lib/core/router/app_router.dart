@@ -25,6 +25,7 @@ import '../../features/recommendation/presentation/screens/add_recommendation_sc
 import '../../features/notification/presentation/screens/notification_list_screen.dart';
 import 'main_shell_screen.dart';
 import 'not_found_screen.dart';
+import '../../features/auth/presentation/screens/email_verification_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription<dynamic> _subscription;
@@ -47,6 +48,7 @@ abstract class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+  static const String ownerEmailVerification = '/owner/email-verification';
 
   //Pet Modülü Rotaları
   static const String ownerPets = '/owner/pets';
@@ -94,7 +96,8 @@ class AppRouter {
 
         final isLoggingIn = location == AppRoutes.login ||
             location == AppRoutes.register ||
-            location == AppRoutes.forgotPassword;
+            location == AppRoutes.forgotPassword ||
+            location == AppRoutes.ownerEmailVerification;
 
         if (!isLoggedIn) {
           return isLoggingIn ? null : AppRoutes.login;
@@ -133,6 +136,11 @@ class AppRouter {
           path: AppRoutes.forgotPassword,
           name: 'forgotPassword',
           builder: (context, state) => const ForgotPasswordScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.ownerEmailVerification,
+          name: 'ownerEmailVerification',
+          builder: (context, state) => const EmailVerificationScreen(),
         ),
 
         //Hayvan Sahibi StatefulShellRoute

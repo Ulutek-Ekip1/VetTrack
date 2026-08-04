@@ -48,3 +48,10 @@ class AuthError extends AuthState {
   List<Object?> get props => [message, errorMessage];
 }
 
+class VerificationEmailSent extends AuthState {
+  final String? email;
+  const VerificationEmailSent([this.email]);
+
+  @override
+  List<Object?> get props => [email];
+}

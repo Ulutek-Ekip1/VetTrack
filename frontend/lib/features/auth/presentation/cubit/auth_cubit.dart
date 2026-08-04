@@ -22,7 +22,10 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> checkAuthStatus() async {
     emit(const AuthLoading());
     try {
-      final user = await authRepository.getCurrentUser();
+      final user = await authRepository.getCurrentUser().timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => null,
+          );
       if (user != null) {
         emit(Authenticated(user));
       } else {
@@ -40,7 +43,7 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await loginWithEmail(email, password);
       emit(Authenticated(user));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
@@ -51,7 +54,7 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await registerUseCase(email, password, name, phone, role);
       emit(Authenticated(user));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
@@ -77,6 +80,16 @@ class AuthCubit extends Cubit<AuthState> {
       emit(PasswordResetEmailSent(cleanEmail));
     } catch (e) {
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
+    }
+  }
+
+  Future<void> resendVerificationEmail() async {
+    emit(const AuthLoading());
+    try {
+      await authRepository.resendVerificationEmail();
+      emit(const VerificationEmailSent());
+    } catch (e) {
+      emit(AuthError(e.toString()));
     }
   }
 }

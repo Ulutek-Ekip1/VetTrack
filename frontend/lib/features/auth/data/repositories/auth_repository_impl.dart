@@ -27,4 +27,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<UserEntity?> getCurrentUser() async {
     return await remoteDataSource.getCurrentUser();
   }
+
+  @override
+  Future<void> resendVerificationEmail() async {
+    // TODO: Backend bağlandığında remoteDataSource üzerinden e-posta gönderimini tetikle
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
 }

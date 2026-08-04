@@ -69,7 +69,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         backgroundColor: AppColors.primary,
                       ),
                     );
-                    context.push(AppRoutes.login);
+                    context.go(AppRoutes.ownerEmailVerification);
                   }
                 },
                 builder: (context, state) {
@@ -272,41 +272,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                       const SizedBox(height: 32),
 
-                      // Alt Bilgi (Footer)
-                      const Divider(
-                        color: AppColors.outlineVariant,
-                        thickness: 0.5,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF3AAFA9),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            "VetTrack Profesyonel Bakım Sistemi",
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: AppColors.outline,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF3AAFA9),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
+                      // Footer
+                      Text(
+                        "© 2026 VetTrack Health Systems. All rights reserved.",
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.outline,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   );
