@@ -18,8 +18,9 @@ void main() async {
   // TODO: Kendi gerçek Supabase URL ve Anon Key'inizi buraya girin.
   // Şimdilik çökmemesi için mock (sahte) verilerle başlatıyoruz.
   await Supabase.initialize(
-    url: 'https://mock-supabase-url.supabase.co',
-    publishableKey: 'mock-anon-key-1234567890',
+    url: 'https://wcgbpxtshkyphcdgyxgy.supabase.co',
+    publishableKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjZ2JweHRzaGt5cGhjZGd5eGd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxMTQxNzIsImV4cCI6MjEwMDY5MDE3Mn0.fmC-ro_kWURXioPYSZyZk6bwBfgrrbr3346lveuV-jw',
   );
 
   await di.init();
