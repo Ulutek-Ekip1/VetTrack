@@ -62,7 +62,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthLoading());
     try {
       await logoutUseCase();
-      emit(Unauthenticated());
+      emit(const Unauthenticated());
     } catch (e) {
       emit(AuthError(e.toString()));
     }

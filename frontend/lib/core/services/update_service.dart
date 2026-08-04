@@ -146,7 +146,7 @@ class UpdateManager {
                 borderRadius: BorderRadius.circular(32),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
+                    color: Colors.black.withValues(alpha: 0.15),
                     blurRadius: 24,
                     offset: const Offset(0, 10),
                   ),
@@ -160,7 +160,7 @@ class UpdateManager {
                     width: 76,
                     height: 76,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Icon(
