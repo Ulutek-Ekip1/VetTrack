@@ -18,27 +18,29 @@ class OwnerShellScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primaryBlue = Color(0xFF004AC6);
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onTap,
-        indicatorColor: Colors.teal.shade100,
+        indicatorColor: const Color(0xFFDBEAFE),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.pets_outlined),
-            selectedIcon: Icon(Icons.pets, color: Colors.teal),
-            label: 'Petlerim',
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard, color: primaryBlue),
+            label: 'Ana Sayfa',
           ),
           NavigationDestination(
-            icon: Icon(Icons.history_edu_outlined),
-            selectedIcon: Icon(Icons.history_edu, color: Colors.teal),
-            label: 'Geçmiş Ziyaretler',
+            icon: Icon(Icons.pets_outlined),
+            selectedIcon: Icon(Icons.pets, color: primaryBlue),
+            label: 'Hayvanlarım',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: Colors.teal),
-            label: 'Profilim',
+            selectedIcon: Icon(Icons.person, color: primaryBlue),
+            label: 'Profil',
           ),
         ],
       ),

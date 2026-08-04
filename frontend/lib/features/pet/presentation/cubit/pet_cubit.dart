@@ -57,7 +57,34 @@ class PetCubit extends Cubit<PetState> {
       final pets = await getPetsUseCase.call();
       emit(PetLoaded(pets: pets));
     } catch (e) {
-      emit(PetError(message: e.toString()));
+      // TODO: Gerçek hata yönetimini (production) tasarım testi için geçici olarak yorum satırına aldık:
+      // emit(PetError(message: e.toString()));
+
+      // Tasarım incelemesini engellememek için hata durumunda geçici olarak mock liste dönüyoruz:
+      emit(PetLoaded(pets: [
+        PetEntity(
+          id: 'pet_1',
+          ownerId: '123',
+          name: 'Pamuk',
+          age: 2,
+          gender: Gender.female,
+          breed: 'Tekir',
+          uniqueCode: 'VT-9824',
+          photoUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=200&auto=format&fit=crop',
+          createdAt: DateTime.now(),
+        ),
+        PetEntity(
+          id: 'pet_2',
+          ownerId: '123',
+          name: 'Gölge',
+          age: 4,
+          gender: Gender.male,
+          breed: 'Golden Retriever',
+          uniqueCode: 'VT-4129',
+          photoUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=200&auto=format&fit=crop',
+          createdAt: DateTime.now(),
+        ),
+      ]));
     }
   }
 

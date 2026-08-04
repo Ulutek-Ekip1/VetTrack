@@ -29,11 +29,21 @@ class NotificationListScreen extends StatelessWidget {
       },
     ];
 
+    const primaryBlue = Color(0xFF004AC6);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bildirimler'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        elevation: 1,
+        shadowColor: Colors.black12,
+        title: const Text(
+          'Bildirimler',
+          style: TextStyle(
+            color: primaryBlue,
+            fontWeight: FontWeight.bold,
+            fontSize: 28,
+          ),
+        ),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16.0),
@@ -43,11 +53,11 @@ class NotificationListScreen extends StatelessWidget {
           final isRead = item['isRead'] as bool;
 
           return Card(
-            color: isRead ? Colors.white : Colors.teal.shade50,
+            color: isRead ? Colors.white : const Color(0xFFDBEAFE),
             margin: const EdgeInsets.only(bottom: 12.0),
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: Colors.teal,
+                backgroundColor: primaryBlue,
                 child: Icon(item['type'] as IconData, color: Colors.white),
               ),
               title: Text(

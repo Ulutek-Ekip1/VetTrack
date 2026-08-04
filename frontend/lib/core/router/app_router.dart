@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
-import '../../features/auth/presentation/cubit/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -16,13 +14,13 @@ import '../../features/pet/presentation/screens/edit_pet_screen.dart';
 import '../../features/visit/presentation/screens/doctor_search_screen.dart';
 import '../../features/visit/presentation/screens/active_visit_screen.dart';
 import '../../features/visit/presentation/screens/pet_visit_history_screen.dart';
-import '../../features/visit/presentation/screens/owner_visit_history_list_screen.dart';
 import '../../features/visit/presentation/screens/vet_visit_history_screen.dart';
 import '../../features/treatment/presentation/screens/add_treatment_screen.dart';
 import '../../features/treatment/presentation/screens/pet_treatment_history_screen.dart';
 import '../../features/recommendation/presentation/screens/pet_recommendation_screen.dart';
 import '../../features/recommendation/presentation/screens/add_recommendation_screen.dart';
 import '../../features/notification/presentation/screens/notification_list_screen.dart';
+import '../../features/home/presentation/pages/home_page.dart';
 import 'main_shell_screen.dart';
 import 'not_found_screen.dart';
 
@@ -49,6 +47,7 @@ abstract class AppRoutes {
   static const String forgotPassword = '/forgot-password';
 
   //Pet Modülü Rotaları
+  static const String ownerHome = '/owner/home';
   static const String ownerPets = '/owner/pets';
   static const String addPet = '/owner/pets/add';
   static const String petDetail = '/owner/pets/:petId';
@@ -79,15 +78,20 @@ abstract class AppRoutes {
 class AppRouter {
   static GoRouter createRouter([AuthCubit? authCubit]) {
     return GoRouter(
-      initialLocation: AppRoutes.login,
+      // TODO: Tasarım testi için başlangıç ownerHome yapıldı. Normalde: AppRoutes.login
+      initialLocation: AppRoutes.ownerHome,
       refreshListenable:
           authCubit != null ? GoRouterRefreshStream(authCubit.stream) : null,
 
       //404 / Sayfa Bulunamadı Katmanı
       errorBuilder: (context, state) => const NotFoundScreen(),
 
-      //Auth & Rol Bazlı Redirect
+      //Auth & Rol Bazlı Redirect (Tasarım testi için bypass edildi)
       redirect: (BuildContext context, GoRouterState state) {
+        // Tasarım testi için geçici bypass:
+        return null;
+
+        /*
         final authState = authCubit?.state;
         final isLoggedIn = authState is Authenticated;
         final location = state.matchedLocation;
@@ -104,12 +108,12 @@ class AppRouter {
 
         if (isLoggingIn) {
           return user.role == UserRole.owner
-              ? AppRoutes.ownerPets
+              ? AppRoutes.ownerHome
               : AppRoutes.vetSearch;
         }
 
         if (user.role == UserRole.owner && location.startsWith('/vet')) {
-          return AppRoutes.ownerPets;
+          return AppRoutes.ownerHome;
         }
 
         if (user.role == UserRole.vet && location.startsWith('/owner')) {
@@ -117,6 +121,7 @@ class AppRouter {
         }
 
         return null;
+        */
       },
       routes: [
         GoRoute(
@@ -141,6 +146,15 @@ class AppRouter {
             return OwnerShellScreen(navigationShell: navigationShell);
           },
           branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.ownerHome,
+                  name: 'ownerHome',
+                  builder: (context, state) => const HomePage(),
+                ),
+              ],
+            ),
             StatefulShellBranch(
               routes: [
                 GoRoute(
@@ -196,16 +210,6 @@ class AppRouter {
                       ],
                     ),
                   ],
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: [
-                GoRoute(
-                  path: AppRoutes.ownerVisitHistoryList,
-                  name: 'ownerVisitHistoryList',
-                  builder: (context, state) =>
-                      const OwnerVisitHistoryListScreen(),
                 ),
               ],
             ),

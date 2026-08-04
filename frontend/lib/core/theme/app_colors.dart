@@ -2,46 +2,45 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Surface
-  static const Color surface = Color(0xFFFAF8FF);
-  static const Color surfaceDim = Color(0xFFD2D9F4);
-  static const Color surfaceBright = Color(0xFFFAF8FF);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceDim = Color(0xFFF1F5F9);
+  static const Color surfaceBright = Color(0xFFFFFFFF);
   static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
-  static const Color surfaceContainerLow = Color(0xFFF2F3FF);
-  static const Color surfaceContainer = Color(0xFFEAEDFF);
-  static const Color surfaceContainerHigh = Color(0xFFE2E7FF);
-  static const Color surfaceContainerHighest = Color(0xFFDAE2FD);
+  static const Color surfaceContainerLow = Color(0xFFF8FAFC);
+  static const Color surfaceContainer = Color(0xFFF1F5F9);
+  static const Color surfaceContainerHigh = Color(0xFFE2E8F0);
+  static const Color surfaceContainerHighest = Color(0xFFCBD5E1);
   static const Color onSurface = Color(0xFF0F172A);
-  static const Color onSurfaceVariant =
-      Color(0xFF334155); // Adjusted based on neutral
-  static const Color inverseSurface = Color(0xFF283044);
-  static const Color inverseOnSurface = Color(0xFFEEF0FF);
-  static const Color surfaceVariant = Color(0xFFDAE2FD);
+  static const Color onSurfaceVariant = Color(0xFF334155);
+  static const Color inverseSurface = Color(0xFF1E293B);
+  static const Color inverseOnSurface = Color(0xFFF8FAFC);
+  static const Color surfaceVariant = Color(0xFFE2E8F0);
 
   // Outline
-  static const Color outline = Color(0xFF737686);
-  static const Color outlineVariant = Color(0xFFC3C6D7);
-  static const Color surfaceTint = Color(0xFF0053DB);
+  static const Color outline = Color(0xFF64748B);
+  static const Color outlineVariant = Color(0xFFE2E8F0);
+  static const Color surfaceTint = Color(0xFF004AC6);
 
   // Primary
-  static const Color primary = Color(0xFF2563EB);
+  static const Color primary = Color(0xFF004AC6);
   static const Color onPrimary = Color(0xFFFFFFFF);
-  static const Color primaryContainer = Color(0xFF2563EB);
-  static const Color onPrimaryContainer = Color(0xFFEEEFFF);
-  static const Color inversePrimary = Color(0xFFB4C5FF);
-  static const Color primaryFixed = Color(0xFFDBE1FF);
-  static const Color primaryFixedDim = Color(0xFFB4C5FF);
-  static const Color onPrimaryFixed = Color(0xFF00174B);
-  static const Color onPrimaryFixedVariant = Color(0xFF003EA8);
+  static const Color primaryContainer = Color(0xFF004AC6);
+  static const Color onPrimaryContainer = Color(0xFFFFFFFF);
+  static const Color inversePrimary = Color(0xFF93C5FD);
+  static const Color primaryFixed = Color(0xFFDBEAFE);
+  static const Color primaryFixedDim = Color(0xFF93C5FD);
+  static const Color onPrimaryFixed = Color(0xFF1E3A8A);
+  static const Color onPrimaryFixedVariant = Color(0xFF1D4ED8);
 
-  // Secondary
-  static const Color secondary = Color(0xFF14B8A6);
+  // Secondary (Mavi Tema Bütünlüğü İçin Maviye Çekildi)
+  static const Color secondary = Color(0xFF004AC6);
   static const Color onSecondary = Color(0xFFFFFFFF);
-  static const Color secondaryContainer = Color(0xFF6DF5E1);
-  static const Color onSecondaryContainer = Color(0xFF006F64);
-  static const Color secondaryFixed = Color(0xFF71F8E4);
-  static const Color secondaryFixedDim = Color(0xFF4FDBC8);
-  static const Color onSecondaryFixed = Color(0xFF00201C);
-  static const Color onSecondaryFixedVariant = Color(0xFF005048);
+  static const Color secondaryContainer = Color(0xFFDBEAFE);
+  static const Color onSecondaryContainer = Color(0xFF004AC6);
+  static const Color secondaryFixed = Color(0xFFDBEAFE);
+  static const Color secondaryFixedDim = Color(0xFF93C5FD);
+  static const Color onSecondaryFixed = Color(0xFF1E3A8A);
+  static const Color onSecondaryFixedVariant = Color(0xFF1D4ED8);
 
   // Tertiary
   static const Color tertiary = Color(0xFFFFB89C);
@@ -60,6 +59,6 @@ class AppColors {
   static const Color onErrorContainer = Color(0xFF93000A);
 
   // Background
-  static const Color background = Color(0xFFFAF8FF);
+  static const Color background = Color(0xFFF1F5F9);
   static const Color onBackground = Color(0xFF0F172A);
 }

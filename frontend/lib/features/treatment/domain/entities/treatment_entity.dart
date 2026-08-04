@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+enum TreatmentStatus { planned, inProgress, completed, cancelled }
+
 class TreatmentEntity extends Equatable {
   final String id;
   final String visitId;
@@ -8,6 +10,9 @@ class TreatmentEntity extends Equatable {
   final String? description;
   final String? attachmentUrl;
   final String? enteredBy;
+  final TreatmentStatus status;
+  final DateTime? startDate;
+  final DateTime? endDate;
   final bool editable;
   final DateTime? createdAt;
 
@@ -19,6 +24,9 @@ class TreatmentEntity extends Equatable {
     this.description,
     this.attachmentUrl,
     this.enteredBy,
+    this.status = TreatmentStatus.planned,
+    this.startDate,
+    this.endDate,
     this.editable = false,
     this.createdAt,
   });
@@ -32,6 +40,9 @@ class TreatmentEntity extends Equatable {
         description,
         attachmentUrl,
         enteredBy,
+        status,
+        startDate,
+        endDate,
         editable,
         createdAt
       ];
