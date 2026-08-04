@@ -3,6 +3,7 @@ package com.vettrack.api.common.exception;
 import com.vettrack.api.storage.FileTooLargeException;
 import com.vettrack.api.storage.UnsupportedFileTypeException;
 
+import com.vettrack.api.common.exception.EditWindowExpiredException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +72,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnsupportedFileTypeException.class)
     public ResponseEntity<Map<String, Object>> handleUnsupportedFileType(UnsupportedFileTypeException ex) {
         return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_FILE_TYPE", ex.getMessage());
+    }
+    @ExceptionHandler(EditWindowExpiredException.class)
+    public ResponseEntity<Map<String, Object>> handleEditWindowExpired(EditWindowExpiredException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, "EDIT_WINDOW_EXPIRED", ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
