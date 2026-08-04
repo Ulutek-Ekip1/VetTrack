@@ -8,7 +8,6 @@ import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../widgets/pet_card.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class PetListScreen extends StatefulWidget {
   const PetListScreen({super.key});
@@ -150,22 +149,111 @@ class _PetListScreenState extends State<PetListScreen> {
                       // Arama Çubuğu
                       TextField(
                         controller: _searchController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'İsim veya 6 haneli kod ile ara...',
-                          hintStyle: TextStyle(color: labelGray, fontSize: 14),
-                          prefixIcon: Icon(Icons.search, color: labelGray),
-                          // Tema üzerindeki border ve arka plan kullanılacak
+                          hintStyle: const TextStyle(color: labelGray, fontSize: 14),
+                          prefixIcon: const Icon(Icons.search, color: labelGray),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: const BorderSide(color: primaryBlue, width: 1.5),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // Hayvan Kartları Listesi
+                      // Hayvan Kartları Listesi (Kademeli Animasyon ve Swipe to Action ile)
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: filteredPets.length,
                         itemBuilder: (context, index) {
                           final pet = filteredPets[index];
-                          return PetCard(pet: pet);
+                          return TweenAnimationBuilder<double>(
+                            tween: Tween<double>(begin: 0.0, end: 1.0),
+                            duration: Duration(milliseconds: 300 + (index * 80)),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, child) {
+                              return Transform.translate(
+                                offset: Offset(0, 30 * (1 - value)),
+                                child: Opacity(
+                                  opacity: value,
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Dismissible(
+                              key: Key('pet-dismiss-${pet.id}'),
+                              background: _buildSwipeBackground(
+                                context: context,
+                                alignment: Alignment.centerLeft,
+                                color: Theme.of(context).colorScheme.secondary,
+                                icon: Icons.edit,
+                                label: 'Düzenle',
+                              ),
+                              secondaryBackground: _buildSwipeBackground(
+                                context: context,
+                                alignment: Alignment.centerRight,
+                                color: Theme.of(context).colorScheme.error,
+                                icon: Icons.delete_forever,
+                                label: 'Sil',
+                              ),
+                              confirmDismiss: (direction) async {
+                                final theme = Theme.of(context);
+                                if (direction == DismissDirection.endToStart) {
+                                  // Silme
+                                  bool deleteConfirmed = false;
+                                  await showDialog(
+                                    context: context,
+                                    builder: (dialogContext) => AlertDialog(
+                                      title: const Text('Evcil Hayvanı Sil'),
+                                      content: Text(
+                                          '${pet.name} isimli evcil hayvanı silmek istediğinize emin misiniz?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(dialogContext).pop(),
+                                          child: const Text('İptal'),
+                                        ),
+                                        FilledButton(
+                                          style: FilledButton.styleFrom(
+                                            backgroundColor: theme.colorScheme.error,
+                                            foregroundColor: theme.colorScheme.onError,
+                                          ),
+                                          onPressed: () {
+                                            deleteConfirmed = true;
+                                            Navigator.of(dialogContext).pop();
+                                          },
+                                          child: const Text('Sil'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (deleteConfirmed && context.mounted) {
+                                    context.read<PetCubit>().deletePet(id: pet.id);
+                                    return true;
+                                  }
+                                  return false;
+                                } else {
+                                  // Düzenleme
+                                  context.push('/owner/pets/${pet.id}/edit');
+                                  return false; // listeden silinmesin
+                                }
+                              },
+                              child: PetCard(pet: pet),
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -173,7 +261,7 @@ class _PetListScreenState extends State<PetListScreen> {
                 ),
               );
             }
-
+ 
             return const SizedBox.shrink();
           },
         ),
@@ -188,6 +276,51 @@ class _PetListScreenState extends State<PetListScreen> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSwipeBackground({
+    required BuildContext context,
+    required Alignment alignment,
+    required Color color,
+    required IconData icon,
+    required String label,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14.0), // PetCard alt boşluğuyla uyumlu
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      alignment: alignment,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16.0), // PetCard köşe kavisiyle uyumlu
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: alignment == Alignment.centerLeft
+            ? [
+                Icon(icon, color: Colors.white, size: 22),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ]
+            : [
+                Text(
+                  label,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(icon, color: Colors.white, size: 22),
+              ],
       ),
     );
   }

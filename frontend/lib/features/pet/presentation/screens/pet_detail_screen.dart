@@ -76,18 +76,21 @@ class PetDetailScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
                           children: [
-                            CircleAvatar(
-                              radius: 36,
-                              backgroundColor: const Color(0xFFDBEAFE),
-                              backgroundImage: pet.photoUrl != null &&
-                                      pet.photoUrl!.isNotEmpty
-                                  ? NetworkImage(pet.photoUrl!)
-                                  : null,
-                              child:
-                                  pet.photoUrl == null || pet.photoUrl!.isEmpty
-                                      ? const Icon(Icons.pets,
-                                          size: 36, color: primaryBlue)
-                                      : null,
+                            Hero(
+                              tag: 'pet-photo-${pet.id}',
+                              child: CircleAvatar(
+                                radius: 36,
+                                backgroundColor: const Color(0xFFDBEAFE),
+                                backgroundImage: pet.photoUrl != null &&
+                                        pet.photoUrl!.isNotEmpty
+                                    ? NetworkImage(pet.photoUrl!)
+                                    : null,
+                                child:
+                                    pet.photoUrl == null || pet.photoUrl!.isEmpty
+                                        ? const Icon(Icons.pets,
+                                            size: 36, color: primaryBlue)
+                                        : null,
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(

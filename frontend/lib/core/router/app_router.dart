@@ -21,6 +21,8 @@ import '../../features/recommendation/presentation/screens/pet_recommendation_sc
 import '../../features/recommendation/presentation/screens/add_recommendation_screen.dart';
 import '../../features/notification/presentation/screens/notification_list_screen.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/home/presentation/pages/ai_chatbot_screen.dart';
+import '../../features/visit/presentation/screens/owner_visit_history_list_screen.dart';
 import 'main_shell_screen.dart';
 import 'not_found_screen.dart';
 
@@ -73,6 +75,9 @@ abstract class AppRoutes {
 
   //Notification Modülü Rotaları
   static const String notifications = '/notifications';
+
+  // AI Chatbot Rotası
+  static const String chatbot = '/chatbot';
 }
 
 class AppRouter {
@@ -301,6 +306,16 @@ class AppRouter {
           path: AppRoutes.notifications,
           name: 'notifications',
           builder: (context, state) => const NotificationListScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.ownerVisitHistoryList,
+          name: 'ownerVisits',
+          builder: (context, state) => const OwnerVisitHistoryListScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.chatbot,
+          name: 'chatbot',
+          builder: (context, state) => const AIChatbotScreen(),
         ),
       ],
     );
