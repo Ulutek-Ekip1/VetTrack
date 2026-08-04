@@ -52,7 +52,7 @@
 
 ---
 
-## Endpoint özeti (20 endpoint)
+## Endpoint özeti (24 endpoint)
 
 | # | Method | Path | Açıklama | Rol |
 |---|---|---|---|---|
@@ -60,6 +60,8 @@
 | 2 | POST | `/auth/login` | Giriş yap | Herkese açık |
 | 3 | POST | `/auth/forgot-password` | Şifre sıfırlama | Herkese açık |
 | 4 | GET | `/auth/me` | Mevcut kullanıcı bilgisi | owner, vet_staff |
+| 4a | GET | `/owners/me` | Kullanıcı profil bilgisi | owner |
+| 4b | PUT | `/owners/me` | Profil güncelle | owner |
 | 5 | POST | `/pets` | Hayvan ekle | owner |
 | 6 | GET | `/pets` | Sahibin hayvanları | owner |
 | 7 | GET | `/pets/{id}` | Hayvan detayı | owner |
@@ -174,6 +176,49 @@
   "createdAt": "2026-07-29T14:32:11Z"
 }
 ```
+
+---
+
+## Owners modülü
+
+### GET /owners/me — Kullanıcı profil bilgisi
+
+**Kim:** Sadece `owner`. JWT gerekli.
+
+**Response (200):**
+
+```json
+{
+  "id": "550e8400-...",
+  "name": "Ayşe",
+  "surname": "Yılmaz",
+  "email": "ayse@example.com",
+  "phone": "+905551234567",
+  "address": "Bursa, Nilüfer",
+  "createdAt": "2026-07-29T14:32:11Z"
+}
+```
+
+**Hatalar:** 401, 404
+
+---
+
+### PUT /owners/me — Profil güncelle
+
+**Kim:** Sadece `owner`. JWT gerekli.
+
+**Request body:** Tüm alanlar opsiyoneldir (partial update). `email` bu endpoint üzerinden güncellenemez.
+
+| Alan | Tip | Zorunlu | Açıklama |
+|---|---|---|---|
+| `name` | String | Hayır | Ad |
+| `surname` | String | Hayır | Soyad |
+| `phone` | String | Hayır | Telefon |
+| `address` | String | Hayır | Adres |
+
+**Response (200):** Güncellenmiş `OwnerResponse` (yukarıdaki şemayla aynı)
+
+**Hatalar:** 400, 401, 404
 
 ---
 
@@ -558,6 +603,8 @@
 | POST /auth/login | — | — | ✅ |
 | POST /auth/forgot-password | — | — | ✅ |
 | GET /auth/me | ✅ | ✅ | — |
+| GET /owners/me | ✅ | — | — |
+| PUT /owners/me | ✅ | — | — |
 | POST /pets | ✅ | — | — |
 | GET /pets | ✅ | — | — |
 | GET /pets/{id} | ✅ | — | — |
