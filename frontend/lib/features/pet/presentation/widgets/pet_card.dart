@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
 import 'package:vettrack_frontend/features/pet/presentation/cubit/pet_cubit.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class PetCard extends StatelessWidget {
   final PetEntity pet;
@@ -64,6 +65,16 @@ class PetCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16)),
+                child: QrImageView(
+                  data: pet.uniqueCode, version: QrVersions.auto,
+                  size: 180.0, // QR kodun büyüklüğü
+                ),
+              ),
               const SizedBox(height: 4),
               Text(
                 'Eşsiz Kimlik Kodu',
@@ -71,7 +82,7 @@ class PetCard extends StatelessWidget {
                   color: theme.colorScheme.outline,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               Container(
                 width: double.infinity,
                 padding:

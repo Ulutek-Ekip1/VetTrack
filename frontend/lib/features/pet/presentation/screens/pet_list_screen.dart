@@ -8,6 +8,7 @@ import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../widgets/pet_card.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class PetListScreen extends StatefulWidget {
   const PetListScreen({super.key});
