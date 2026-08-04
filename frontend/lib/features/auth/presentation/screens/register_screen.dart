@@ -38,56 +38,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _showDocumentDialog(String title, String content) {
-    final theme = Theme.of(context);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
-          ),
-        ),
-        content: SingleChildScrollView(
-          child: Text(
-            content,
-            style: theme.textTheme.bodyMedium,
-          ),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
-            ),
-            child: Text(
-              'Okudum, Anladım',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: AppColors.onPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _onRegister() {
     if (_formKey.currentState!.validate()) {
-      if (!_kvkkApproved || !_explicitConsentApproved) {
-        AppSnackBar.showError(
-          context,
-          title: 'Onay Gerekli',
-          message:
-              'Kayıt olmak için Aydınlatma Metni ve Açık Rıza Metnini onaylamalısınız.',
-        );
-        return;
-      }
-
       context.read<AuthCubit>().signUp(
             _emailController.text.trim(),
             _passwordController.text,
@@ -98,6 +50,95 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _selectedRole == 'vet_staff' ? UserRole.vet : UserRole.owner,
           );
     }
+  }
+
+  // KVKK Aydınlatma Metni Diyaloğu
+  void _showKvkkDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("KVKK Aydınlatma Metni"),
+        content: const SingleChildScrollView(
+          child: Text(
+            """VETTRACK KİŞİSEL VERİLERİN İŞLENMESİ AYDINLATMA METNİ
+
+1. Veri Sorumlusunun Kimliği
+VetTrack ("Şirket/Geliştirici") olarak, 6698 sayılı Kişisel Verileri Koruma Kanunu (“KVKK”) uyarınca, veri sorumlusu sıfatıyla kişisel verilerinizi aşağıda açıklanan kapsamda işlemekteyiz.
+
+2. İşlenen Kişisel Verileriniz ve İşleme Amaçları
+VetTrack platformuna kayıt olmanız ve hizmetlerimizi kullanmanız kapsamında,
+- Kimlik Verileri: Ad, soyad
+- İletişim Verileri: E-posta adresi, telefon numarası
+- İşlem Güvenliği Verileri: Şifre, IP adresi, giriş kayıtları
+- Hizmet/Sistem Verileri: Evcil hayvan profilleri, aşı ve muayene takip takvimleri
+
+Bu veriler, üyelik kayıt süreçlerinin yürütülmesi, evcil hayvan sağlık ve bakım takibinin sağlanması, kullanıcı hesabının güvenliğinin temini ve sistem hatalarının giderilmesi amaçlarıyla işlenmektedir.
+
+3. Kişisel Verilerin Aktarılması
+Kişisel verileriniz, kanunen yetkili kamu kurum ve kuruluşları ile uygulamanın teknik altyapısını sağlayan güvenli sunucu (hosting/cloud) hizmet sağlayıcıları dışında üçüncü şahıslarla paylaşılmamaktadır.
+
+4. Toplama Yöntemi ve Hukuki Sebebi
+Verileriniz, elektronik ortamda kayıt formu aracılığıyla; "Bir sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması" ve "Veri sorumlusunun hukuki yükümlülüğünü yerine getirebilmesi" hukuki sebeplerine dayanarak toplanmaktadır.
+
+5. KVKK Madde 11 Kapsamındaki Haklarınız
+Veri sahibi olarak; verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, silinmesini veya düzeltilmesini isteme haklarına sahipsiniz. Haklarınızı kullanmak için destek@vettrack.com adresi üzerinden bizimle iletişime geçebilirsiniz.""",
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _kvkkApproved = true;
+              });
+              _formKey.currentState?.validate();
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+            ),
+            child: const Text("Okudum, Anladım"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Açık Rıza Metni Diyaloğu
+  void _showExplicitConsentDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Açık Rıza Metni"),
+        content: const SingleChildScrollView(
+          child: Text(
+            """VETTRACK AÇIK RIZA METNİ
+
+VetTrack tarafından, sunulan hizmetlerin iyileştirilmesi, kampanya,
+bildirim ve hatırlatmaların (aşı günü, parazit takibi vb.) e-posta 
+veya mobil bildirim yoluyla tarafıma iletilmesi amacıyla iletişim 
+verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
+özgür irademle onay veriyorum.""",
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _explicitConsentApproved = true;
+              });
+              _formKey.currentState?.validate();
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+            ),
+            child: const Text("Okudum, Anladım"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -294,7 +335,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   controller: _nameController,
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    labelText: "Ad Soyad",
+                                    label: const Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          TextSpan(text: "Ad Soyad"),
+                                          TextSpan(
+                                            text: " *",
+                                            style: TextStyle(
+                                                color: Colors.red,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     hintText: "Adınızı ve soyadınızı giriniz",
                                     prefixIcon: const Icon(
                                       Icons.person_outline,
@@ -328,7 +381,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   keyboardType: TextInputType.emailAddress,
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    labelText: "E-posta Adresi",
+                                    label: const Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          TextSpan(text: "E-posta Adresi"),
+                                          TextSpan(
+                                            text: " *",
+                                            style: TextStyle(
+                                                color: Colors.red,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     hintText: "E-posta adresinizi giriniz",
                                     prefixIcon: const Icon(
                                       Icons.mail_outline,
@@ -396,7 +461,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   obscureText: _obscurePassword,
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    labelText: "Şifre",
+                                    label: const Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          TextSpan(text: "Şifre"),
+                                          TextSpan(
+                                            text: " *",
+                                            style: TextStyle(
+                                                color: Colors.red,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     hintText: "Şifrenizi giriniz",
                                     prefixIcon: const Icon(
                                       Icons.lock_outline,
@@ -437,109 +514,215 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                                 const SizedBox(height: 20),
 
-                                // Açık Rıza Metni Checkbox
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: Checkbox(
-                                        value: _explicitConsentApproved,
-                                        activeColor: AppColors.primary,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        onChanged: (val) => setState(() =>
-                                            _explicitConsentApproved =
-                                                val ?? false),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Wrap(
-                                        crossAxisAlignment:
-                                            WrapCrossAlignment.center,
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () => _showDocumentDialog(
-                                              'Açık Rıza Metni',
-                                              'Sağlık verilerinizin, tıbbi geçmişinizin ve aşı bildirimlerinin veteriner klinikleri ile paylaşılmasına ve işlenmesine açık rıza veriyorum.',
+                                // KVKK Aydınlatma Metni Checkbox
+                                FormField<bool>(
+                                  validator: (_) {
+                                    if (!_kvkkApproved) {
+                                      return 'Devam etmek için Aydınlatma Metnini onaylamalısınız.';
+                                    }
+                                    return null;
+                                  },
+                                  builder: (fieldState) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            SizedBox(
+                                              height: 24,
+                                              width: 24,
+                                              child: Checkbox(
+                                                value: _kvkkApproved,
+                                                activeColor: AppColors.primary,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                onChanged: (val) {
+                                                  setState(() {
+                                                    _kvkkApproved =
+                                                        val ?? false;
+                                                  });
+                                                  fieldState
+                                                      .didChange(_kvkkApproved);
+                                                },
+                                              ),
                                             ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Wrap(
+                                                crossAxisAlignment:
+                                                    WrapCrossAlignment.center,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: _showKvkkDialog,
+                                                    child: Text(
+                                                      'Aydınlatma Metni',
+                                                      style: theme
+                                                          .textTheme.bodyMedium
+                                                          ?.copyWith(
+                                                        color:
+                                                            AppColors.primary,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Text.rich(
+                                                    TextSpan(
+                                                      children: [
+                                                        const TextSpan(
+                                                          text: ' *',
+                                                          style: TextStyle(
+                                                              color: Colors.red,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        TextSpan(
+                                                          text:
+                                                              '\'ni okudum ve onaylıyorum.',
+                                                          style: theme.textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                            color: AppColors
+                                                                .onSurfaceVariant,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        if (fieldState.hasError)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 6, left: 32),
                                             child: Text(
-                                              'Açık Rıza Metni',
-                                              style: theme.textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.bold,
+                                              fieldState.errorText!,
+                                              style: TextStyle(
+                                                color: theme.colorScheme.error,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
                                               ),
                                             ),
                                           ),
-                                          Text(
-                                            '\'ni okudum ve kabul ediyorum.',
-                                            style: theme.textTheme.bodyMedium
-                                                ?.copyWith(
-                                              color: AppColors.onSurfaceVariant,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                      ],
+                                    );
+                                  },
                                 ),
 
                                 const SizedBox(height: 12),
 
-                                // KVKK Aydınlatma Metni Checkbox
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: Checkbox(
-                                        value: _kvkkApproved,
-                                        activeColor: AppColors.primary,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        onChanged: (val) => setState(
-                                            () => _kvkkApproved = val ?? false),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Wrap(
-                                        crossAxisAlignment:
-                                            WrapCrossAlignment.center,
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () => _showDocumentDialog(
-                                              'Aydınlatma Metni',
-                                              'VetTrack olarak kişisel verilerinizin güvenliğine önem veriyoruz. 6698 sayılı KVKK uyarınca verileriniz hizmet sunumu, veteriner randevu takibi ve sağlık kayıtlarının tutulması amacıyla işlenmektedir.',
+                                // Açık Rıza Metni Checkbox
+                                FormField<bool>(
+                                  validator: (_) {
+                                    if (!_explicitConsentApproved) {
+                                      return 'Devam etmek için Açık Rıza Metnini onaylamalısınız.';
+                                    }
+                                    return null;
+                                  },
+                                  builder: (fieldState) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            SizedBox(
+                                              height: 24,
+                                              width: 24,
+                                              child: Checkbox(
+                                                value: _explicitConsentApproved,
+                                                activeColor: AppColors.primary,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                onChanged: (val) {
+                                                  setState(() {
+                                                    _explicitConsentApproved =
+                                                        val ?? false;
+                                                  });
+                                                  fieldState.didChange(
+                                                      _explicitConsentApproved);
+                                                },
+                                              ),
                                             ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Wrap(
+                                                crossAxisAlignment:
+                                                    WrapCrossAlignment.center,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap:
+                                                        _showExplicitConsentDialog,
+                                                    child: Text(
+                                                      'Açık Rıza Metni',
+                                                      style: theme
+                                                          .textTheme.bodyMedium
+                                                          ?.copyWith(
+                                                        color:
+                                                            AppColors.primary,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Text.rich(
+                                                    TextSpan(
+                                                      children: [
+                                                        const TextSpan(
+                                                          text: ' *',
+                                                          style: TextStyle(
+                                                              color: Colors.red,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        TextSpan(
+                                                          text:
+                                                              '\'ni okudum ve kabul ediyorum.',
+                                                          style: theme.textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                            color: AppColors
+                                                                .onSurfaceVariant,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        if (fieldState.hasError)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 6, left: 32),
                                             child: Text(
-                                              'Aydınlatma Metni',
-                                              style: theme.textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.bold,
+                                              fieldState.errorText!,
+                                              style: TextStyle(
+                                                color: theme.colorScheme.error,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
                                               ),
                                             ),
                                           ),
-                                          Text(
-                                            '\'ni okudum ve onaylıyorum.',
-                                            style: theme.textTheme.bodyMedium
-                                                ?.copyWith(
-                                              color: AppColors.onSurfaceVariant,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                      ],
+                                    );
+                                  },
                                 ),
 
                                 const SizedBox(height: 24),
