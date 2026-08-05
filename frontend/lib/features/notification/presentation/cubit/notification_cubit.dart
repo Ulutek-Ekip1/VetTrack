@@ -25,7 +25,8 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   //Tokeni sunucuya kaydetme
-  Future<void> registerDeviceToken(String token, {String platform = 'android'}) async {
+  Future<void> registerDeviceToken(String token,
+      {String platform = 'android'}) async {
     try {
       await registerDeviceTokenUseCase(fcmToken: token, platform: platform);
       emit(DeviceTokenRegistered());

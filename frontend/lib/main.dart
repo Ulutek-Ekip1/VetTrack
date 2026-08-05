@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vettrack_frontend/core/services/firebase_messaging_service.dart';
 import 'app.dart';
 import 'core/di/injection_container.dart' as di;
+
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  final messagingService = FirebaseMessagingService();
+  await messagingService.initNotifications();
   // TODO: Kendi gerçek Supabase URL ve Anon Key'inizi buraya girin.
   // Şimdilik çökmemesi için mock (sahte) verilerle başlatıyoruz.
   await Supabase.initialize(

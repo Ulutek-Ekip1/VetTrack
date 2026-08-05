@@ -5,16 +5,20 @@ import 'core/theme/app_theme.dart';
 import 'core/di/injection_container.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 
+final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
 class VetTrackApp extends StatelessWidget {
   const VetTrackApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     final authCubit = sl<AuthCubit>()..checkAuthStatus();
-    
+
     return BlocProvider<AuthCubit>.value(
       value: authCubit,
       child: MaterialApp.router(
+        scaffoldMessengerKey: rootScaffoldMessengerKey,
         title: 'VetTrack',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,

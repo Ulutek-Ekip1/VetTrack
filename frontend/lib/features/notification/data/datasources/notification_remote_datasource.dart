@@ -8,6 +8,7 @@ abstract class NotificationRemoteDataSource {
       {int page = 0, int size = 20});
   Future<void> registerDeviceToken(
       {required String fcmToken, String platform = 'android'});
+  Future<void> unregisterDeviceToken({required String fcmToken});
 }
 
 class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
@@ -47,6 +48,20 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       );
     } on DioException catch (e) {
       throw ServerException(e.message ?? 'Cihaz tokenı kaydedilemedi.');
+    }
+  }
+
+  @override
+  Future<void> unregisterDeviceToken({required String fcmToken}) async {
+    try {
+      await dio.post(
+        '/devices/unregister',
+        data: {
+          'fcmToken': fcmToken,
+        },
+      );
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? 'Cihaz tokenı silinemedi.');
     }
   }
 }

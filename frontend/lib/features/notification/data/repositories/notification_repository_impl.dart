@@ -16,4 +16,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<void> registerDeviceToken({required String fcmToken, String platform = 'android'}) async {
     await remoteDataSource.registerDeviceToken(fcmToken: fcmToken, platform: platform);
   }
+
+  @override
+  Future<void> unregisterDeviceToken({required String fcmToken}) async {
+    await remoteDataSource.unregisterDeviceToken(fcmToken: fcmToken);
+  }
 }

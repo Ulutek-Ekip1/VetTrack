@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _onLogin() {
+  void _onLogin() async {
     if (_formKey.currentState!.validate()) {
       context.read<AuthCubit>().signInWithEmail(
             _emailController.text.trim(),
@@ -122,7 +122,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: const Icon(Icons.lock_outlined),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                         ),
                         onPressed: () {
                           setState(() {
@@ -154,7 +156,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: const Text(
                       'Giriş Yap',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                   const SizedBox(height: 16),
