@@ -23,6 +23,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _phoneController;
   late final TextEditingController _addressController;
   bool _isInitialized = false;
+  bool _isEditable = false;
 
   @override
   void initState() {
@@ -102,6 +103,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 behavior: SnackBarBehavior.floating,
               ),
             );
+            setState(() {
+              _isEditable = false;
+            });
             context.pop();
           } else if (state is ProfileError) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -178,7 +182,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              "Aşağıdaki alanları güncelleyerek profilinizi güncel tutabilirsiniz.",
+                              _isEditable
+                                  ? "Aşağıdaki alanları güncelleyerek profilinizi güncel tutabilirsiniz."
+                                  : "Kişisel profil bilgilerinizi aşağıdan inceleyebilirsiniz. Değişiklik yapmak için aşağıdaki 'Bilgileri Düzenle' butonuna tıklayın.",
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: AppColors.onSurfaceVariant,
                               ),
@@ -188,6 +194,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             // Ad TextFormField
                             TextFormField(
                               controller: _nameController,
+                              enabled: _isEditable,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
                                 labelText: "Ad",
@@ -202,6 +209,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: const BorderSide(
                                     color: AppColors.outlineVariant,
+                                  ),
+                                ),
+                                disabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(
+                                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -220,6 +233,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             // Soyad TextFormField
                             TextFormField(
                               controller: _surnameController,
+                              enabled: _isEditable,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
                                 labelText: "Soyad",
@@ -234,6 +248,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: const BorderSide(
                                     color: AppColors.outlineVariant,
+                                  ),
+                                ),
+                                disabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(
+                                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -278,6 +298,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             // Telefon TextFormField
                             TextFormField(
                               controller: _phoneController,
+                              enabled: _isEditable,
                               keyboardType: TextInputType.phone,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
@@ -296,6 +317,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     color: AppColors.outlineVariant,
                                   ),
                                 ),
+                                disabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(
+                                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                  ),
+                                ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: const BorderSide(
@@ -312,6 +339,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             // Adres TextFormField
                             TextFormField(
                               controller: _addressController,
+                              enabled: _isEditable,
                               maxLines: 3,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
@@ -329,6 +357,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     color: AppColors.outlineVariant,
                                   ),
                                 ),
+                                disabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(
+                                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                  ),
+                                ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: const BorderSide(
@@ -341,13 +375,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                             const SizedBox(height: 24),
 
-                            // Kaydet Butonu
+                            // Düzenleme / Kaydet Butonu
                             SizedBox(
                               height: 52,
                               child: ElevatedButton(
-                                onPressed: isSaving ? null : _onSave,
+                                onPressed: isSaving
+                                    ? null
+                                    : (!_isEditable
+                                        ? () {
+                                            setState(() {
+                                              _isEditable = true;
+                                            });
+                                          }
+                                        : _onSave),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
+                                  backgroundColor: _isEditable
+                                      ? const Color(0xFF10B981)
+                                      : AppColors.primary,
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
@@ -368,7 +412,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            'Değişiklikleri Kaydet',
+                                            _isEditable
+                                                ? 'Değişiklikleri Kaydet'
+                                                : 'Bilgileri Düzenle',
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
                                               color: Colors.white,
@@ -376,8 +422,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          const Icon(
-                                            Icons.save_outlined,
+                                          Icon(
+                                            _isEditable
+                                                ? Icons.save_outlined
+                                                : Icons.edit_outlined,
                                             size: 20,
                                             color: Colors.white,
                                           ),
