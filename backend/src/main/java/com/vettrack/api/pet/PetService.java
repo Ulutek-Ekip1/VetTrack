@@ -1,14 +1,14 @@
 package com.vettrack.api.pet;
-import com.vettrack.api.storage.StorageService;
-import org.springframework.web.multipart.MultipartFile;
-import java.time.OffsetDateTime;
 
 import com.vettrack.api.common.exception.ResourceNotFoundException;
+import com.vettrack.api.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.SecureRandom;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,8 +19,8 @@ public class PetService {
     private final PetRepository petRepository;
     private final StorageService storageService;
 
-    // Görsel olarak karıştırılabilecek karakterler (0, O, 1, I, L) çıkarılmış 31 karakterlik güvenli alfabe
-    private static final String ALPHANUMERIC = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    // Görsel olarak karıştırılabilecek karakterler (0, O, 1, I, L) tamamen çıkarılmış 31 karakterlik güvenli alfabe
+    private static final String ALPHANUMERIC = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     /**
@@ -35,10 +35,19 @@ public class PetService {
 
     /**
      * Hekimlerin veya kullanıcıların 6 haneli benzersiz kod ile arama yapmasını sağlar.
+     * Parametredeki boşluklar temizlenir ve otomatik büyük harfe dönüştürülür.
      */
     @Transactional(readOnly = true)
     public Pet getPetByUniqueCode(String uniqueCode) {
-        return petRepository.findByUniqueCodeIgnoreCaseAndDeletedAtIsNull(uniqueCode).orElseThrow(() -> new ResourceNotFoundException("Bu koda sahip evcil hayvan bulunamadı: " + uniqueCode));
+        if (uniqueCode == null || uniqueCode.isBlank()) {
+            throw new IllegalArgumentException("Arama kodu boş olamaz");
+        }
+
+        // Boşlukları temizle ve büyük harfe çevir
+        String cleanedCode = uniqueCode.trim().toUpperCase();
+
+        return petRepository.findByUniqueCodeIgnoreCaseAndDeletedAtIsNull(cleanedCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Bu koda sahip evcil hayvan bulunamadı: " + cleanedCode));
     }
 
     /**
@@ -91,31 +100,32 @@ public class PetService {
 
         return petRepository.save(existingPet);
     }
+
     @Transactional
     public String uploadPhoto(UUID petId, MultipartFile file) {
-    Pet pet = getPetById(petId);
-    String photoUrl = storageService.uploadPetPhoto(file, petId);
-    pet.setPhotoUrl(photoUrl);
-    petRepository.save(pet);
-    return photoUrl;
+        Pet pet = getPetById(petId);
+        String photoUrl = storageService.uploadPetPhoto(file, petId);
+        pet.setPhotoUrl(photoUrl);
+        petRepository.save(pet);
+        return photoUrl;
     }
+
     @Transactional
     public void softDeletePet(UUID petId, UUID ownerId) {
-    Pet pet = getPetById(petId);
-    if (!pet.getOwnerId().equals(ownerId)) {
-        throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+        Pet pet = getPetById(petId);
+        if (!pet.getOwnerId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+        }
+        if (pet.getDeletedAt() != null) {
+            throw new ResourceNotFoundException("Evcil hayvan zaten silinmiş");
+        }
+        pet.setDeletedAt(OffsetDateTime.now());
+        petRepository.save(pet);
     }
-    if (pet.getDeletedAt() != null) {
-        throw new ResourceNotFoundException("Evcil hayvan zaten silinmiş");
-    }
-    pet.setDeletedAt(OffsetDateTime.now());
-    petRepository.save(pet);
-    }  
 
     /**
      * 6 haneli, çakışmasız ve güvenli alfabe kullanan kod üretir.
-     */ 
-
+     */
     private String generateUniqueCode() {
         String code;
         do {

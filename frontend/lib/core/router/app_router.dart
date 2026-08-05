@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/owner_profile_screen.dart';
 import '../../features/auth/presentation/screens/vet_profile_screen.dart';
 import '../../features/pet/presentation/screens/pet_list_screen.dart';
@@ -25,6 +28,7 @@ import '../../features/home/presentation/pages/ai_chatbot_screen.dart';
 import '../../features/visit/presentation/screens/owner_visit_history_list_screen.dart';
 import 'main_shell_screen.dart';
 import 'not_found_screen.dart';
+import '../../features/auth/presentation/screens/email_verification_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription<dynamic> _subscription;
@@ -47,6 +51,8 @@ abstract class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+  static const String ownerEmailVerification = '/owner/email-verification';
+  static const String resetPassword = '/reset-password';
 
   //Pet Modülü Rotaları
   static const String ownerHome = '/owner/home';
@@ -81,8 +87,17 @@ abstract class AppRoutes {
 }
 
 class AppRouter {
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static GoRouter? _router;
+
+  static GoRouter get router {
+    _router ??= createRouter();
+    return _router!;
+  }
+
   static GoRouter createRouter([AuthCubit? authCubit]) {
-    return GoRouter(
+    final routerInstance = GoRouter(
+      navigatorKey: navigatorKey,
       // TODO: Tasarım testi için başlangıç ownerHome yapıldı. Normalde: AppRoutes.login
       initialLocation: AppRoutes.ownerHome,
       refreshListenable:
@@ -103,7 +118,9 @@ class AppRouter {
 
         final isLoggingIn = location == AppRoutes.login ||
             location == AppRoutes.register ||
-            location == AppRoutes.forgotPassword;
+            location == AppRoutes.forgotPassword ||
+            location == AppRoutes.ownerEmailVerification ||
+            location == AppRoutes.resetPassword;
 
         if (!isLoggedIn) {
           return isLoggingIn ? null : AppRoutes.login;
@@ -143,6 +160,16 @@ class AppRouter {
           path: AppRoutes.forgotPassword,
           name: 'forgotPassword',
           builder: (context, state) => const ForgotPasswordScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.ownerEmailVerification,
+          name: 'ownerEmailVerification',
+          builder: (context, state) => const EmailVerificationScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.resetPassword,
+          name: 'resetPassword',
+          builder: (context, state) => const ResetPasswordScreen(),
         ),
 
         //Hayvan Sahibi StatefulShellRoute
@@ -230,7 +257,7 @@ class AppRouter {
           ],
         ),
 
-        //Veteriner Hekim StatefulShellRoute
+        //Veteriner Personeli StatefulShellRoute
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
             return VetShellScreen(navigationShell: navigationShell);
@@ -257,15 +284,6 @@ class AppRouter {
             StatefulShellBranch(
               routes: [
                 GoRoute(
-                  path: '/vet/notifications',
-                  name: 'vetNotifications',
-                  builder: (context, state) => const NotificationListScreen(),
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: [
-                GoRoute(
                   path: AppRoutes.vetProfile,
                   name: 'vetProfile',
                   builder: (context, state) => const VetProfileScreen(),
@@ -275,7 +293,7 @@ class AppRouter {
           ],
         ),
 
-        //Muayene Yaşam Döngüsü & Hiyerarşik Muayene Akışı (Nested Visit Routes)
+        //Ziyaret Detayı & Tedavi/Öneri Ekleme Rotaları
         GoRoute(
           path: AppRoutes.activeVisit,
           name: 'activeVisit',
@@ -319,5 +337,18 @@ class AppRouter {
         ),
       ],
     );
+
+    _router = routerInstance;
+    _setupSupabaseAuthListener();
+    return routerInstance;
+  }
+
+  static void _setupSupabaseAuthListener() {
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      if (event == AuthChangeEvent.passwordRecovery) {
+        _router?.go(AppRoutes.resetPassword);
+      }
+    });
   }
 }

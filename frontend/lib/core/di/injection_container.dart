@@ -65,9 +65,11 @@ Future<void> init() async {
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio(BaseOptions(
       baseUrl: 'http://10.0.2.2:8080/api',
+      connectTimeout: const Duration(seconds: 3),
+      receiveTimeout: const Duration(seconds: 3),
       headers: {'Content-Type': 'application/json'},
     ));
-    dio.interceptors.add(AuthInterceptor(sl()));
+    dio.interceptors.add(AuthInterceptor(sl(), () => sl<AuthCubit>()));
     return dio;
   });
 
@@ -88,7 +90,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
 
-  sl.registerFactory(
+  sl.registerLazySingleton<AuthCubit>(
     () => AuthCubit(
       loginWithEmail: sl(),
       registerUseCase: sl(),

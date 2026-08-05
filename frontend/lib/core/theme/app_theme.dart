@@ -113,6 +113,16 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
       ),
+
+      //SnackBar Theme
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        backgroundColor: Colors.transparent,
+      ),
     );
   }
 
