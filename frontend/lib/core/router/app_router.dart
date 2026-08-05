@@ -7,6 +7,7 @@ import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/owner_profile_screen.dart';
 import '../../features/auth/presentation/screens/vet_profile_screen.dart';
+import '../../features/pet/presentation/screens/pet_detail_screen2.dart';
 import '../../features/pet/presentation/screens/pet_list_screen.dart';
 import '../../features/pet/presentation/screens/pet_detail_screen.dart';
 import '../../features/pet/presentation/screens/add_pet_screen.dart';
@@ -177,7 +178,7 @@ class AppRouter {
                       name: 'petDetail',
                       builder: (context, state) {
                         final petId = state.pathParameters['petId'] ?? '';
-                        return PetDetailScreen(petId: petId);
+                        return PetDetailScreen2(petId: petId);
                       },
                       routes: [
                         GoRoute(
