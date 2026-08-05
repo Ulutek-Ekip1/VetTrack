@@ -35,7 +35,14 @@ class PetDetailScreen extends StatelessWidget {
                 color: Color(0xFF434655)),
             tooltip: 'Bildirimler',
             onPressed: () {
-              context.push('/notifications');
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content:
+                      Text('Bildirim geçmişi özelliği yakında eklenecektir!'),
+                  backgroundColor: Color(0xFF004AC6),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
             },
           ),
           IconButton(
@@ -76,7 +83,7 @@ class PetDetailScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
                           children: [
-                            Hero(
+                                                Hero(
                               tag: 'pet-photo-${pet.id}',
                               child: CircleAvatar(
                                 radius: 36,
@@ -144,22 +151,6 @@ class PetDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        context.push('/owner/pets/$petId/recommendations');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryBlue,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28)),
-                      ),
-                      icon: const Icon(Icons.auto_awesome),
-                      label: const Text('AI Sağlık & Bakım Önerileri',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: () {
                         context.push('/owner/pets/$petId/edit');
@@ -189,22 +180,6 @@ class PetDetailScreen extends StatelessWidget {
                       ),
                       icon: const Icon(Icons.history_edu),
                       label: const Text('Geçmiş Ziyaretler & Muayeneler',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        context.push('/owner/pets/$petId/treatments');
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: primaryBlue, width: 1.5),
-                        minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28)),
-                        foregroundColor: primaryBlue,
-                      ),
-                      icon: const Icon(Icons.vaccines),
-                      label: const Text('Tedaviler & Aşı Takvimi',
                           style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ],
