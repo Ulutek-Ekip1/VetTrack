@@ -2,20 +2,16 @@ package com.vettrack.api.pet;
 
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import java.time.LocalDate;
 
-/**
- * Pet güncelleme isteği. Tüm alanlar opsiyoneldir — sadece gönderilen (null olmayan)
- * alanlar güncellenir (partial update). API sözleşmesi: docs/api-contract.md satır 227.
- *
- * Not: photoUrl bu endpoint üzerinden güncellenmez; POST /pets/{id}/photo kullanılır.
- * uniqueCode ise hiçbir şekilde değiştirilemez.
- */
 @Data
 public class PetUpdateRequest {
 
     @Size(min = 1, message = "Pet adı boş olamaz")
     private String name;
-    private Integer age;
-    private Gender gender;
+    private String species;
     private String breed;
+    private Gender gender;
+    private LocalDate birthDate;
+    private Short estimatedBirthYear;
 }
