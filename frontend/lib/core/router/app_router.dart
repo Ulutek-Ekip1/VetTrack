@@ -30,6 +30,7 @@ import '../../features/visit/presentation/screens/owner_visit_history_list_scree
 import 'main_shell_screen.dart';
 import 'not_found_screen.dart';
 import '../../features/auth/presentation/screens/email_verification_screen.dart';
+import '../../features/auth/presentation/screens/welcome_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription<dynamic> _subscription;
@@ -49,6 +50,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 }
 
 abstract class AppRoutes {
+  static const String welcome = '/welcome';
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
@@ -99,7 +101,7 @@ class AppRouter {
   static GoRouter createRouter([AuthCubit? authCubit]) {
     final routerInstance = GoRouter(
       navigatorKey: navigatorKey,
-      initialLocation: AppRoutes.login,
+      initialLocation: AppRoutes.welcome,
       refreshListenable:
           authCubit != null ? GoRouterRefreshStream(authCubit.stream) : null,
 
@@ -112,14 +114,15 @@ class AppRouter {
         final isLoggedIn = authState is Authenticated;
         final location = state.matchedLocation;
 
-        final isLoggingIn = location == AppRoutes.login ||
+        final isLoggingIn = location == AppRoutes.welcome ||
+            location == AppRoutes.login ||
             location == AppRoutes.register ||
             location == AppRoutes.forgotPassword ||
             location == AppRoutes.ownerEmailVerification ||
             location == AppRoutes.resetPassword;
 
         if (!isLoggedIn) {
-          return isLoggingIn ? null : AppRoutes.login;
+          return isLoggingIn ? null : AppRoutes.welcome;
         }
 
         final user = authState.user;
@@ -141,6 +144,11 @@ class AppRouter {
         return null;
       },
       routes: [
+        GoRoute(
+          path: AppRoutes.welcome,
+          name: 'welcome',
+          builder: (context, state) => const WelcomeScreen(),
+        ),
         GoRoute(
           path: AppRoutes.login,
           name: 'login',
