@@ -3,8 +3,7 @@ package com.vettrack.api.notification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.OffsetDateTime;
 
 @Component
 public class TokenCleanupScheduler {
@@ -18,7 +17,7 @@ public class TokenCleanupScheduler {
     // Runs every day at 03:00 AM
     @Scheduled(cron = "0 0 3 * * ?")
     public void removeExpiredTokens() {
-        Instant threshold = Instant.now().minus(60, ChronoUnit.DAYS);
+        OffsetDateTime threshold = OffsetDateTime.now().minusDays(60);
         service.cleanStaleTokens(threshold);
     }
 }

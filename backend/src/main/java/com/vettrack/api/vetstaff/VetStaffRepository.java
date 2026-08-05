@@ -6,5 +6,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface VetStaffRepository extends JpaRepository<VetStaff, UUID> {
-    Optional<VetStaff> findByEmail(String email);
+    Optional<VetStaff> findByUserId(UUID userId);
 }

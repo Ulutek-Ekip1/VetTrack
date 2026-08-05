@@ -38,7 +38,7 @@ public class NotificationService {
             return savedNotification;
         }
 
-        List<DeviceToken> deviceTokens = deviceTokenRepository.findByOwnerId(ownerId);
+        List<DeviceToken> deviceTokens = deviceTokenRepository.findByUserId(ownerId);
         for (DeviceToken deviceToken : deviceTokens) {
             try {
                 Message message = Message.builder()

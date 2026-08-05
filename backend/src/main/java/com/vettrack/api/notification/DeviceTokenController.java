@@ -24,10 +24,8 @@ public class DeviceTokenController {
     public ResponseEntity<Void> registerDevice(
             Authentication authentication,
             @Valid @RequestBody DeviceTokenRequest request) {
-
-        UUID ownerId = extractOwnerId(authentication);
-        service.registerDevice(ownerId, request);
-
+        UUID userId = extractUserId(authentication);
+        service.registerDevice(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -35,14 +33,12 @@ public class DeviceTokenController {
     public ResponseEntity<Void> unregisterDevice(
             Authentication authentication,
             @Valid @RequestBody DeviceTokenRequest request) {
-
-        UUID ownerId = extractOwnerId(authentication);
-        service.unregisterDevice(ownerId, request.getFcmToken());
-
+        UUID userId = extractUserId(authentication);
+        service.unregisterDevice(userId, request.getFcmToken());
         return ResponseEntity.noContent().build();
     }
 
-    private UUID extractOwnerId(Authentication authentication) {
+    private UUID extractUserId(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new UnauthorizedException("Kullanıcı kimliği doğrulanamadı.");
         }
