@@ -171,9 +171,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         _buildQuickActionCard(
                           context,
-                          title: 'Aşı & Tedavi',
-                          subtitle: 'Aşı takvimi ve reçeteler',
-                          icon: Icons.vaccines_outlined,
+                          title: 'Tedaviler',
+                          subtitle: 'Tedavi geçmişi ve reçeteler',
+                          icon: Icons.healing_outlined,
                           color: const Color(0xFFFFF1F2),
                           iconColor: const Color(0xFFF43F5E),
                           onTap: () {
@@ -196,13 +196,12 @@ class _HomePageState extends State<HomePage> {
                         ),
                         _buildQuickActionCard(
                           context,
-                          title: 'AI Asistan',
-                          subtitle: 'Yapay zeka ile sohbet',
-                          icon: Icons.auto_awesome_outlined,
-                          // Tasarımdaki Turkuaz (#006B5F) ve Açık Turkuaz (#E6FDF9) tonları kullanıldı
-                          color: const Color(0xFFE6FDF9),
-                          iconColor: theme.colorScheme.secondary,
-                          onTap: () => context.push('/chatbot'),
+                          title: 'Kişisel Bilgiler',
+                          subtitle: 'Profilinizi görüntüleyin',
+                          icon: Icons.person_outline,
+                          color: const Color(0xFFEFF6FF),
+                          iconColor: theme.colorScheme.primary,
+                          onTap: () => context.push('/owner/profile'),
                         ),
                       ],
                     ),
@@ -349,90 +348,6 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // AI Analiz & Tavsiye Kartı
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.containerMargin),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white,
-                            peachBg.withValues(alpha: 0.25),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        border: Border.all(color: peachBorder, width: 1.2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: peachText.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.auto_awesome, color: peachText, size: 22),
-                              const SizedBox(width: 8),
-                              Text(
-                                'AI Sağlık & Bakım Tavsiyesi',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: peachText,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Yapay zeka analizlerine göre dostlarınızın aşı takvimini ve beslenme düzenini kontrol etmeniz tavsiye ediliyor.',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey.shade800,
-                              height: 1.45,
-                              fontSize: 13.5,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: FilledButton.icon(
-                              onPressed: () {
-                                final petState = context.read<PetCubit>().state;
-                                if (petState is PetLoaded && petState.pets.isNotEmpty) {
-                                  context.push('/owner/pets/${petState.pets.first.id}/recommendations');
-                                } else {
-                                  context.push('/chatbot');
-                                }
-                              },
-                              style: FilledButton.styleFrom(
-                                backgroundColor: peachText,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                elevation: 0,
-                              ),
-                              icon: const Icon(Icons.arrow_forward, size: 16),
-                              label: const Text('Detayları Gör', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
                   const SizedBox(height: AppDimensions.spacingXl),
                 ]),
               ),
