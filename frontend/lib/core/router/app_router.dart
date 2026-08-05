@@ -15,6 +15,7 @@ import '../../features/auth/presentation/screens/vet_profile_screen.dart';
 import '../../features/auth/presentation/cubit/profile_cubit.dart';
 import '../di/injection_container.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/pet/presentation/screens/pet_detail_screen2.dart';
 import '../../features/pet/presentation/screens/pet_list_screen.dart';
 import '../../features/pet/presentation/screens/pet_detail_screen.dart';
 import '../../features/pet/presentation/screens/add_pet_screen.dart';
@@ -212,7 +213,7 @@ class AppRouter {
                       name: 'petDetail',
                       builder: (context, state) {
                         final petId = state.pathParameters['petId'] ?? '';
-                        return PetDetailScreen(petId: petId);
+                        return PetDetailScreen2(petId: petId);
                       },
                       routes: [
                         GoRoute(
