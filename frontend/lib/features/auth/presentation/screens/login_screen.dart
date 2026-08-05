@@ -109,11 +109,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 72,
                         height: 72,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: const Color(0xFF14B8A6),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.3),
+                              color: const Color(0xFF14B8A6).withValues(alpha: 0.25),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 40,
                           height: 40,
                           colorFilter: const ColorFilter.mode(
-                            AppColors.onPrimary,
+                            Colors.white,
                             BlendMode.srcIn,
                           ),
                         ),
@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         "VetTrack",
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: const Color(0xFF14B8A6),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -147,11 +147,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Kutulu Form Kartı (Card Container)
                       Card(
-                        elevation: 2,
-                        shadowColor:
-                            AppColors.onSurface.withValues(alpha: 0.08),
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(24),
+                          side: BorderSide(
+                            color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                            width: 1,
+                          ),
                         ),
                         color: AppColors.surfaceContainerLowest,
                         child: Padding(
@@ -167,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   style:
                                       theme.textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
+                                    color: const Color(0xFF14B8A6),
                                   ),
                                 ),
 
@@ -196,18 +198,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: AppColors.outline,
                                     ),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: AppColors.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
-                                        color: AppColors.primary,
+                                        color: Color(0xFF14B8A6),
                                         width: 2,
                                       ),
                                     ),
@@ -231,18 +233,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: AppColors.outline,
                                     ),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: AppColors.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
-                                        color: AppColors.primary,
+                                        color: Color(0xFF14B8A6),
                                         width: 2,
                                       ),
                                     ),
@@ -278,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       width: 24,
                                       child: Checkbox(
                                         value: _rememberMe,
-                                        activeColor: AppColors.primary,
+                                        activeColor: const Color(0xFF14B8A6),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(4),
@@ -319,7 +321,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         'Şifremi Unuttum?',
                                         style: theme.textTheme.labelMedium
                                             ?.copyWith(
-                                          color: AppColors.primary,
+                                          color: const Color(0xFF14B8A6),
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -335,11 +337,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: ElevatedButton(
                                     onPressed: isLoading ? null : _onLogin,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-                                      foregroundColor: AppColors.onPrimary,
+                                      backgroundColor: const Color(0xFF14B8A6),
+                                      foregroundColor: Colors.white,
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
                                     ),
                                     child: isLoading
@@ -348,7 +350,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             height: 24,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2.5,
-                                              color: AppColors.onPrimary,
+                                              color: Colors.white,
                                             ),
                                           )
                                         : Row(
@@ -360,7 +362,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
-                                                  color: AppColors.onPrimary,
+                                                  color: Colors.white,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -368,7 +370,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               const Icon(
                                                 Icons.arrow_forward,
                                                 size: 20,
-                                                color: AppColors.onPrimary,
+                                                color: Colors.white,
                                               ),
                                             ],
                                           ),
@@ -399,7 +401,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Text(
                               "Kayıt Ol",
                               style: theme.textTheme.labelLarge?.copyWith(
-                                color: AppColors.primary,
+                                color: const Color(0xFF14B8A6),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
