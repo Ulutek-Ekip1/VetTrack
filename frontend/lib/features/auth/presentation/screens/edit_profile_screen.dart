@@ -85,7 +85,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         elevation: 1,
         shadowColor: Colors.black12,
         title: const Text(
-          'Profilimi Güncelle',
+          'Kişisel Bilgiler',
           style: TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
