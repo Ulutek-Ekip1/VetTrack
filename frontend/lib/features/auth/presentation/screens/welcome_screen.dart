@@ -83,112 +83,76 @@ class WelcomeScreen extends StatelessWidget {
 
                   const SizedBox(height: 48),
 
-                  // Kart / Buton Alanı
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      side: BorderSide(
-                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                        width: 1,
+                  // Giriş Yap Butonu (Turkuaz - #14B8A6)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context.push(AppRoutes.login);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF14B8A6),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
-                    ),
-                    color: AppColors.surfaceContainerLowest,
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Başlayalım",
-                            style: theme.textTheme.titleLarge?.copyWith(
+                            'Giriş Yap',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.onSurface,
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.login_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Kayıt Ol Butonu (Şeftali - #FFB89C)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context.push(AppRoutes.register);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFB89C),
+                        foregroundColor: const Color(0xFF131B2E),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                           Text(
-                            "Hesabınıza giriş yapın veya yeni bir hesap oluşturarak evcil hayvanlarınızı kaydetmeye başlayın.",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Giriş Yap Butonu (Turkuaz - Secondary)
-                          SizedBox(
-                            height: 54,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                context.push(AppRoutes.login);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.secondary,
-                                foregroundColor: AppColors.onSecondary,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Giriş Yap',
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      color: AppColors.onSecondary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Icon(
-                                    Icons.login_rounded,
-                                    size: 20,
-                                    color: AppColors.onSecondary,
-                                  ),
-                                ],
-                              ),
+                            'Kayıt Ol',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: const Color(0xFF131B2E),
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-
-                          const SizedBox(height: 14),
-
-                          // Kayıt Ol Butonu (Şeftali - Tertiary)
-                          SizedBox(
-                            height: 54,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                context.push(AppRoutes.register);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.tertiary,
-                                foregroundColor: AppColors.onTertiary,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Kayıt Ol',
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      color: AppColors.onTertiary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Icon(
-                                    Icons.person_add_rounded,
-                                    size: 20,
-                                    color: AppColors.onTertiary,
-                                  ),
-                                ],
-                              ),
-                            ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.person_add_rounded,
+                            size: 20,
+                            color: Color(0xFF131B2E),
                           ),
                         ],
                       ),
