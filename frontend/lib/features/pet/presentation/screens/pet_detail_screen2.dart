@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
+import '../../domain/entities/pet_entity.dart';
 
 class PetDetailScreen2 extends StatefulWidget {
   final String petId;
@@ -99,9 +100,11 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
                                   color: Color(0xFF131B2E),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Icon(Icons.edit_outlined,
-                                  size: 20, color: primaryBlue),
+                              IconButton(
+                                icon: Icon(Icons.edit_outlined,
+                                    size: 20, color: primaryBlue),
+                                onPressed: () => context.push('/owner/pets/${pet.id}/edit'),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 4),
@@ -153,7 +156,7 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildGenelTab(),
+                      _buildGenelTab(pet),
                       _buildSaglikTab(),
                       _buildNotlarTab(),
                     ],
@@ -169,7 +172,15 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
   }
 
   // 1. GENEL SEKMESİ
-  Widget _buildGenelTab() {
+  Widget _buildGenelTab(PetEntity pet) {
+    String speciesVal = 'Bilinmiyor';
+    String breedVal = pet.breed ?? 'Bilinmiyor';
+    if (pet.breed != null && pet.breed!.contains(' / ')) {
+      final parts = pet.breed!.split(' / ');
+      speciesVal = parts[0];
+      breedVal = parts[1];
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -178,14 +189,27 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
           const Text('Genel Bilgiler',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          _buildInfoRow('Doğum Tarihi', '12.04.2022'),
-          _buildInfoRow('Kilo', '23 kg'),
-          _buildInfoRow('Mikroçip No', '900215000123456'),
-          _buildInfoRow('Kısırlaştırma', 'Evet'),
-          _buildInfoRow('Kan Grubu', 'DEA 1.1 (+)'),
-          _buildInfoRow('Renk', 'Golden'),
-          _buildInfoRow('Alerjiler', 'Tavuk proteinine alerjisi var.'),
-          _buildInfoRow('Kronik Rahatsızlıklar', 'Yok'),
+          _buildInfoRow('Benzersiz Kod', pet.uniqueCode),
+          _buildInfoRow('Türü', speciesVal),
+          _buildInfoRow('Cinsi / Irkı', breedVal),
+          _buildInfoRow('Yaş', pet.age != null ? '${pet.age} Yaş' : 'Bilinmiyor'),
+          _buildInfoRow(
+              'Cinsiyet',
+              pet.gender == Gender.male
+                  ? 'Erkek'
+                  : (pet.gender == Gender.female ? 'Dişi' : 'Bilinmiyor')),
+          const Divider(height: 24),
+          const Text('Ek Detaylar (Statik / Mock)',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+          const SizedBox(height: 12),
+          _buildInfoRow('Doğum Tarihi (Mock)', '12.04.2022'),
+          _buildInfoRow('Kilo (Mock)', '23 kg'),
+          _buildInfoRow('Mikroçip No (Mock)', '900215000123456'),
+          _buildInfoRow('Kısırlaştırma (Mock)', 'Evet'),
+          _buildInfoRow('Kan Grubu (Mock)', 'DEA 1.1 (+)'),
+          _buildInfoRow('Renk (Mock)', 'Golden'),
+          _buildInfoRow('Alerjiler (Mock)', 'Tavuk proteinine alerjisi var.'),
+          _buildInfoRow('Kronik Rahatsızlıklar (Mock)', 'Yok'),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
