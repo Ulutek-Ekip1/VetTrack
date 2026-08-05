@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/auth/presentation/cubit/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -98,20 +99,15 @@ class AppRouter {
   static GoRouter createRouter([AuthCubit? authCubit]) {
     final routerInstance = GoRouter(
       navigatorKey: navigatorKey,
-      // TODO: Tasarım testi için başlangıç ownerHome yapıldı. Normalde: AppRoutes.login
-      initialLocation: AppRoutes.ownerHome,
+      initialLocation: AppRoutes.login,
       refreshListenable:
           authCubit != null ? GoRouterRefreshStream(authCubit.stream) : null,
 
       //404 / Sayfa Bulunamadı Katmanı
       errorBuilder: (context, state) => const NotFoundScreen(),
 
-      //Auth & Rol Bazlı Redirect (Tasarım testi için bypass edildi)
+      //Auth & Rol Bazlı Redirect
       redirect: (BuildContext context, GoRouterState state) {
-        // Tasarım testi için geçici bypass:
-        return null;
-
-        /*
         final authState = authCubit?.state;
         final isLoggedIn = authState is Authenticated;
         final location = state.matchedLocation;
@@ -143,7 +139,6 @@ class AppRouter {
         }
 
         return null;
-        */
       },
       routes: [
         GoRoute(
