@@ -24,6 +24,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
   late TextEditingController _ageController;
   Gender _selectedGender = Gender.male;
   bool _isInitialDataLoaded = false;
+  bool _ageUnknown = false;
   String? _photoUrl;
   final _nameFocusNode = FocusNode();
   final _speciesFocusNode = FocusNode();
@@ -64,6 +65,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
           }
 
           _ageController.text = pet.age?.toString() ?? '';
+          _ageUnknown = pet.age == null;
           _selectedGender = pet.gender;
           _photoUrl = pet.photoUrl;
           _isInitialDataLoaded = true;
@@ -91,7 +93,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
       final species = _speciesController.text.trim();
       final breed = _breedController.text.trim();
       final ageText = _ageController.text.trim();
-      final age = ageText.isNotEmpty ? int.tryParse(ageText) : null;
+      final age = !_ageUnknown && ageText.isNotEmpty ? int.tryParse(ageText) : null;
 
       final combinedBreed = species.isNotEmpty
           ? (breed.isNotEmpty ? "$species / $breed" : species)
@@ -316,11 +318,40 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   controller: _ageController,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.done,
+                  enabled: !_ageUnknown,
                   decoration: InputDecoration(
                     labelText: 'Yaş',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   ),
+                  validator: (val) {
+                    if (_ageUnknown) return null;
+                    if (val != null && val.isNotEmpty) {
+                      final ageVal = int.tryParse(val);
+                      if (ageVal == null || ageVal < 0 || ageVal > 30) {
+                        return 'Lütfen 0 ile 30 arasında geçerli bir yaş girin';
+                      }
+                    }
+                    return null;
+                  },
                   onFieldSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _ageUnknown,
+                      onChanged: (val) {
+                        setState(() {
+                          _ageUnknown = val ?? false;
+                          if (_ageUnknown) {
+                            _ageController.clear();
+                          }
+                        });
+                      },
+                    ),
+                    const Text('Yaş Bilinmiyor',
+                        style: TextStyle(fontWeight: FontWeight.w500)),
+                  ],
                 ),
                 const SizedBox(height: 32),
                 BlocBuilder<PetCubit, PetState>(
