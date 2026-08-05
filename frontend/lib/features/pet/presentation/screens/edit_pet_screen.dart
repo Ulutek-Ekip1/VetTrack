@@ -313,44 +313,79 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   onFieldSubmitted: (_) => _ageFocusNode.requestFocus(),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  focusNode: _ageFocusNode,
-                  controller: _ageController,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.done,
-                  enabled: !_ageUnknown,
-                  decoration: InputDecoration(
-                    labelText: 'Yaş',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  validator: (val) {
-                    if (_ageUnknown) return null;
-                    if (val != null && val.isNotEmpty) {
-                      final ageVal = int.tryParse(val);
-                      if (ageVal == null || ageVal < 0 || ageVal > 30) {
-                        return 'Lütfen 0 ile 30 arasında geçerli bir yaş girin';
-                      }
-                    }
-                    return null;
-                  },
-                  onFieldSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-                const SizedBox(height: 8),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Checkbox(
-                      value: _ageUnknown,
-                      onChanged: (val) {
-                        setState(() {
-                          _ageUnknown = val ?? false;
-                          if (_ageUnknown) {
-                            _ageController.clear();
+                    Expanded(
+                      child: TextFormField(
+                        focusNode: _ageFocusNode,
+                        controller: _ageController,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        enabled: !_ageUnknown,
+                        decoration: InputDecoration(
+                          labelText: 'Yaş',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        validator: (val) {
+                          if (_ageUnknown) return null;
+                          if (val != null && val.isNotEmpty) {
+                            final ageVal = int.tryParse(val);
+                            if (ageVal == null || ageVal < 0 || ageVal > 30) {
+                              return 'Lütfen 0-30 arası bir yaş girin';
+                            }
                           }
-                        });
-                      },
+                          return null;
+                        },
+                        onFieldSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      ),
                     ),
-                    const Text('Yaş Bilinmiyor',
-                        style: TextStyle(fontWeight: FontWeight.w500)),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _ageUnknown = !_ageUnknown;
+                            if (_ageUnknown) {
+                              _ageController.clear();
+                            }
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          height: 56, // Metin kutusu yüksekliğiyle tam eşleşir
+                          decoration: BoxDecoration(
+                            color: _ageUnknown
+                                ? primaryBlue.withOpacity(0.05)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _ageUnknown ? primaryBlue : Colors.grey.shade400,
+                              width: _ageUnknown ? 2 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _ageUnknown ? Icons.check_circle : Icons.help_outline,
+                                color: _ageUnknown ? primaryBlue : const Color(0xFF434655),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Bilinmiyor',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: _ageUnknown ? primaryBlue : const Color(0xFF434655),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 32),
