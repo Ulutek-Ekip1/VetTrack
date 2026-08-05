@@ -18,6 +18,9 @@ class AuthCubit extends Cubit<AuthState> {
     required this.logoutUseCase,
     required this.authRepository,
   }) : super(AuthInitial()) {
+    // Tasarım testi için mock kullanıcı otomatik girişi pasif yapıldı.
+    // Auth ekranlarını test etmek için Unauthenticated başlaması sağlandı.
+    /*
     emit(Authenticated(
       // Mock user for testing purposes
       UserEntity(
@@ -30,6 +33,7 @@ class AuthCubit extends Cubit<AuthState> {
         createdAt: DateTime.now(),
       ),
     ));
+    */
   }
 
   Future<void> checkAuthStatus() async {
