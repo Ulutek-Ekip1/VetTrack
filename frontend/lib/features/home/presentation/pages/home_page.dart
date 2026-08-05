@@ -37,96 +37,73 @@ class _HomePageState extends State<HomePage> {
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // Premium & Kompakt Üst Karşılama Alanı (SliverAppBar)
-              SliverAppBar(
-                expandedHeight: 135,
-                floating: false,
-                pinned: true,
-                backgroundColor: theme.colorScheme.primary,
-                elevation: 0,
-                // Kavisli modern alt kenar tasarımı (Yüksekliği azaltılmış ve sadeleştirilmiş)
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(24),
-                  ),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(24),
-                      ),
-                      gradient: LinearGradient(
-                        colors: [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.primary.withValues(alpha: 0.9),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+              SliverToBoxAdapter(
+                child: ClipPath(
+                  clipper: WaveClipper(),
+                  child: Container(
+                    height: 185,
+                    color: const Color(0xFF004AC6),
+                    padding: const EdgeInsets.only(
+                      left: 24,
+                      right: 24,
+                      top: 54, // Clear status bar
+                      bottom: 40,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: AppDimensions.containerMargin,
-                        right: AppDimensions.containerMargin,
-                        bottom: 18,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: theme.colorScheme.primaryContainer,
-                            child: Text(
-                              userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 26,
+                          backgroundColor: Colors.white.withOpacity(0.2),
+                          child: Text(
+                            userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Merhaba,',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontSize: 14,
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Merhaba,',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$userName 👋',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
                                 ),
-                                Text(
-                                  '$userName 👋',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20),
-                              onPressed: () => context.push('/notifications'),
-                              tooltip: 'Bildirimler',
-                              splashRadius: 20,
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(8),
-                            ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            shape: BoxShape.circle,
                           ),
-                        ],
-                      ),
+                          child: IconButton(
+                            icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
+                            onPressed: () => context.push('/notifications'),
+                            tooltip: 'Bildirimler',
+                            splashRadius: 20,
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.all(8),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -267,19 +244,8 @@ class _HomePageState extends State<HomePage> {
                                 width: 215,
                                 margin: const EdgeInsets.only(right: 12),
                                 decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF), // Eşleşen açık mavi renk
                                   borderRadius: BorderRadius.circular(20),
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.white,
-                                      theme.colorScheme.primary.withValues(alpha: 0.03),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  border: Border.all(
-                                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                                    width: 1.2,
-                                  ),
                                 ),
                                 child: InkWell(
                                   onTap: () => context.push('/owner/pets/${pet.id}'),
@@ -328,9 +294,10 @@ class _HomePageState extends State<HomePage> {
                                               const SizedBox(height: 6),
                                               Text(
                                                 '${pet.age ?? 0} yaşında',
-                                                style: theme.textTheme.labelMedium?.copyWith(
-                                                  color: theme.colorScheme.primary,
-                                                  fontWeight: FontWeight.w700,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF004AC6),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13,
                                                 ),
                                               ),
                                             ],
@@ -380,9 +347,9 @@ class _HomePageState extends State<HomePage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        // İkon rengiyle uyumlu belirgin çerçeve
+        // İkon rengiyle uyumlu daha belirgin çerçeve
         border: Border.all(
-          color: iconColor.withValues(alpha: 0.12),
+          color: iconColor.withValues(alpha: 0.20),
           width: 1.2,
         ),
         boxShadow: [
@@ -450,4 +417,37 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
+
+class WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 20);
+
+    final firstControlPoint = Offset(size.width * 0.25, size.height - 40);
+    final firstEndPoint = Offset(size.width * 0.5, size.height - 20);
+    path.quadraticBezierTo(
+      firstControlPoint.dx,
+      firstControlPoint.dy,
+      firstEndPoint.dx,
+      firstEndPoint.dy,
+    );
+
+    final secondControlPoint = Offset(size.width * 0.75, size.height);
+    final secondEndPoint = Offset(size.width, size.height - 20);
+    path.quadraticBezierTo(
+      secondControlPoint.dx,
+      secondControlPoint.dy,
+      secondEndPoint.dx,
+      secondEndPoint.dy,
+    );
+
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
