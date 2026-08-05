@@ -7,6 +7,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
+import '../../../../core/utils/validators.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -185,6 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
+                                  autofillHints: const [AutofillHints.email],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     labelText: "E-posta Adresi",
@@ -210,15 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                   ),
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Lütfen e-posta adresinizi girin';
-                                    }
-                                    if (!value.contains('@')) {
-                                      return 'Geçerli bir e-posta adresi girin';
-                                    }
-                                    return null;
-                                  },
+                                  validator: Validators.validateEmail,
                                 ),
 
                                 const SizedBox(height: 16),
@@ -227,6 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: _obscurePassword,
+                                  autofillHints: const [AutofillHints.password],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     labelText: 'Şifre',

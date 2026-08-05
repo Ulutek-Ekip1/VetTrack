@@ -261,6 +261,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 // Ad-Soyad TextFormField
                                 TextFormField(
                                   controller: _nameController,
+                                  autofillHints: const [AutofillHints.name],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     label: const Text.rich(
@@ -307,6 +308,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
+                                  autofillHints: const [AutofillHints.email],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     label: const Text.rich(
@@ -353,6 +355,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 TextFormField(
                                   controller: _phoneController,
                                   keyboardType: TextInputType.phone,
+                                  autofillHints: const [AutofillHints.telephoneNumber],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     labelText: "Telefon (Opsiyonel)",
@@ -387,6 +390,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: _obscurePassword,
+                                  autofillHints: const [AutofillHints.newPassword],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     label: const Text.rich(
