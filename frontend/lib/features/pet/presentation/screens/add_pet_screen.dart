@@ -306,7 +306,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                             height: 56, // Metin kutusu yüksekliğiyle tam eşleşir
                             decoration: BoxDecoration(
                               color: _ageUnknown
-                                  ? primaryBlue.withOpacity(0.05)
+                                  ? primaryBlue.withValues(alpha: 0.05)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
@@ -390,7 +390,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
         child: Container(
           height: 48,
           decoration: BoxDecoration(
-            color: isSelected ? activeColor.withOpacity(0.08) : Colors.transparent,
+            color: isSelected ? activeColor.withValues(alpha: 0.08) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected ? activeColor : Colors.grey.shade400,

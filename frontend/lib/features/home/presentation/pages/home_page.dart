@@ -25,9 +25,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const peachBg = Color(0xFFFFECE5);
-    const peachBorder = Color(0xFFFFB89C);
-    const peachText = Color(0xFFD9531E);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surfaceDim,
@@ -54,7 +51,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         CircleAvatar(
                           radius: 26,
-                          backgroundColor: Colors.white.withOpacity(0.2),
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
                           child: Text(
                             userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
                             style: const TextStyle(
@@ -73,7 +70,7 @@ class _HomePageState extends State<HomePage> {
                               Text(
                                 'Merhaba,',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                   fontSize: 14,
                                 ),
                               ),
@@ -91,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                            color: Colors.white.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(

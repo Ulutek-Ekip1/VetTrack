@@ -469,7 +469,7 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
                           const Divider(height: 1, indent: 56),
                       ],
                     );
-                  }).toList(),
+                  }),
                 const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.symmetric(
