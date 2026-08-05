@@ -3,7 +3,7 @@ package com.vettrack.api.common.exception;
 import com.vettrack.api.storage.FileTooLargeException;
 import com.vettrack.api.storage.UnsupportedFileTypeException;
 
-import com.vettrack.api.common.exception.EditWindowExpiredException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

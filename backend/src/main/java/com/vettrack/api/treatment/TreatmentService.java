@@ -23,10 +23,6 @@ public class TreatmentService {
 
     private static final int EDIT_WINDOW_MINUTES = 15;
 
-    /**
-     * Ziyarete yeni tedavi girişi ekler.
-     * Ziyaret ongoing değilse ekleme yapılamaz (VISIT_CLOSED).
-     */
     @Transactional
     public TreatmentEntry createTreatment(UUID visitId, TreatmentCreateRequest request, UUID vetStaffId) {
         Visit visit = visitRepository.findById(visitId)
@@ -38,7 +34,7 @@ public class TreatmentService {
 
         TreatmentEntry entry = TreatmentEntry.builder()
                 .visitId(visitId)
-                .type(request.getType())
+                .entryType(request.getEntryType())
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .attachmentUrl(request.getAttachmentUrl())
@@ -50,10 +46,6 @@ public class TreatmentService {
         return treatmentEntryRepository.save(entry);
     }
 
-    /**
-     * Ziyaretin tedavilerini listeler.
-     * Opsiyonel status filtresi, startDate DESC sıralama.
-     */
     @Transactional(readOnly = true)
     public List<TreatmentEntry> getTreatmentsByVisit(UUID visitId, TreatmentStatus status) {
         visitRepository.findById(visitId)
@@ -65,43 +57,26 @@ public class TreatmentService {
         return treatmentEntryRepository.findByVisitIdOrderByStartDateDesc(visitId);
     }
 
-    /**
-     * Tedavi kaydını günceller. 15 dk pencere ve sahiplik kontrolü (EC-08).
-     */
     @Transactional
     public TreatmentEntry updateTreatment(UUID treatmentId, TreatmentUpdateRequest request, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
         checkEditWindow(entry);
 
-        if (request.getType() != null) {
-            entry.setType(request.getType());
-        }
-        if (request.getTitle() != null) {
-            entry.setTitle(request.getTitle());
-        }
-        if (request.getDescription() != null) {
-            entry.setDescription(request.getDescription());
-        }
-        if (request.getAttachmentUrl() != null) {
-            entry.setAttachmentUrl(request.getAttachmentUrl());
-        }
-        if (request.getStatus() != null) {
-            entry.setStatus(request.getStatus());
-        }
+        if (request.getEntryType() != null) entry.setEntryType(request.getEntryType());
+        if (request.getTitle() != null) entry.setTitle(request.getTitle());
+        if (request.getDescription() != null) entry.setDescription(request.getDescription());
+        if (request.getAttachmentUrl() != null) entry.setAttachmentUrl(request.getAttachmentUrl());
+        if (request.getStatus() != null) entry.setStatus(request.getStatus());
 
         return treatmentEntryRepository.save(entry);
     }
 
-    /**
-     * Tedavi kaydını siler. 15 dk pencere ve sahiplik kontrolü (EC-08).
-     */
     @Transactional
     public void deleteTreatment(UUID treatmentId, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
         checkEditWindow(entry);
-
         treatmentEntryRepository.delete(entry);
     }
 
