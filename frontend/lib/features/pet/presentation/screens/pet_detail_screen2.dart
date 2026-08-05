@@ -19,6 +19,32 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
   late TabController _tabController;
   final Color primaryBlue = const Color(0xFF004AC6);
   final Color bgGray = const Color(0xFFF8FAFC);
+  final List<Map<String, String>> _healthHistory = [
+    {
+      'date': '15.05.2026',
+      'title': 'Genel Muayene',
+      'clinic': 'Patili Veteriner Kliniği',
+      'type': 'medical_services'
+    },
+    {
+      'date': '10.05.2026',
+      'title': 'Ateş şikayeti ile muayene',
+      'clinic': 'Patili Veteriner Kliniği',
+      'type': 'thermostat'
+    },
+    {
+      'date': '15.02.2026',
+      'title': 'Dış parazit tedavisi',
+      'clinic': 'Patili Veteriner Kliniği',
+      'type': 'healing'
+    },
+    {
+      'date': '20.01.2026',
+      'title': 'Kulak enfeksiyonu tedavisi',
+      'clinic': 'Patili Veteriner Kliniği',
+      'type': 'medication'
+    },
+  ];
 
   @override
   void initState() {
@@ -413,23 +439,43 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
             ),
             child: Column(
               children: [
-                _buildHealthHistoryItem(Icons.medical_services_outlined,
-                    '15.05.2026', 'Genel Muayene', 'Patili Veteriner Kliniği'),
-                const Divider(height: 1, indent: 56),
-                _buildHealthHistoryItem(Icons.thermostat_outlined, '10.05.2026',
-                    'Ateş şikayeti ile muayene', 'Patili Veteriner Kliniği'),
-                const Divider(height: 1, indent: 56),
-                _buildHealthHistoryItem(Icons.healing_outlined, '15.02.2026',
-                    'Dış parazit tedavisi', 'Patili Veteriner Kliniği'),
-                const Divider(height: 1, indent: 56),
-                _buildHealthHistoryItem(Icons.medication_outlined, '20.01.2026',
-                    'Kulak enfeksiyonu tedavisi', 'Patili Veteriner Kliniği'),
+                if (_healthHistory.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Text('Herhangi bir sağlık geçmişi bulunmuyor.', style: TextStyle(color: Colors.grey)),
+                  )
+                else
+                  ..._healthHistory.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+                    IconData icon;
+                    switch (item['type']) {
+                      case 'thermostat':
+                        icon = Icons.thermostat_outlined;
+                        break;
+                      case 'healing':
+                        icon = Icons.healing_outlined;
+                        break;
+                      case 'medication':
+                        icon = Icons.medication_outlined;
+                        break;
+                      default:
+                        icon = Icons.medical_services_outlined;
+                    }
+                    return Column(
+                      children: [
+                        _buildHealthHistoryItem(icon, item['date']!, item['title']!, item['clinic']!),
+                        if (index < _healthHistory.length - 1)
+                          const Divider(height: 1, indent: 56),
+                      ],
+                    );
+                  }).toList(),
                 const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 8.0),
                   child: OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: () => _showAddHealthRecordBottomSheet(context),
                     icon: const Icon(Icons.add),
                     label: const Text('Yeni Sağlık Kaydı Ekle',
                         style: TextStyle(fontWeight: FontWeight.bold)),
@@ -473,6 +519,133 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
           const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  void _showAddHealthRecordBottomSheet(BuildContext context) {
+    final titleController = TextEditingController();
+    final clinicController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Yeni Sağlık Kaydı Ekle',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF131B2E),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Rahatsızlık / Muayene Nedeni',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(
+                  hintText: 'Örn: Kusma şikayeti, aşı kontrolü',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Klinik / Hekim Adı',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: clinicController,
+                decoration: InputDecoration(
+                  hintText: 'Örn: Patili Veteriner Kliniği',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  if (titleController.text.trim().isEmpty ||
+                      clinicController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Lütfen tüm alanları doldurun.'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final now = DateTime.now();
+                  final dateStr = '${now.day.toString().padLeft(2, '0')}.${now.month.toString().padLeft(2, '0')}.${now.year}';
+
+                  setState(() {
+                    _healthHistory.insert(0, {
+                      'date': dateStr,
+                      'title': titleController.text.trim(),
+                      'clinic': clinicController.text.trim(),
+                      'type': 'medical_services',
+                    });
+                  });
+
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Sağlık kaydı başarıyla eklendi.'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Kaydet',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

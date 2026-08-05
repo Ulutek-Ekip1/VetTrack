@@ -13,35 +13,35 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
   final List<Map<String, dynamic>> _notifications = [
     {
       'id': '1',
-      'title': 'Aşı Hatırlatması',
-      'message': 'Pamuk isimli kedinizin Kuduz Aşısı zamanı yaklaşıyor. Lütfen hekiminizden randevu almayı unutmayın.',
+      'title': 'Tedavi Kaydı Eklendi',
+      'message': 'Hekiminiz Pamuk için yeni bir ilaç tedavi kaydı girdi. Detayları inceleyebilirsiniz.',
       'time': '10 dk önce',
       'isRead': false,
-      'type': 'vaccines',
+      'type': 'healing',
       'group': 'Bugün',
     },
     {
       'id': '2',
-      'title': 'Ziyaret Tamamlandı',
-      'message': 'Dr. Mehmet Yılmaz, Pamuk için muayene notlarını ve reçete detaylarını güncelledi.',
+      'title': 'Ziyaret Başlatıldı',
+      'message': 'Pamuk için Patili Veteriner Kliniği\'nde yeni bir muayene ziyareti başlatıldı.',
       'time': '2 saat önce',
       'isRead': false,
-      'type': 'check_circle',
+      'type': 'medical_services',
       'group': 'Bugün',
     },
     {
       'id': '3',
-      'title': 'Yeni Sağlık Tavsiyesi',
-      'message': 'Yapay zeka analiz sistemi Gölge için yeni beslenme tavsiyeleri üretti.',
+      'title': 'Ziyaret Tamamlandı',
+      'message': 'Dr. Mehmet Yılmaz, Pamuk için gerçekleştirdiği muayene ziyaretini tamamladı.',
       'time': 'Dün, 14:30',
       'isRead': true,
-      'type': 'auto_awesome',
+      'type': 'check_circle',
       'group': 'Daha Eski',
     },
     {
       'id': '4',
       'title': 'Sistem Güncellemesi',
-      'message': 'VetTrack uygulamasına hoş geldiniz! Profilinizi tamamlayarak bildirimlerinizi özelleştirebilirsiniz.',
+      'message': 'VetTrack uygulamasına hoş geldiniz! Evcil hayvanınızın profilini doldurarak hekiminizle paylaşabilirsiniz.',
       'time': '3 gün önce',
       'isRead': true,
       'type': 'system',
@@ -146,25 +146,25 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                       Color iconColor;
 
                       switch (type) {
-                        case 'vaccines':
-                          iconData = Icons.vaccines_outlined;
-                          iconBgColor = const Color(0xFFEEF2F6);
-                          iconColor = const Color(0xFFE11D48);
+                        case 'healing':
+                          iconData = Icons.healing_outlined;
+                          iconBgColor = const Color(0xFFFFF1F2);
+                          iconColor = const Color(0xFFF43F5E);
+                          break;
+                        case 'medical_services':
+                          iconData = Icons.medical_services_outlined;
+                          iconBgColor = const Color(0xFFEFF6FF);
+                          iconColor = primaryBlue;
                           break;
                         case 'check_circle':
                           iconData = Icons.check_circle_outline_rounded;
                           iconBgColor = const Color(0xFFECFDF5);
                           iconColor = const Color(0xFF059669);
                           break;
-                        case 'auto_awesome':
-                          iconData = Icons.auto_awesome_outlined;
-                          iconBgColor = const Color(0xFFFFECE5);
-                          iconColor = const Color(0xFFD9531E);
-                          break;
                         default:
                           iconData = Icons.notifications_none_outlined;
-                          iconBgColor = const Color(0xFFEFF6FF);
-                          iconColor = primaryBlue;
+                          iconBgColor = const Color(0xFFF1F5F9);
+                          iconColor = Colors.grey.shade600;
                       }
 
                       return Card(
