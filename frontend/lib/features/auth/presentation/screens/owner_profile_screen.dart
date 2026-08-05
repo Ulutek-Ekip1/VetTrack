@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../core/router/app_router.dart';
 
 class OwnerProfileScreen extends StatelessWidget {
   const OwnerProfileScreen({super.key});
@@ -123,9 +124,7 @@ class OwnerProfileScreen extends StatelessWidget {
                         icon: Icons.person_outline,
                         title: 'Kişisel Bilgiler',
                         subtitle: 'Ad soyad, telefon ve e-posta ayarları',
-                        onTap: () {
-                          // TODO: Kişisel Bilgiler düzenleme ekranı
-                        },
+                        onTap: () => context.push(AppRoutes.editProfile),
                       ),
                       _buildDivider(),
                       _buildProfileTile(

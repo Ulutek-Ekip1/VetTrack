@@ -10,7 +10,11 @@ import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/owner_profile_screen.dart';
+import '../../features/auth/presentation/screens/edit_profile_screen.dart';
 import '../../features/auth/presentation/screens/vet_profile_screen.dart';
+import '../../features/auth/presentation/cubit/profile_cubit.dart';
+import '../di/injection_container.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/pet/presentation/screens/pet_list_screen.dart';
 import '../../features/pet/presentation/screens/pet_detail_screen.dart';
 import '../../features/pet/presentation/screens/add_pet_screen.dart';
@@ -64,6 +68,7 @@ abstract class AppRoutes {
   static const String petDetail = '/owner/pets/:petId';
   static const String editPet = '/owner/pets/:petId/edit';
   static const String ownerProfile = '/owner/profile';
+  static const String editProfile = '/owner/profile/edit';
   static const String ownerVisitHistoryList = '/owner/visits';
 
   //Visit (Ziyaret / Muayene) Modülü Rotaları
@@ -254,6 +259,16 @@ class AppRouter {
                   path: AppRoutes.ownerProfile,
                   name: 'ownerProfile',
                   builder: (context, state) => const OwnerProfileScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'edit',
+                      name: 'editProfile',
+                      builder: (context, state) => BlocProvider<ProfileCubit>(
+                        create: (context) => sl<ProfileCubit>(),
+                        child: const EditProfileScreen(),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

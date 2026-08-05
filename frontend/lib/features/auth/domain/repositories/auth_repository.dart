@@ -1,4 +1,5 @@
 import '../entities/user_entity.dart';
+import '../entities/owner_entity.dart';
 
 abstract class AuthRepository {
   Future<UserEntity> loginWithEmail(String email, String password);
@@ -7,4 +8,11 @@ abstract class AuthRepository {
   Future<void> logout();
   Future<UserEntity?> getCurrentUser();
   Future<void> resendVerificationEmail();
+  Future<OwnerEntity> getOwnerProfile();
+  Future<OwnerEntity> updateOwnerProfile({
+    String? name,
+    String? surname,
+    String? phone,
+    String? address,
+  });
 }

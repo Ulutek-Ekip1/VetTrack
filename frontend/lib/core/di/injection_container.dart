@@ -34,6 +34,9 @@ import '../../features/auth/domain/usecases/login_with_email_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/auth/domain/usecases/get_owner_profile_usecase.dart';
+import '../../features/auth/domain/usecases/update_owner_profile_usecase.dart';
+import '../../features/auth/presentation/cubit/profile_cubit.dart';
 
 // Treatment Imports
 import 'package:vettrack_frontend/features/treatment/domain/usecases/add_treatment_usecase.dart';
@@ -89,6 +92,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => LoginWithEmailUseCase(sl()));
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => GetOwnerProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateOwnerProfileUseCase(sl()));
 
   sl.registerLazySingleton<AuthCubit>(
     () => AuthCubit(
@@ -96,6 +101,13 @@ Future<void> init() async {
       registerUseCase: sl(),
       logoutUseCase: sl(),
       authRepository: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => ProfileCubit(
+      getOwnerProfile: sl(),
+      updateOwnerProfile: sl(),
     ),
   );
 
