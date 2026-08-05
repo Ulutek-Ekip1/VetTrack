@@ -1,5 +1,6 @@
 package com.vettrack.api.pet;
 
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -12,6 +13,7 @@ import lombok.Data;
 @Data
 public class PetUpdateRequest {
 
+    @Size(min = 1, message = "Pet adı boş olamaz")
     private String name;
     private Integer age;
     private Gender gender;
