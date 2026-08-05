@@ -185,11 +185,11 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                         width: 72,
                         height: 72,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: const Color(0xFF7B4832),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.3),
+                              color: const Color(0xFF7B4832).withValues(alpha: 0.25),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -201,7 +201,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                           width: 40,
                           height: 40,
                           colorFilter: const ColorFilter.mode(
-                            AppColors.onPrimary,
+                            Colors.white,
                             BlendMode.srcIn,
                           ),
                         ),
@@ -214,7 +214,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                         "VetTrack",
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: const Color(0xFF7B4832),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -223,11 +223,13 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
 
                       // Kutulu Form Kartı (Card Container)
                       Card(
-                        elevation: 2,
-                        shadowColor:
-                            AppColors.onSurface.withValues(alpha: 0.08),
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(24),
+                          side: BorderSide(
+                            color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                            width: 1,
+                          ),
                         ),
                         color: AppColors.surfaceContainerLowest,
                         child: Padding(
@@ -243,7 +245,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                   style:
                                       theme.textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
+                                    color: const Color(0xFF7B4832),
                                   ),
                                 ),
 
@@ -261,6 +263,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 // Ad-Soyad TextFormField
                                 TextFormField(
                                   controller: _nameController,
+                                  autofillHints: const [AutofillHints.name],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     label: const Text.rich(
@@ -282,18 +285,18 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                       color: AppColors.outline,
                                     ),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: AppColors.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
-                                        color: AppColors.primary,
+                                        color: Color(0xFF7B4832),
                                         width: 2,
                                       ),
                                     ),
@@ -307,6 +310,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
+                                  autofillHints: const [AutofillHints.email],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     label: const Text.rich(
@@ -328,18 +332,18 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                       color: AppColors.outline,
                                     ),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: AppColors.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
-                                        color: AppColors.primary,
+                                        color: Color(0xFF7B4832),
                                         width: 2,
                                       ),
                                     ),
@@ -353,6 +357,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 TextFormField(
                                   controller: _phoneController,
                                   keyboardType: TextInputType.phone,
+                                  autofillHints: const [AutofillHints.telephoneNumber],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     labelText: "Telefon (Opsiyonel)",
@@ -362,18 +367,18 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                       color: AppColors.outline,
                                     ),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: AppColors.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
-                                        color: AppColors.primary,
+                                        color: Color(0xFF7B4832),
                                         width: 2,
                                       ),
                                     ),
@@ -387,6 +392,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: _obscurePassword,
+                                  autofillHints: const [AutofillHints.newPassword],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     label: const Text.rich(
@@ -414,18 +420,18 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                       color: AppColors.outline,
                                     ),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: AppColors.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                       borderSide: const BorderSide(
-                                        color: AppColors.primary,
+                                        color: Color(0xFF7B4832),
                                         width: 2,
                                       ),
                                     ),
@@ -470,7 +476,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                               width: 24,
                                               child: Checkbox(
                                                 value: _kvkkApproved,
-                                                activeColor: AppColors.primary,
+                                                activeColor: const Color(0xFF7B4832),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(4),
@@ -499,7 +505,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                           .textTheme.bodyMedium
                                                           ?.copyWith(
                                                         color:
-                                                            AppColors.primary,
+                                                            const Color(0xFF7B4832),
                                                         fontWeight:
                                                             FontWeight.bold,
                                                       ),
@@ -576,7 +582,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                               width: 24,
                                               child: Checkbox(
                                                 value: _explicitConsentApproved,
-                                                activeColor: AppColors.primary,
+                                                activeColor: const Color(0xFF7B4832),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(4),
@@ -606,7 +612,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                           .textTheme.bodyMedium
                                                           ?.copyWith(
                                                         color:
-                                                            AppColors.primary,
+                                                            const Color(0xFF7B4832),
                                                         fontWeight:
                                                             FontWeight.bold,
                                                       ),
@@ -667,11 +673,11 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                   child: ElevatedButton(
                                     onPressed: isLoading ? null : _onRegister,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-                                      foregroundColor: AppColors.onPrimary,
+                                      backgroundColor: const Color(0xFFFFB89C),
+                                      foregroundColor: const Color(0xFF131B2E),
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
                                     ),
                                     child: isLoading
@@ -680,7 +686,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                             height: 24,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2.5,
-                                              color: AppColors.onPrimary,
+                                              color: Color(0xFF131B2E),
                                             ),
                                           )
                                         : Row(
@@ -692,7 +698,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
-                                                  color: AppColors.onPrimary,
+                                                  color: const Color(0xFF131B2E),
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -700,7 +706,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                               const Icon(
                                                 Icons.arrow_forward,
                                                 size: 20,
-                                                color: AppColors.onPrimary,
+                                                color: Color(0xFF131B2E),
                                               ),
                                             ],
                                           ),
@@ -731,7 +737,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                             child: Text(
                               "Giriş Yap",
                               style: theme.textTheme.labelLarge?.copyWith(
-                                color: AppColors.primary,
+                                color: const Color(0xFF7B4832),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

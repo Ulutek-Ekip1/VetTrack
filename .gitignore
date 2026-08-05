@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Flutter & Dart
 .dart_tool/
 .flutter-plugins
@@ -7,10 +6,26 @@
 .pub-cache/
 .pub/
 build/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/build/
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.log
 
 # Environment variables
 .env
 .env.local
+*.env.local
+firebase-service-account.json
 
 # IDE
 .idea/
@@ -20,34 +35,7 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
-=======
-# Java / Maven
-target/
-*.class
-*.jar
-*.log
 
-# IDE
-.idea/
-*.iml
-.vscode/
+# Local configuration
+**/android/local.properties
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Ortam degiskenleri
-.env
-*.env.local
-firebase-service-account.json
-
-# Flutter/Dart
-**/doc/api/
-**/ios/Flutter/.last_build_id
-**/.dart_tool/
-**/.flutter-plugins
-**/.flutter-plugins-dependencies
-**/.pub-cache/
-**/.pub/
-**/build/
->>>>>>> origin/main

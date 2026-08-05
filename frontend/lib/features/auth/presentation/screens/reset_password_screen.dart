@@ -72,7 +72,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
       await Supabase.instance.client.auth.updateUser(
         UserAttributes(
-          password: _passwordController.text.trim(),
+          password: _passwordController.text,
         ),
       );
 

@@ -10,24 +10,31 @@ import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/owner_profile_screen.dart';
+import '../../features/auth/presentation/screens/edit_profile_screen.dart';
 import '../../features/auth/presentation/screens/vet_profile_screen.dart';
+import '../../features/auth/presentation/cubit/profile_cubit.dart';
+import '../di/injection_container.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/pet/presentation/screens/pet_detail_screen2.dart';
 import '../../features/pet/presentation/screens/pet_list_screen.dart';
-import '../../features/pet/presentation/screens/pet_detail_screen.dart';
 import '../../features/pet/presentation/screens/add_pet_screen.dart';
 import '../../features/pet/presentation/screens/edit_pet_screen.dart';
 import '../../features/visit/presentation/screens/doctor_search_screen.dart';
 import '../../features/visit/presentation/screens/active_visit_screen.dart';
 import '../../features/visit/presentation/screens/pet_visit_history_screen.dart';
-import '../../features/visit/presentation/screens/owner_visit_history_list_screen.dart';
 import '../../features/visit/presentation/screens/vet_visit_history_screen.dart';
 import '../../features/treatment/presentation/screens/add_treatment_screen.dart';
 import '../../features/treatment/presentation/screens/pet_treatment_history_screen.dart';
 import '../../features/recommendation/presentation/screens/pet_recommendation_screen.dart';
 import '../../features/recommendation/presentation/screens/add_recommendation_screen.dart';
 import '../../features/notification/presentation/screens/notification_list_screen.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/home/presentation/pages/ai_chatbot_screen.dart';
+import '../../features/visit/presentation/screens/owner_visit_history_list_screen.dart';
 import 'main_shell_screen.dart';
 import 'not_found_screen.dart';
 import '../../features/auth/presentation/screens/email_verification_screen.dart';
+import '../../features/auth/presentation/screens/welcome_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription<dynamic> _subscription;
@@ -47,6 +54,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 }
 
 abstract class AppRoutes {
+  static const String welcome = '/welcome';
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
@@ -54,11 +62,13 @@ abstract class AppRoutes {
   static const String resetPassword = '/reset-password';
 
   //Pet Modülü Rotaları
+  static const String ownerHome = '/owner/home';
   static const String ownerPets = '/owner/pets';
   static const String addPet = '/owner/pets/add';
   static const String petDetail = '/owner/pets/:petId';
   static const String editPet = '/owner/pets/:petId/edit';
   static const String ownerProfile = '/owner/profile';
+  static const String editProfile = '/owner/profile/edit';
   static const String ownerVisitHistoryList = '/owner/visits';
 
   //Visit (Ziyaret / Muayene) Modülü Rotaları
@@ -79,6 +89,9 @@ abstract class AppRoutes {
 
   //Notification Modülü Rotaları
   static const String notifications = '/notifications';
+
+  // AI Chatbot Rotası
+  static const String chatbot = '/chatbot';
 }
 
 class AppRouter {
@@ -93,7 +106,7 @@ class AppRouter {
   static GoRouter createRouter([AuthCubit? authCubit]) {
     final routerInstance = GoRouter(
       navigatorKey: navigatorKey,
-      initialLocation: AppRoutes.login,
+      initialLocation: AppRoutes.welcome,
       refreshListenable:
           authCubit != null ? GoRouterRefreshStream(authCubit.stream) : null,
 
@@ -106,26 +119,27 @@ class AppRouter {
         final isLoggedIn = authState is Authenticated;
         final location = state.matchedLocation;
 
-        final isLoggingIn = location == AppRoutes.login ||
+        final isLoggingIn = location == AppRoutes.welcome ||
+            location == AppRoutes.login ||
             location == AppRoutes.register ||
             location == AppRoutes.forgotPassword ||
             location == AppRoutes.ownerEmailVerification ||
             location == AppRoutes.resetPassword;
 
         if (!isLoggedIn) {
-          return isLoggingIn ? null : AppRoutes.login;
+          return isLoggingIn ? null : AppRoutes.welcome;
         }
 
         final user = authState.user;
 
         if (isLoggingIn) {
           return user.role == UserRole.owner
-              ? AppRoutes.ownerPets
+              ? AppRoutes.ownerHome
               : AppRoutes.vetSearch;
         }
 
         if (user.role == UserRole.owner && location.startsWith('/vet')) {
-          return AppRoutes.ownerPets;
+          return AppRoutes.ownerHome;
         }
 
         if (user.role == UserRole.vet && location.startsWith('/owner')) {
@@ -135,6 +149,11 @@ class AppRouter {
         return null;
       },
       routes: [
+        GoRoute(
+          path: AppRoutes.welcome,
+          name: 'welcome',
+          builder: (context, state) => const WelcomeScreen(),
+        ),
         GoRoute(
           path: AppRoutes.login,
           name: 'login',
@@ -170,6 +189,15 @@ class AppRouter {
             StatefulShellBranch(
               routes: [
                 GoRoute(
+                  path: AppRoutes.ownerHome,
+                  name: 'ownerHome',
+                  builder: (context, state) => const HomePage(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
                   path: AppRoutes.ownerPets,
                   name: 'ownerPets',
                   builder: (context, state) => const PetListScreen(),
@@ -184,7 +212,7 @@ class AppRouter {
                       name: 'petDetail',
                       builder: (context, state) {
                         final petId = state.pathParameters['petId'] ?? '';
-                        return PetDetailScreen(petId: petId);
+                        return PetDetailScreen2(petId: petId);
                       },
                       routes: [
                         GoRoute(
@@ -228,19 +256,19 @@ class AppRouter {
             StatefulShellBranch(
               routes: [
                 GoRoute(
-                  path: AppRoutes.ownerVisitHistoryList,
-                  name: 'ownerVisitHistoryList',
-                  builder: (context, state) =>
-                      const OwnerVisitHistoryListScreen(),
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: [
-                GoRoute(
                   path: AppRoutes.ownerProfile,
                   name: 'ownerProfile',
                   builder: (context, state) => const OwnerProfileScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'edit',
+                      name: 'editProfile',
+                      builder: (context, state) => BlocProvider<ProfileCubit>(
+                        create: (context) => sl<ProfileCubit>(),
+                        child: const EditProfileScreen(),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -314,6 +342,16 @@ class AppRouter {
           path: AppRoutes.notifications,
           name: 'notifications',
           builder: (context, state) => const NotificationListScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.ownerVisitHistoryList,
+          name: 'ownerVisits',
+          builder: (context, state) => const OwnerVisitHistoryListScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.chatbot,
+          name: 'chatbot',
+          builder: (context, state) => const AIChatbotScreen(),
         ),
       ],
     );

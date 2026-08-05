@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../models/user_model.dart';
+import '../models/owner_model.dart';
 import '../../domain/entities/user_entity.dart';
 import 'token_local_data_source.dart';
 
@@ -9,6 +10,8 @@ abstract class AuthRemoteDataSource {
       String email, String password, String name, String? phone, UserRole role);
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
+  Future<OwnerModel> getOwnerProfile();
+  Future<OwnerModel> updateOwnerProfile(Map<String, dynamic> data);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -107,6 +110,40 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  @override
+  Future<OwnerModel> getOwnerProfile() async {
+    try {
+      final response = await dio.get('/owners/me');
+      if (response.statusCode == 200) {
+        return OwnerModel.fromJson(response.data);
+      } else {
+        throw Exception("Profil bilgileri alınamadı: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception(_handleDioError(e));
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<OwnerModel> updateOwnerProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await dio.put('/owners/me', data: data);
+      if (response.statusCode == 200) {
+        return OwnerModel.fromJson(response.data);
+      } else {
+        throw Exception("Profil güncellenemedi: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception(_handleDioError(e));
+      }
+      rethrow;
     }
   }
 
