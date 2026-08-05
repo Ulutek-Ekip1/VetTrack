@@ -22,7 +22,7 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -140,7 +140,6 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
                           tabs: const [
                             Tab(text: 'Genel'),
                             Tab(text: 'Sağlık'),
-                            Tab(text: 'Aşılar'),
                             Tab(text: 'Notlar'),
                           ],
                         ),
@@ -156,7 +155,6 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
                     children: [
                       _buildGenelTab(),
                       _buildSaglikTab(),
-                      _buildAsilarTab(),
                       _buildNotlarTab(),
                     ],
                   ),
@@ -482,150 +480,6 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
     );
   }
 
-  // 3. AŞILAR SEKMESİ
-  Widget _buildAsilarTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Aşı Takvimi',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text('Tümü >',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: primaryBlue)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              children: [
-                _buildVaccineItem(
-                    'Karma Aşı', '15.01.2026', '15.01.2027', true),
-                const Divider(height: 1, indent: 56),
-                _buildVaccineItem(
-                    'Kuduz Aşısı', '15.01.2026', '15.01.2027', true),
-                const Divider(height: 1, indent: 56),
-                _buildVaccineItem(
-                    'İç Parazit Aşısı', '12.01.2026', '12.04.2026', false),
-                const Divider(height: 1, indent: 56),
-                _buildVaccineItem(
-                    'Leptospiroz Aşısı', '15.01.2026', '15.01.2027', true),
-                const Divider(height: 1, indent: 56),
-                _buildVaccineItem('Kennel Cough (Bordetella)', '12.11.2025',
-                    '12.11.2026', true),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9), // Light background for reminder
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.notifications_active_outlined,
-                        color: primaryBlue, size: 20),
-                    const SizedBox(width: 8),
-                    const Text('Hatırlatma',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Yaklaşan aşılar için bildirim almak isterseniz bildirimlerinizi açmayı unutmayın.',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF434655)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: primaryBlue,
-                    side: BorderSide(color: primaryBlue),
-                    minimumSize: const Size(double.infinity, 44),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('Bildirim Ayarları',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                )
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVaccineItem(
-      String name, String lastDate, String nextDate, bool isDone) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: primaryBlue.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(Icons.vaccines_outlined, color: primaryBlue, size: 20),
-      ),
-      title: Text(name,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 2),
-          Text('Son: $lastDate',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-          Text('Sonraki: $nextDate',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-        ],
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: isDone
-                  ? Colors.green.withValues(alpha: 0.1)
-                  : Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              isDone ? 'Yapıldı' : 'Yaklaşıyor',
-              style: TextStyle(
-                color: isDone ? Colors.green : Colors.orange.shade800,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Icon(Icons.chevron_right, color: Colors.grey),
-        ],
-      ),
-      isThreeLine: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    );
-  }
-
   // 4. NOTLAR SEKMESİ
   Widget _buildNotlarTab() {
     return SingleChildScrollView(
@@ -672,19 +526,6 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
               'İlaçlarını düzenli kullandı.\nHerhangi bir yan etkisi olmadı.',
               null,
               false),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.add),
-            label: const Text('Yeni Not Ekle',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            style: FilledButton.styleFrom(
-              backgroundColor: primaryBlue,
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
           const SizedBox(height: 40),
         ],
       ),
