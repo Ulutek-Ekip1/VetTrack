@@ -219,30 +219,14 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  SegmentedButton<Gender>(
-                    segments: const [
-                      ButtonSegment<Gender>(
-                        value: Gender.male,
-                        label: Text('Erkek'),
-                        icon: Icon(Icons.male, color: Colors.blue),
-                      ),
-                      ButtonSegment<Gender>(
-                        value: Gender.female,
-                        label: Text('Dişi'),
-                        icon: Icon(Icons.female, color: Colors.pink),
-                      ),
-                      ButtonSegment<Gender>(
-                        value: Gender.unknown,
-                        label: Text('Bilinmiyor'),
-                        icon: Icon(Icons.pets, color: Colors.teal),
-                      ),
+                  Row(
+                    children: [
+                      _buildGenderOption(Gender.male, 'Erkek', Icons.male, Colors.blue),
+                      const SizedBox(width: 8),
+                      _buildGenderOption(Gender.female, 'Dişi', Icons.female, Colors.pink),
+                      const SizedBox(width: 8),
+                      _buildGenderOption(Gender.unknown, 'Bilinmiyor', Icons.pets, Colors.teal),
                     ],
-                    selected: {_selectedGender},
-                    onSelectionChanged: (Set<Gender> newSelection) {
-                      setState(() {
-                        _selectedGender = newSelection.first;
-                      });
-                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -388,6 +372,49 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildGenderOption(Gender gender, String label, IconData icon, Color activeColor) {
+    final isSelected = _selectedGender == gender;
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedGender = gender;
+          });
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: isSelected ? activeColor.withOpacity(0.08) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? activeColor : Colors.grey.shade400,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? activeColor : const Color(0xFF434655),
+                size: 20,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: isSelected ? activeColor : const Color(0xFF434655),
+                ),
+              ),
+            ],
           ),
         ),
       ),
