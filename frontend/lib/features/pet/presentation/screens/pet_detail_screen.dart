@@ -185,7 +185,9 @@ class PetDetailScreen extends StatelessWidget {
                   ],
                 ),
               );
-            } catch (_) {}
+            } catch (_) {
+              return const Center(child: Text('Pet bulunamadı.'));
+            }
           }
           return const Center(child: CircularProgressIndicator());
         },

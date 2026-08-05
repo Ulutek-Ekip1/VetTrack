@@ -6,10 +6,6 @@ import 'core/di/injection_container.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/constants/app_constants.dart';
-import 'features/auth/domain/repositories/auth_repository.dart';
-import 'features/auth/domain/usecases/login_with_email_usecase.dart';
-import 'features/auth/domain/usecases/logout_usecase.dart';
-import 'features/auth/domain/usecases/register_usecase.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/pet/presentation/cubit/pet_cubit.dart';
 
@@ -27,12 +23,7 @@ void main() async {
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(
-          create: (context) => AuthCubit(
-            loginWithEmail: sl<LoginWithEmailUseCase>(),
-            registerUseCase: sl<RegisterUseCase>(),
-            logoutUseCase: sl<LogoutUseCase>(),
-            authRepository: sl<AuthRepository>(),
-          ),
+          create: (context) => sl<AuthCubit>()..checkAuthStatus(),
         ),
         BlocProvider<PetCubit>(
           create: (context) => sl<PetCubit>(),

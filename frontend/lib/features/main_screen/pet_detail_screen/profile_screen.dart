@@ -6,8 +6,8 @@ import 'package:vettrack_frontend/features/pet/presentation/cubit/pet_state.dart
 import 'pet_photo.dart';
 import 'timeline_tile.dart';
 
-class PetDetailScreen extends StatelessWidget {
-  const PetDetailScreen({super.key});
+class PetDetailProfileScreen extends StatelessWidget {
+  const PetDetailProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

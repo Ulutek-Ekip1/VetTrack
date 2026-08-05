@@ -36,3 +36,6 @@ firebase-service-account.json
 .DS_Store
 Thumbs.db
 
+# Local configuration
+**/android/local.properties
+

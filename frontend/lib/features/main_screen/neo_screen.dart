@@ -38,7 +38,7 @@ class NeoScreen extends StatelessWidget {
               children: const [
                 Center(child: Text('Home Screen')),
                 Center(child: Text('Search Screen')),
-                PetDetailScreen(),
+                PetDetailProfileScreen(),
               ],
             ),
             bottomNavigationBar: BottomNavigationBar(

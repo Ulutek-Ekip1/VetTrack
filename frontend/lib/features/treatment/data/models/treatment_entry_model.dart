@@ -34,7 +34,7 @@ class TreatmentEntryModel extends TreatmentEntity {
       type: (json['type'] ?? 'note').toString(),
       title: (json['title'] ?? '').toString(),
       description: json['description'] as String?,
-      attachmentUrl: json['attachmentUrl'] ?? json['attachment_url'] as String?,
+      attachmentUrl: (json['attachmentUrl'] ?? json['attachment_url']) as String?,
       enteredBy: (json['enteredBy'] ?? json['entered_by'] ?? '').toString(),
       status: parsedStatus,
       startDate: json['startDate'] != null

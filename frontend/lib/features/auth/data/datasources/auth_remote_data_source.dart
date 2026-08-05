@@ -123,16 +123,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception("Profil bilgileri alınamadı: ${response.statusCode}");
       }
     } catch (e) {
-      // Çevrimdışı/Yerel testler için mock verisi
-      return OwnerModel(
-        id: '123',
-        name: 'Oguz',
-        surname: 'Karan',
-        email: 'test@example.com',
-        phone: '05555555555',
-        address: 'Bursa, Nilüfer',
-        createdAt: DateTime.now(),
-      );
+      if (e is DioException) {
+        throw Exception(_handleDioError(e));
+      }
+      rethrow;
     }
   }
 
@@ -146,16 +140,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception("Profil güncellenemedi: ${response.statusCode}");
       }
     } catch (e) {
-      // Çevrimdışı/Yerel testler için güncellenmiş mock verisi
-      return OwnerModel(
-        id: '123',
-        name: data['name'] ?? 'Oguz',
-        surname: data['surname'],
-        email: 'test@example.com',
-        phone: data['phone'],
-        address: data['address'],
-        createdAt: DateTime.now(),
-      );
+      if (e is DioException) {
+        throw Exception(_handleDioError(e));
+      }
+      rethrow;
     }
   }
 

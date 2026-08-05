@@ -189,7 +189,9 @@ class _PetDetailScreen2State extends State<PetDetailScreen2>
                   ),
                 ),
               );
-            } catch (_) {}
+            } catch (_) {
+              return const Center(child: Text('Pet bulunamadı.'));
+            }
           }
           return const Center(child: CircularProgressIndicator());
         },
