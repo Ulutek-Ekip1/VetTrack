@@ -757,59 +757,72 @@ paths:
                 timestamp: "2026-07-29T14:32:11Z"
 
   # ---- Notifications ----
-  /notifications:
+/notifications:
     get:
       tags: [Notifications]
       summary: Bildirim listesi
-      description: Sahibin bildirimlerini sayfalı listeler (FR-11).
+      description: Sahibin tüm bildirimlerini ve okunmamış sayısını döner (FR-11).
       security:
         - bearerAuth: []
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: size
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 20
       responses:
         '200':
-          description: Bildirim listesi
+          description: Bildirim listesi + okunmamış sayısı
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NotificationPageResponse'
+                $ref: '#/components/schemas/NotificationListResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-
+  /notifications/unread-count:
+    get:
+      tags: [Notifications]
+      summary: Okunmamış bildirim sayısı
+      description: Sadece okunmamış bildirim sayısını döner. Badge/counter güncellemesi için hafif endpoint.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Okunmamış bildirim sayısı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadCountResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /notifications/{id}/read:
-    put:
+    patch:
       tags: [Notifications]
       summary: Bildirimi okundu işaretle
-      description: İdempotent — zaten okunmuşsa sessizce 200 döner.
+      description: İdempotent — zaten okunmuşsa sessizce 204 döner.
       security:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
       responses:
-        '200':
+        '204':
           description: Bildirim okundu olarak işaretlendi
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NotificationResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /notifications/read-all:
+    patch:
+      tags: [Notifications]
+      summary: Tüm bildirimleri okundu işaretle
+      description: Sahibin tüm okunmamış bildirimlerini toplu olarak okundu işaretler.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tüm bildirimler okundu olarak işaretlendi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadCountResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   # ---- Devices ----
   /devices/register:
@@ -1287,19 +1300,24 @@ components:
               example: "Dr. Mehmet Yılmaz"
 
     # -- Notifications --
+    # -- Notifications --
+    NotificationType:
+      type: string
+      description: Bildirim türü. Frontend ikon/renk seçimi için kullanır.
+      enum:
+        - VACCINE
+        - VISIT
+        - TREATMENT
+        - RECOMMENDATION
+        - SYSTEM
     NotificationResponse:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        ownerId:
-          type: string
-          format: uuid
-        treatmentEntryId:
-          type: string
-          format: uuid
-          nullable: true
+        type:
+          $ref: '#/components/schemas/NotificationType'
         title:
           type: string
           example: "Boncuk için yeni tedavi kaydı"
@@ -1307,27 +1325,38 @@ components:
           type: string
           nullable: true
           example: "Dr. Mehmet Yılmaz tarafından ilaç kaydı girildi"
+        treatmentEntryId:
+          type: string
+          format: uuid
+          nullable: true
         isRead:
           type: boolean
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Bildirimin okunduğu zaman. Okunmamışsa null.
         sentAt:
           type: string
           format: date-time
-
-    NotificationPageResponse:
+    NotificationListResponse:
       type: object
       properties:
-        content:
+        notifications:
           type: array
           items:
             $ref: '#/components/schemas/NotificationResponse'
-        page:
+        unreadCount:
           type: integer
-        size:
+          format: int64
+          example: 5
+    UnreadCountResponse:
+      type: object
+      properties:
+        unreadCount:
           type: integer
-        totalElements:
-          type: integer
-        totalPages:
-          type: integer
+          format: int64
+          example: 5
 
     # -- Devices --
     DeviceRegisterRequest:
