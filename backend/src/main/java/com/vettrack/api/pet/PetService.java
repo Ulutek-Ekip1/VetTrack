@@ -38,7 +38,12 @@ public class PetService {
      */
     @Transactional(readOnly = true)
     public Pet getPetByUniqueCode(String uniqueCode) {
-        return petRepository.findByUniqueCodeIgnoreCaseAndDeletedAtIsNull(uniqueCode).orElseThrow(() -> new ResourceNotFoundException("Bu koda sahip evcil hayvan bulunamadı: " + uniqueCode));
+        if (uniqueCode == null || uniqueCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("Arama kodu boş olamaz");
+        }
+        String cleanedCode = uniqueCode.trim().toUpperCase();
+        return petRepository.findByUniqueCodeIgnoreCaseAndDeletedAtIsNull(cleanedCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Bu koda sahip evcil hayvan bulunamadı: " + cleanedCode));
     }
 
     /**

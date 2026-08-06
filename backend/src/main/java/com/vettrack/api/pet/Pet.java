@@ -36,7 +36,7 @@ public class Pet {
     @Column(length = 100)
     private String breed;
 
-    @Column(name = "unique_code", nullable = false, unique = true, length = 6)
+    @Column(name = "unique_code", nullable = false, unique = true, columnDefinition = "char(6)")
     private String uniqueCode;
 
     @Column(name = "created_at", nullable = false, updatable = false)
