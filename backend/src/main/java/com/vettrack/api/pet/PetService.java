@@ -20,7 +20,7 @@ public class PetService {
     private final PetRepository petRepository;
     private final StorageService storageService;
 
-    private static final String ALPHANUMERIC = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    private static final String ALPHANUMERIC = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     @Transactional
@@ -31,8 +31,12 @@ public class PetService {
 
     @Transactional(readOnly = true)
     public Pet getPetByUniqueCode(String uniqueCode) {
-        return petRepository.findByUniqueCodeIgnoreCaseAndDeletedAtIsNull(uniqueCode)
-                .orElseThrow(() -> new ResourceNotFoundException("Bu koda sahip evcil hayvan bulunamadı: " + uniqueCode));
+        if (uniqueCode == null || uniqueCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("Arama kodu boş olamaz");
+        }
+        String cleanedCode = uniqueCode.trim().toUpperCase();
+        return petRepository.findByUniqueCodeIgnoreCaseAndDeletedAtIsNull(cleanedCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Bu koda sahip evcil hayvan bulunamadı: " + cleanedCode));
     }
 
     @Transactional(readOnly = true)

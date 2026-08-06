@@ -44,7 +44,7 @@ public class Pet {
     @Column(name = "photo_url", columnDefinition = "TEXT")
     private String photoUrl;
 
-    @Column(name = "unique_code", nullable = false, unique = true, columnDefinition = "bpchar")
+    @Column(name = "unique_code", nullable = false, unique = true, columnDefinition = "char(6)")
     private String uniqueCode;
 
     @Column(name = "is_active", nullable = false)

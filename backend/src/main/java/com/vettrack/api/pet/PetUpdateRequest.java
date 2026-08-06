@@ -1,13 +1,13 @@
 package com.vettrack.api.pet;
 
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import java.time.LocalDate;
 
 @Data
 public class PetUpdateRequest {
 
-    @Size(min = 1, message = "Pet adı boş olamaz")
+    @NotBlank(message = "Pet adı boş olamaz")
     private String name;
     private String species;
     private String breed;
