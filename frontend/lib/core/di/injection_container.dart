@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -47,6 +48,14 @@ import 'package:vettrack_frontend/features/treatment/data/repositories/treatment
 import 'package:vettrack_frontend/features/treatment/data/datasources/treatment_remote_datasource.dart';
 import 'package:vettrack_frontend/features/treatment/domain/repositories/treatment_repository.dart';
 
+// Recommendation Imports
+import 'package:vettrack_frontend/features/recommendation/domain/usecases/add_recommendation_usecase.dart';
+import 'package:vettrack_frontend/features/recommendation/domain/usecases/get_recommendations_usecase.dart';
+import 'package:vettrack_frontend/features/recommendation/presentation/cubit/recommendation_cubit.dart';
+import 'package:vettrack_frontend/features/recommendation/data/repositories/recommendation_repository_impl.dart';
+import 'package:vettrack_frontend/features/recommendation/data/datasources/recommendation_remote_datasource.dart';
+import 'package:vettrack_frontend/features/recommendation/domain/repositories/recommendation_repository.dart';
+
 // Notification Imports
 import 'package:vettrack_frontend/features/notification/domain/usecases/get_notifications_usecase.dart';
 import 'package:vettrack_frontend/features/notification/domain/usecases/register_device_token_usecase.dart';
@@ -66,8 +75,13 @@ Future<void> init() async {
       () => const FlutterSecureStorage());
 
   sl.registerLazySingleton<Dio>(() {
+    const envBaseUrl = String.fromEnvironment('API_BASE_URL');
+    final baseUrl = envBaseUrl.isNotEmpty
+        ? envBaseUrl
+        : (kIsWeb ? 'http://localhost:8080/api' : 'http://10.0.2.2:8080/api');
+
     final dio = Dio(BaseOptions(
-      baseUrl: 'http://10.0.2.2:8080/api',
+      baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 3),
       receiveTimeout: const Duration(seconds: 3),
       headers: {'Content-Type': 'application/json'},
@@ -201,6 +215,26 @@ Future<void> init() async {
     () => NotificationCubit(
       registerDeviceTokenUseCase: sl(),
       getNotificationsUseCase: sl(),
+    ),
+  );
+
+  // ---------------------------------------------------------------------------
+  // RECOMMENDATION FEATURE
+  // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<RecommendationRemoteDataSource>(
+    () => RecommendationRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<RecommendationRepository>(
+    () => RecommendationRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton(() => AddRecommendationUseCase(sl()));
+  sl.registerLazySingleton(() => GetRecommendationsUseCase(sl()));
+
+  sl.registerFactory(
+    () => RecommendationCubit(
+      addRecommendationUseCase: sl(),
+      getRecommendationsUseCase: sl(),
     ),
   );
 }

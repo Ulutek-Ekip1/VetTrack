@@ -1,5 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../constants/app_dimensions.dart';
+
+// URL segmentlerini Türkçe isimlere eşlemek için bir sözlük
+const Map<String, String> _routeNames = {
+  'vet': 'Veteriner Paneli',
+  'search': 'Hasta Arama',
+  'history': 'Muayene Geçmişi',
+  'profile': 'Klinik Profil',
+  'visit': 'Muayene',
+  'active': 'Aktif Muayene',
+  'treatment': 'Tedavi Girişi',
+  'recommendation': 'Öneri Girişi',
+  'add': 'Ekle',
+  'notifications': 'Bildirimler',
+};
 
 class OwnerShellScreen extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -18,28 +33,28 @@ class OwnerShellScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF004AC6);
-
+    final theme = Theme.of(context);
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onTap,
-        indicatorColor: const Color(0xFFDBEAFE),
-        destinations: const [
+        indicatorColor: theme.colorScheme.primaryContainer,
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard, color: primaryBlue),
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon:
+                Icon(Icons.dashboard, color: theme.colorScheme.primary),
             label: 'Ana Sayfa',
           ),
           NavigationDestination(
-            icon: Icon(Icons.pets_outlined),
-            selectedIcon: Icon(Icons.pets, color: primaryBlue),
+            icon: const Icon(Icons.pets_outlined),
+            selectedIcon: Icon(Icons.pets, color: theme.colorScheme.primary),
             label: 'Hayvanlarım',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: primaryBlue),
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person, color: theme.colorScheme.primary),
             label: 'Profil',
           ),
         ],
@@ -63,34 +78,219 @@ class VetShellScreen extends StatelessWidget {
     );
   }
 
+  List<Widget> _buildBreadcrumbs(BuildContext context) {
+    final theme = Theme.of(context);
+    final String location = GoRouterState.of(context).matchedLocation;
+    final List<String> segments =
+        location.split('/').where((s) => s.isNotEmpty).toList();
+
+    List<Widget> breadcrumbWidgets = [];
+    String currentPath = '';
+
+    // İlk başlangıç noktası olarak bir ev/kök simgesi ekleyelim
+    breadcrumbWidgets.add(
+      IconButton(
+        icon: const Icon(Icons.home_outlined, size: 18),
+        onPressed: () => context.go('/vet/search'),
+        tooltip: 'Veteriner Paneli',
+        constraints: const BoxConstraints(),
+        padding: EdgeInsets.zero,
+      ),
+    );
+
+    for (int i = 0; i < segments.length; i++) {
+      final segment = segments[i];
+      currentPath += '/$segment';
+
+      // UUID veya sayısal ID tespiti
+      bool isId = segment.length > 8 || int.tryParse(segment) != null;
+      final String displayName =
+          isId ? 'Detay' : (_routeNames[segment] ?? segment);
+
+      breadcrumbWidgets.add(
+        Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppDimensions.spacingXs),
+          child: Icon(Icons.chevron_right,
+              size: 16, color: theme.colorScheme.outline),
+        ),
+      );
+
+      final isLast = i == segments.length - 1;
+      breadcrumbWidgets.add(
+        InkWell(
+          onTap: isLast ? null : () => context.go(currentPath),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.spacingXs,
+              vertical: AppDimensions.spacingXs / 2,
+            ),
+            child: Text(
+              displayName,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: isLast ? FontWeight.bold : FontWeight.normal,
+                color: isLast
+                    ? theme.colorScheme.onSurface
+                    : theme.colorScheme.secondary,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return breadcrumbWidgets;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: _onTap,
-        indicatorColor: Colors.teal.shade100,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.search_outlined),
-            selectedIcon: Icon(Icons.search, color: Colors.teal),
-            label: 'Hasta Arama',
+      body: Row(
+        children: [
+          // Sol Menü (Sidebar) - Sadece Web için tasarlanmış geniş yapı
+          NavigationRail(
+            extended: true,
+            minExtendedWidth: 220,
+            selectedIndex: navigationShell.currentIndex,
+            onDestinationSelected: _onTap,
+            indicatorColor: theme.colorScheme.secondaryContainer,
+            backgroundColor: theme.colorScheme.surfaceContainerLowest,
+            elevation: 1,
+            leading: Column(
+              children: [
+                const SizedBox(height: AppDimensions.spacingLg),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.pets, color: Colors.teal.shade700, size: 28),
+                    const SizedBox(width: 8),
+                    Text(
+                      'VETTRACK',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppDimensions.spacingSm),
+                Text(
+                  'Web Klinik Paneli',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.spacingLg),
+              ],
+            ),
+            destinations: [
+              NavigationRailDestination(
+                icon: const Icon(Icons.search_outlined, size: 22),
+                selectedIcon:
+                    Icon(Icons.search, color: Colors.teal.shade800, size: 22),
+                label: const Text('Hasta Arama',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.assignment_outlined, size: 22),
+                selectedIcon: Icon(Icons.assignment,
+                    color: Colors.teal.shade800, size: 22),
+                label: const Text('Muayeneler',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.medical_services_outlined, size: 22),
+                selectedIcon: Icon(Icons.medical_services,
+                    color: Colors.teal.shade800, size: 22),
+                label: const Text('Klinik Profil',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment, color: Colors.teal),
-            label: 'Muayeneler',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications, color: Colors.teal),
-            label: 'Bildirimler',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.medical_services_outlined),
-            selectedIcon: Icon(Icons.medical_services, color: Colors.teal),
-            label: 'Klinik Profil',
+
+          // Dikey çizgi ayırıcı
+          VerticalDivider(
+              width: 1, thickness: 1, color: theme.colorScheme.outlineVariant),
+
+          // Sağ Ana İçerik ve Üst Header Alanı
+          Expanded(
+            child: Column(
+              children: [
+                // Üst Header Alanı (Breadcrumb + Profil/Bildirim)
+                Container(
+                  height: 64,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.spacingLg),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerLowest,
+                    border: Border(
+                      bottom: BorderSide(
+                          color: theme.colorScheme.outlineVariant, width: 1),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Sol Taraf: Dinamik Breadcrumbs
+                      Row(
+                        children: _buildBreadcrumbs(context),
+                      ),
+                      // Sağ Taraf: Hızlı İşlemler & Profil
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.notifications_outlined),
+                            onPressed: () => context.push('/notifications'),
+                            tooltip: 'Bildirimler',
+                          ),
+                          const SizedBox(width: AppDimensions.spacingMd),
+                          VerticalDivider(
+                            width: 1,
+                            thickness: 1,
+                            indent: 16,
+                            endIndent: 16,
+                            color: theme.colorScheme.outlineVariant,
+                          ),
+                          const SizedBox(width: AppDimensions.spacingMd),
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: theme.colorScheme.secondary,
+                            child: Text(
+                              'V',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.onSecondary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppDimensions.spacingSm),
+                          Text(
+                            'Klinik Hekimi',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Sayfanın Kendi İçeriği
+                Expanded(
+                  child: Container(
+                    color: theme.scaffoldBackgroundColor,
+                    child: navigationShell,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

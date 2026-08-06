@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'core/di/injection_container.dart' as di;
 import 'core/di/injection_container.dart';
 import 'core/theme/app_theme.dart';
@@ -11,6 +12,7 @@ import 'features/pet/presentation/cubit/pet_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  usePathUrlStrategy();
 
   await Supabase.initialize(
     url: AppConstants.supabaseUrl,
