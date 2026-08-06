@@ -63,7 +63,7 @@ class PetSecurityTest {
                 .ownerId(owner1Id)
                 .name("Pamuk")
                 .breed("Van Kedisi")
-                .age(2)
+                .species("Kedi")
                 .gender(Gender.female)
                 .uniqueCode("PMK123")
                 .build());
@@ -72,7 +72,7 @@ class PetSecurityTest {
                 .ownerId(owner2Id)
                 .name("Karabaş")
                 .breed("Kangal")
-                .age(4)
+                .species("Köpek")
                 .gender(Gender.male)
                 .uniqueCode("KRB456")
                 .build());
@@ -113,7 +113,7 @@ class PetSecurityTest {
         PetUpdateRequest updateRequest = new PetUpdateRequest();
         updateRequest.setName("Hacklendi");
         updateRequest.setBreed("Van Kedisi");
-        updateRequest.setAge(2);
+        updateRequest.setSpecies("Kedi");
         updateRequest.setGender(Gender.female);
 
         mockMvc.perform(put("/pets/" + owner1Pet.getId())
@@ -139,7 +139,7 @@ class PetSecurityTest {
         PetUpdateRequest updateRequest = new PetUpdateRequest();
         updateRequest.setName("Pamuk Yeni");
         updateRequest.setBreed("Van Kedisi");
-        updateRequest.setAge(3);
+        updateRequest.setSpecies("Kedi");
         updateRequest.setGender(Gender.female);
 
         mockMvc.perform(put("/pets/" + owner1Pet.getId())
@@ -175,7 +175,7 @@ class PetSecurityTest {
         PetUpdateRequest updateRequest = new PetUpdateRequest();
         updateRequest.setName("Test Name");
         updateRequest.setBreed("Test Breed");
-        updateRequest.setAge(1);
+        updateRequest.setSpecies("Köpek");
         updateRequest.setGender(Gender.female);
 
         mockMvc.perform(put("/pets/" + randomNonExistentId)

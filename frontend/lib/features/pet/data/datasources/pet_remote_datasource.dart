@@ -36,13 +36,27 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
     String? breed,
   }) async {
     try {
+      String speciesVal = 'Bilinmiyor';
+      String? breedVal = breed;
+      if (breed != null) {
+        if (breed.contains(' / ')) {
+          final parts = breed.split(' / ');
+          speciesVal = parts[0];
+          breedVal = parts[1];
+        } else {
+          speciesVal = breed;
+          breedVal = null;
+        }
+      }
+
       final response = await dio.post(
         '/pets',
         data: {
           'name': name,
           'gender': gender.name,
-          if (age != null) 'age': age,
-          if (breed != null) 'breed': breed,
+          'species': speciesVal,
+          if (breedVal != null) 'breed': breedVal,
+          if (age != null) 'estimatedBirthYear': DateTime.now().year - age,
         },
       );
       return PetModel.fromJson(response.data);
@@ -81,13 +95,27 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
     String? breed,
   }) async {
     try {
+      String? speciesVal;
+      String? breedVal;
+      if (breed != null) {
+        if (breed.contains(' / ')) {
+          final parts = breed.split(' / ');
+          speciesVal = parts[0];
+          breedVal = parts[1];
+        } else {
+          speciesVal = breed;
+          breedVal = null;
+        }
+      }
+
       final response = await dio.put(
         '/pets/$id',
         data: {
           if (name != null) 'name': name,
           if (gender != null) 'gender': gender.name,
-          if (age != null) 'age': age,
-          if (breed != null) 'breed': breed,
+          if (speciesVal != null) 'species': speciesVal,
+          if (breedVal != null) 'breed': breedVal,
+          if (age != null) 'estimatedBirthYear': DateTime.now().year - age,
         },
       );
       return PetModel.fromJson(response.data);

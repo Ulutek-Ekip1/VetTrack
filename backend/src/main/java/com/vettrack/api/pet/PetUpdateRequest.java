@@ -1,20 +1,17 @@
 package com.vettrack.api.pet;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
+import java.time.LocalDate;
 
 @Data
 public class PetUpdateRequest {
 
-    @NotBlank(message = "Pet adı boş olamaz")
+    @Size(min = 1, message = "Pet adı boş olamaz")
     private String name;
-
-    private String photoUrl;
-    private Integer age;
-
-    @NotNull(message = "Cinsiyet alanı MALE, FEMALE veya UNKNOWN olmalıdır")
-    private Gender gender;
-
+    private String species;
     private String breed;
+    private Gender gender;
+    private LocalDate birthDate;
+    private Short estimatedBirthYear;
 }

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../models/user_model.dart';
+import '../models/owner_model.dart';
 import '../../domain/entities/user_entity.dart';
 import 'token_local_data_source.dart';
 
@@ -9,6 +10,8 @@ abstract class AuthRemoteDataSource {
       String email, String password, String name, String? phone, UserRole role);
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
+  Future<OwnerModel> getOwnerProfile();
+  Future<OwnerModel> updateOwnerProfile(Map<String, dynamic> data);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -80,7 +83,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        throw Exception("Bu e-posta adresi zaten kullanımda");
+        throw Exception("Bu e-posta ile kayıtlı bir hesap var, lütfen farklı bir e-posta ile deneyin.");
       }
       throw Exception(_handleDioError(e));
     } catch (e) {
@@ -110,6 +113,40 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  @override
+  Future<OwnerModel> getOwnerProfile() async {
+    try {
+      final response = await dio.get('/owners/me');
+      if (response.statusCode == 200) {
+        return OwnerModel.fromJson(response.data);
+      } else {
+        throw Exception("Profil bilgileri alınamadı: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception(_handleDioError(e));
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<OwnerModel> updateOwnerProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await dio.put('/owners/me', data: data);
+      if (response.statusCode == 200) {
+        return OwnerModel.fromJson(response.data);
+      } else {
+        throw Exception("Profil güncellenemedi: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception(_handleDioError(e));
+      }
+      rethrow;
+    }
+  }
+
   String _handleDioError(DioException e) {
     if (e.response != null && e.response?.data != null) {
       try {
@@ -117,6 +154,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         if (errorMsg != null) return errorMsg.toString();
       } catch (_) {}
     }
-    return e.message ?? "Bilinmeyen bağlantı hatası";
+
+    final message = e.message ?? "";
+    if (e.type == DioExceptionType.connectionError ||
+        e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        message.contains('XMLHttpRequest') ||
+        message.contains('SocketException')) {
+      return "İnternet bağlantınız koptu veya sunucuya erişilemiyor. Lütfen internetinizi kontrol edin.";
+    }
+
+    return message.isNotEmpty ? message : "Bilinmeyen bağlantı hatası";
   }
 }

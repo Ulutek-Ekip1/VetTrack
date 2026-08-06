@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
 import '../../features/auth/data/datasources/token_local_data_source.dart';
+import '../../features/auth/presentation/cubit/auth_cubit.dart';
 
 class AuthInterceptor extends Interceptor {
   final TokenLocalDataSource localDataSource;
+  final AuthCubit Function() getAuthCubit;
 
-  AuthInterceptor(this.localDataSource);
+  AuthInterceptor(this.localDataSource, this.getAuthCubit);
 
   @override
   Future<void> onRequest(
@@ -22,8 +24,10 @@ class AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.response?.statusCode == 401) {
-      // 401 Unauthenticated alındığında loglama veya yönlendirme mantığı 
-      // ileride buraya eklenebilir (Refresh token vs).
+      final requestPath = err.requestOptions.path;
+      if (requestPath != '/auth/login' && requestPath != '/auth/register') {
+        getAuthCubit().handleSessionExpired();
+      }
     }
     super.onError(err, handler);
   }

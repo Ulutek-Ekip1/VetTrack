@@ -20,47 +20,83 @@ class AuthCubit extends Cubit<AuthState> {
   }) : super(AuthInitial());
 
   Future<void> checkAuthStatus() async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
     try {
-      final user = await authRepository.getCurrentUser();
+      final user = await authRepository.getCurrentUser().timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => null,
+          );
       if (user != null) {
         emit(Authenticated(user));
       } else {
-        emit(Unauthenticated());
+        emit(const Unauthenticated());
       }
     } catch (e) {
-      emit(Unauthenticated());
+      emit(const Unauthenticated());
     }
   }
 
   Future<void> signInWithEmail(String email, String password) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
+
     try {
       final user = await loginWithEmail(email, password);
       emit(Authenticated(user));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
   Future<void> signUp(String email, String password, String name, String? phone,
       UserRole role) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
     try {
       final user = await registerUseCase(email, password, name, phone, role);
       emit(Authenticated(user));
+    } catch (e) {
+      emit(AuthError(e.toString().replaceAll("Exception: ", "")));
+    }
+  }
+
+  Future<void> signOut() async {
+    emit(const AuthLoading());
+    try {
+      await logoutUseCase();
+      emit(const Unauthenticated());
     } catch (e) {
       emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> signOut() async {
-    emit(AuthLoading());
+  Future<void> resetPassword(String email) async {
+    emit(const AuthLoading());
     try {
-      await logoutUseCase();
-      emit(Unauthenticated());
+      final cleanEmail = email.trim();
+      if (cleanEmail.isEmpty || !cleanEmail.contains("@")) {
+        throw Exception("Lütfen geçerli bir e-posta adresi giriniz.");
+      }
+      // Gerçek repository veya mock şifre sıfırlama işlemi
+      await Future.delayed(const Duration(milliseconds: 800));
+      emit(PasswordResetEmailSent(cleanEmail));
+    } catch (e) {
+      emit(AuthError(e.toString().replaceAll("Exception: ", "")));
+    }
+  }
+
+  Future<void> resendVerificationEmail() async {
+    emit(const AuthLoading());
+    try {
+      await authRepository.resendVerificationEmail();
+      emit(const VerificationEmailSent());
     } catch (e) {
       emit(AuthError(e.toString()));
     }
+  }
+
+  //Oturum süresi dolunca yerel tokenı silip uygulmayı unauthenticated duruma geçirmek için
+  Future<void> handleSessionExpired() async {
+    await logoutUseCase();
+    emit(const Unauthenticated(
+        'Oturumunuzun süresi doldu, lütfen tekrar giriş yapın.'));
   }
 }

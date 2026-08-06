@@ -7,8 +7,8 @@ class AppDimensions {
   static const double spacingLg = 24.0;
   static const double spacingXl = 32.0;
 
-  static const double containerMargin = 20.0;
-  static const double gutter = 16.0;
+  static const double containerMargin = 16.0;
+  static const double gutter = 12.0;
 
   // Border Radius
   static const double radiusSm = 4.0;
