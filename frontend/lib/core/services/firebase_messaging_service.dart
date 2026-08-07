@@ -4,7 +4,6 @@ import 'package:vettrack_frontend/core/services/top_notification.dart';
 import '../../features/notification/domain/usecases/unregister_device_token_usecase.dart';
 import '../di/injection_container.dart';
 import '../../features/notification/domain/usecases/register_device_token_usecase.dart';
-import '../../../app.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
