@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../app.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
@@ -79,6 +80,7 @@ abstract class AppRoutes {
 class AppRouter {
   static GoRouter createRouter([AuthCubit? authCubit]) {
     return GoRouter(
+      navigatorKey: rootNavigatorKey,
       initialLocation: AppRoutes.login,
       refreshListenable:
           authCubit != null ? GoRouterRefreshStream(authCubit.stream) : null,

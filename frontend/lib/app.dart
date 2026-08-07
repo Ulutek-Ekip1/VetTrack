@@ -4,9 +4,9 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/di/injection_container.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
+import 'core/services/top_notification.dart';
 
-final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
-    GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 class VetTrackApp extends StatelessWidget {
   const VetTrackApp({super.key});
@@ -18,12 +18,37 @@ class VetTrackApp extends StatelessWidget {
     return BlocProvider<AuthCubit>.value(
       value: authCubit,
       child: MaterialApp.router(
-        scaffoldMessengerKey: rootScaffoldMessengerKey,
         title: 'VetTrack',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         routerConfig: AppRouter.createRouter(authCubit),
+        builder: (context, child) {
+          return Stack(
+            children: [
+              if (child != null) child,
+              ValueListenableBuilder<TopNotificationData?>(
+                valueListenable: topNotificationNotifier,
+                builder: (context, data, _) {
+                  if (data == null) return const SizedBox.shrink();
+                  return Positioned(
+                    top: 50.0,
+                    left: 16.0,
+                    right: 16.0,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: TopNotification(
+                        key: UniqueKey(),
+                        title: data.title,
+                        body: data.body,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }

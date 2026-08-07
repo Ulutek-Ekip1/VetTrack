@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:vettrack_frontend/core/services/top_notification.dart';
 import '../../features/notification/domain/usecases/unregister_device_token_usecase.dart';
 import '../di/injection_container.dart';
 import '../../features/notification/domain/usecases/register_device_token_usecase.dart';
@@ -59,27 +60,9 @@ class FirebaseMessagingService {
       final title = message.notification?.title ?? 'Yeni Bildirim';
       final body = message.notification?.body ?? '';
 
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(body),
-            ],
-          ),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.blueAccent,
-          duration: const Duration(seconds: 4),
-          action: SnackBarAction(
-            label: 'Kapat',
-            textColor: Colors.white,
-            onPressed: () {
-              rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
-            },
-          ),
-        ),
+      TopNotification.show(
+        title: title,
+        body: body,
       );
     });
   }
