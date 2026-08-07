@@ -4,6 +4,7 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/di/injection_container.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
+import 'features/pet/presentation/cubit/pet_cubit.dart';
 import 'core/services/top_notification.dart';
 import 'core/services/update_service.dart';
 
@@ -22,8 +23,11 @@ class VetTrackApp extends StatelessWidget {
       }
     });
 
-    return BlocProvider<AuthCubit>.value(
-      value: authCubit,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>.value(value: authCubit),
+        BlocProvider<PetCubit>(create: (context) => sl<PetCubit>()),
+      ],
       child: MaterialApp.router(
         title: 'VetTrack',
         debugShowCheckedModeBanner: false,
@@ -48,6 +52,8 @@ class VetTrackApp extends StatelessWidget {
                         key: UniqueKey(),
                         title: data.title,
                         body: data.body,
+                        type: data.type,
+                        onTap: data.onTap,
                       ),
                     ),
                   );

@@ -8,7 +8,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
   NotificationRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<List<NotificationEntity>> getNotifications() async {
+  Future<NotificationListEntity> getNotifications() async {
     return await remoteDataSource.getNotifications();
   }
 
@@ -20,5 +20,20 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   Future<void> unregisterDeviceToken({required String fcmToken}) async {
     await remoteDataSource.unregisterDeviceToken(fcmToken: fcmToken);
+  }
+
+  @override
+  Future<int> getUnreadCount() async {
+    return await remoteDataSource.getUnreadCount();
+  }
+
+  @override
+  Future<void> markAsRead(String id) async {
+    await remoteDataSource.markAsRead(id);
+  }
+
+  @override
+  Future<void> markAllAsRead() async {
+    await remoteDataSource.markAllAsRead();
   }
 }

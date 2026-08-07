@@ -5,9 +5,13 @@ class TopNotificationData {
   final String title;
   final String body;
   String type;
+  final VoidCallback? onTap;
 
   TopNotificationData(
-      {required this.title, required this.body, this.type = 'SYSTEM'});
+      {required this.title,
+      required this.body,
+      this.type = 'SYSTEM',
+      this.onTap});
 }
 
 final ValueNotifier<TopNotificationData?> topNotificationNotifier =
@@ -19,23 +23,21 @@ class TopNotification extends StatefulWidget {
       {super.key,
       required this.title,
       required this.body,
-      this.type = 'SYSTEM'});
+      this.type = 'SYSTEM',
+      this.onTap});
   final String title;
   final String body;
   String type;
+  final VoidCallback? onTap;
 
   static void show(
-      {required String title, required String body, type = 'SYSTEM'}) {
-    debugPrint("TopNotification.show tetiklendi. Başlık: $title");
-
-    // Önceki timer varsa iptal et
+      {required String title,
+      required String body,
+      type = 'SYSTEM',
+      VoidCallback? onTap}) {
     _hideTimer?.cancel();
-
-    // Yeni bildirimi göster
     topNotificationNotifier.value =
-        TopNotificationData(title: title, body: body, type: type);
-
-    // 4 saniye sonra gizle
+        TopNotificationData(title: title, body: body, type: type, onTap: onTap);
     _hideTimer = Timer(const Duration(seconds: 4), () {
       topNotificationNotifier.value = null;
       debugPrint("TopNotification overlay silindi.");
@@ -94,7 +96,16 @@ class _TopNotificationState extends State<TopNotification>
       position: _offset,
       child: FadeTransition(
         opacity: _opacity,
-        child: _getNotificationWidget(),
+        child: GestureDetector(
+          onTap: () {
+            if (widget.onTap != null) {
+              widget.onTap!();
+            }
+            _hideTimer?.cancel();
+            topNotificationNotifier.value = null;
+          },
+          child: _getNotificationWidget(),
+        ),
       ),
     );
   }

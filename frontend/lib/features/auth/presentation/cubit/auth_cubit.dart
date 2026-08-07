@@ -76,13 +76,19 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> signOut() async {
     emit(const AuthLoading());
     try {
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      if (fcmToken != null) {
-        await sl<FirebaseMessagingService>().removeTokenFromBackend();
+      try {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          await sl<FirebaseMessagingService>().removeTokenFromBackend();
+        }
+      } catch (_) {
+        // FCM token silme işlemi başarsız olsa bile (örneğin sunucuya ulaşılamıyor),
+        // kullanıcının çıkış yapmasını engellememek için hatayı yutuyoruz.
       }
       await logoutUseCase();
       emit(const Unauthenticated());
     } catch (e) {
+      // Local logout (logoutUseCase) başarısız olursa
       emit(AuthError(e.toString()));
     }
   }

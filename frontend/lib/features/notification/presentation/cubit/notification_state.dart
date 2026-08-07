@@ -16,12 +16,12 @@ class NotificationLoading extends NotificationState {}
 
 //Basarili sekilde yuklendi
 class NotificationLoaded extends NotificationState {
-  final List<NotificationEntity> notifications;
+  final NotificationListEntity notificationList;
 
-  const NotificationLoaded(this.notifications);
+  const NotificationLoaded(this.notificationList);
 
   @override
-  List<Object> get props => [notifications];
+  List<Object> get props => [notificationList];
 }
 
 //Hata durumu

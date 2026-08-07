@@ -43,8 +43,8 @@ class UpdateManager {
 
       // Mock/Simüle Edilmiş API Yanıtı
       final serverConfig = AppVersionConfig(
-        latestVersion: "2.4.0",
-        minRequiredVersion: "2.0.0",
+        latestVersion: "1.0.0", // "2.4.0" idi, test için düşürüldü
+        minRequiredVersion: "1.0.0", // "2.0.0" idi, test için düşürüldü
         updateTitle: "Yeni Sürüm Mevcut",
         updateMessage:
             "VetTrack'i kullanmaya devam etmek için en son özellikler ve güvenlik iyileştirmelerini içeren yeni sürümü yüklemeniz gerekmektedir.",

@@ -6,6 +6,7 @@ class NotificationEntity extends Equatable {
   final String? treatmentEntryId;
   final String title;
   final String body;
+  final String type; // Yeni alan
   final bool isRead;
   final DateTime? sentAt;
 
@@ -15,6 +16,7 @@ class NotificationEntity extends Equatable {
     this.treatmentEntryId,
     required this.title,
     required this.body,
+    required this.type,
     required this.isRead,
     this.sentAt,
   });
@@ -26,7 +28,21 @@ class NotificationEntity extends Equatable {
         treatmentEntryId,
         title,
         body,
+        type,
         isRead,
         sentAt,
       ];
+}
+
+class NotificationListEntity extends Equatable {
+  final List<NotificationEntity> notifications;
+  final int unreadCount;
+
+  const NotificationListEntity({
+    required this.notifications,
+    required this.unreadCount,
+  });
+
+  @override
+  List<Object?> get props => [notifications, unreadCount];
 }
