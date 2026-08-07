@@ -6,7 +6,7 @@ class GetNotificationsUseCase {
 
   GetNotificationsUseCase(this.repository);
 
-  Future<List<NotificationEntity>> call() async {
+  Future<NotificationListEntity> call() async {
     return await repository.getNotifications();
   }
 }

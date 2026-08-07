@@ -50,6 +50,10 @@ import 'package:vettrack_frontend/features/treatment/domain/repositories/treatme
 // Notification Imports
 import 'package:vettrack_frontend/features/notification/domain/usecases/get_notifications_usecase.dart';
 import 'package:vettrack_frontend/features/notification/domain/usecases/register_device_token_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/unregister_device_token_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/mark_as_read_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/mark_all_as_read_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/get_unread_count_usecase.dart';
 import 'package:vettrack_frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:vettrack_frontend/features/notification/data/repositories/notification_repository_impl.dart';
 import 'package:vettrack_frontend/features/notification/data/datasources/notification_remote_datasource.dart';
@@ -101,6 +105,8 @@ Future<void> init() async {
       registerUseCase: sl(),
       logoutUseCase: sl(),
       authRepository: sl(),
+      registerDeviceTokenUseCase: sl(),
+      unregisterDeviceTokenUseCase: sl(),
     ),
   );
 
@@ -195,12 +201,19 @@ Future<void> init() async {
   );
 
   sl.registerLazySingleton(() => RegisterDeviceTokenUseCase(sl()));
+  sl.registerLazySingleton(() => UnregisterDeviceTokenUseCase(sl()));
   sl.registerLazySingleton(() => GetNotificationsUseCase(sl()));
+  sl.registerLazySingleton(() => MarkAsReadUseCase(sl()));
+  sl.registerLazySingleton(() => MarkAllAsReadUseCase(sl()));
+  sl.registerLazySingleton(() => GetUnreadCountUseCase(sl()));
 
   sl.registerFactory(
     () => NotificationCubit(
       registerDeviceTokenUseCase: sl(),
       getNotificationsUseCase: sl(),
+      markAsReadUseCase: sl(),
+      markAllAsReadUseCase: sl(),
+      getUnreadCountUseCase: sl(),
     ),
   );
 }

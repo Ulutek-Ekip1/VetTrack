@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _onLogin() {
+  void _onLogin() async {
     if (_formKey.currentState!.validate()) {
       context.read<AuthCubit>().signInWithEmail(
             _emailController.text.trim(),
