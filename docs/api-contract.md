@@ -82,6 +82,7 @@
 | 22 | PATCH | `/notifications/{id}/read` | Okundu işaretle | owner |
 | 23 | PATCH | `/notifications/read-all` | Tümünü okundu işaretle | owner |
 | 24 | POST | `/devices/register` | FCM token kaydet | owner |
+| 25 | POST | `/devices/unregister` | FCM token sil (logout) | owner |
 
 ---
 
@@ -608,16 +609,37 @@ Sahibin tüm okunmamış bildirimlerini tek istekte okundu işaretler. Bildiriml
 
 **Kim:** Sadece `owner`. **PRD:** FR-12.
 
+Uygulama açılışında veya login sonrası cihazın FCM token'ı sunucuya kaydedilir.
+
 **Request body:**
 
 | Alan | Tip | Zorunlu | Açıklama |
 |---|---|---|---|
-| `fcmToken` | String | Evet | Firebase token |
+| `fcmToken` | String | Evet | Firebase Cloud Messaging token |
 | `platform` | Enum | Evet | `ios`, `android` |
 
-**Response (200):** `DeviceTokenResponse`
+**Response (201):** No Content
 
-> Not: İdempotent — aynı owner + token varsa sessizce 200 döner. `ownerId` JWT'den çıkarılır.
+> Not: İdempotent — aynı token varsa mevcut kayıt yeni `userId` ve `platform` ile güncellenir, `lastSeen` yenilenir. `userId` JWT'den çıkarılır.
+
+---
+
+### POST /devices/unregister — FCM token sil (logout)
+
+**Kim:** Sadece `owner`. **PRD:** FR-12.
+
+Kullanıcı logout olurken çağrılır. İlgili cihaz token'ı silinerek eski cihaza bildirim gitmesi engellenir. Frontend logout akışında bu endpoint'i çağırdıktan sonra JWT'yi temizler.
+
+**Request body:**
+
+| Alan | Tip | Zorunlu | Açıklama |
+|---|---|---|---|
+| `fcmToken` | String | Evet | Silinecek Firebase token |
+| `platform` | Enum | Evet | `ios`, `android` (form uyumluluğu için; silme işleminde kullanılmaz) |
+
+**Response (204):** No Content
+
+> Not: İdempotent — token zaten yoksa yine 204 döner. Silme sadece token + `userId` eşleşmesinde gerçekleşir; başka kullanıcının token'ı silinmez.
 
 ---
 
@@ -651,6 +673,7 @@ Sahibin tüm okunmamış bildirimlerini tek istekte okundu işaretler. Bildiriml
 | PATCH /notifications/{id}/read | ✅ | — | — |
 | PATCH /notifications/read-all | ✅ | — | — |
 | POST /devices/register | ✅ | — | — |
+| POST /devices/unregister | ✅ | — | — |
 ---
 
 ## Bekleyen teknik kararlar
