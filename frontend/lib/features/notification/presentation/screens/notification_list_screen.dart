@@ -14,7 +14,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     {
       'id': '1',
       'title': 'Tedavi Kaydı Eklendi',
-      'message': 'Hekiminiz Pamuk için yeni bir ilaç tedavi kaydı girdi. Detayları inceleyebilirsiniz.',
+      'message':
+          'Hekiminiz Pamuk için yeni bir ilaç tedavi kaydı girdi. Detayları inceleyebilirsiniz.',
       'time': '10 dk önce',
       'isRead': false,
       'type': 'healing',
@@ -23,7 +24,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     {
       'id': '2',
       'title': 'Ziyaret Başlatıldı',
-      'message': 'Pamuk için Patili Veteriner Kliniği\'nde yeni bir muayene ziyareti başlatıldı.',
+      'message':
+          'Pamuk için Patili Veteriner Kliniği\'nde yeni bir muayene ziyareti başlatıldı.',
       'time': '2 saat önce',
       'isRead': false,
       'type': 'medical_services',
@@ -32,7 +34,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     {
       'id': '3',
       'title': 'Ziyaret Tamamlandı',
-      'message': 'Dr. Mehmet Yılmaz, Pamuk için gerçekleştirdiği muayene ziyaretini tamamladı.',
+      'message':
+          'Dr. Mehmet Yılmaz, Pamuk için gerçekleştirdiği muayene ziyaretini tamamladı.',
       'time': 'Dün, 14:30',
       'isRead': true,
       'type': 'check_circle',
@@ -41,7 +44,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     {
       'id': '4',
       'title': 'Sistem Güncellemesi',
-      'message': 'VetTrack uygulamasına hoş geldiniz! Evcil hayvanınızın profilini doldurarak hekiminizle paylaşabilirsiniz.',
+      'message':
+          'VetTrack uygulamasına hoş geldiniz! Evcil hayvanınızın profilini doldurarak hekiminizle paylaşabilirsiniz.',
       'time': '3 gün önce',
       'isRead': true,
       'type': 'system',
@@ -96,7 +100,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.mark_chat_read_outlined, color: Color(0xFF434655)),
+            icon: const Icon(Icons.mark_chat_read_outlined,
+                color: Color(0xFF434655)),
             tooltip: 'Tümünü Okundu Yap',
             onPressed: _markAllAsRead,
           ),
@@ -107,11 +112,13 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_off_outlined, size: 64, color: Colors.grey.shade400),
+                  Icon(Icons.notifications_off_outlined,
+                      size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
                     'Henüz bildiriminiz yok',
-                    style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -127,7 +134,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 4.0, bottom: 8.0, top: 12.0),
+                      padding: const EdgeInsets.only(
+                          left: 4.0, bottom: 8.0, top: 12.0),
                       child: Text(
                         groupName,
                         style: theme.textTheme.titleMedium?.copyWith(
@@ -169,18 +177,25 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
 
                       return Card(
                         elevation: 0,
-                        margin: const EdgeInsets.only(bottom: AppDimensions.spacingSm),
-                        color: isRead ? theme.colorScheme.surface : const Color(0xFFF1F5F9),
+                        margin: const EdgeInsets.only(
+                            bottom: AppDimensions.spacingSm),
+                        color: isRead
+                            ? theme.colorScheme.surface
+                            : const Color(0xFFF1F5F9),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.radiusMd),
                           side: BorderSide(
-                            color: isRead ? Colors.grey.shade200 : primaryBlue.withValues(alpha: 0.15),
+                            color: isRead
+                                ? Colors.grey.shade200
+                                : primaryBlue.withValues(alpha: 0.15),
                             width: 1,
                           ),
                         ),
                         child: InkWell(
                           onTap: () => _toggleReadStatus(globalIndex),
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.radiusMd),
                           child: Padding(
                             padding: const EdgeInsets.all(14.0),
                             child: Row(
@@ -193,24 +208,32 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                                     color: iconBgColor,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(iconData, color: iconColor, size: 22),
+                                  child: Icon(iconData,
+                                      color: iconColor, size: 22),
                                 ),
                                 const SizedBox(width: 14),
 
                                 // Bildirim Detayları
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Expanded(
                                             child: Text(
                                               item['title'] as String,
-                                              style: theme.textTheme.titleMedium?.copyWith(
-                                                fontWeight: isRead ? FontWeight.bold : FontWeight.w900,
-                                                color: isRead ? const Color(0xFF334155) : const Color(0xFF131B2E),
+                                              style: theme.textTheme.titleMedium
+                                                  ?.copyWith(
+                                                fontWeight: isRead
+                                                    ? FontWeight.bold
+                                                    : FontWeight.w900,
+                                                color: isRead
+                                                    ? const Color(0xFF334155)
+                                                    : const Color(0xFF131B2E),
                                                 fontSize: 15,
                                               ),
                                             ),
@@ -229,8 +252,11 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                                       const SizedBox(height: 4),
                                       Text(
                                         item['message'] as String,
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          color: isRead ? Colors.grey.shade600 : const Color(0xFF1E293B),
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                          color: isRead
+                                              ? Colors.grey.shade600
+                                              : const Color(0xFF1E293B),
                                           fontSize: 13,
                                           height: 1.35,
                                         ),
@@ -238,7 +264,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                                       const SizedBox(height: 6),
                                       Text(
                                         item['time'] as String,
-                                        style: theme.textTheme.bodySmall?.copyWith(
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
                                           color: Colors.grey.shade500,
                                           fontSize: 11,
                                         ),

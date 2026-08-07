@@ -6,7 +6,7 @@ class NotificationEntity extends Equatable {
   final String? treatmentEntryId;
   final String title;
   final String body;
-  final String type; // Yeni alan
+  final String type;
   final bool isRead;
   final DateTime? sentAt;
 

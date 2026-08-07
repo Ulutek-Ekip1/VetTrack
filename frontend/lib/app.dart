@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/di/injection_container.dart';
@@ -27,6 +28,9 @@ class VetTrackApp extends StatelessWidget {
       providers: [
         BlocProvider<AuthCubit>.value(value: authCubit),
         BlocProvider<PetCubit>(create: (context) => sl<PetCubit>()),
+        BlocProvider<NotificationCubit>(
+          create: (context) => sl<NotificationCubit>(),
+        ),
       ],
       child: MaterialApp.router(
         title: 'VetTrack',
