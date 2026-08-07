@@ -35,6 +35,8 @@ import 'main_shell_screen.dart';
 import 'not_found_screen.dart';
 import '../../features/auth/presentation/screens/email_verification_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
+import '../../features/treatment/presentation/cubit/treatment_cubit.dart';
+import '../../features/recommendation/presentation/cubit/recommendation_cubit.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription<dynamic> _subscription;
@@ -99,6 +101,10 @@ class AppRouter {
       GlobalKey<NavigatorState>();
   static GoRouter? _router;
 
+  // Geliştirme aşamasında tasarımları doğrudan URL yazarak görüntüleyebilmek için
+  // bu değeri 'true' yapabilirsiniz.
+  static bool bypassAuth = true;
+
   static GoRouter get router {
     _router ??= createRouter();
     return _router!;
@@ -116,6 +122,10 @@ class AppRouter {
 
       //Auth & Rol Bazlı Redirect
       redirect: (BuildContext context, GoRouterState state) {
+        if (bypassAuth) {
+          return null;
+        }
+
         final authState = authCubit?.state;
         final isLoggedIn = authState is Authenticated;
         final location = state.matchedLocation;
@@ -245,7 +255,10 @@ class AppRouter {
                           name: 'petRecommendations',
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
-                            return PetRecommendationScreen(petId: petId);
+                            return BlocProvider<RecommendationCubit>(
+                              create: (context) => sl<RecommendationCubit>()..loadRecommendations(petId),
+                              child: PetRecommendationScreen(petId: petId),
+                            );
                           },
                         ),
                       ],
@@ -327,7 +340,10 @@ class AppRouter {
           name: 'addTreatment',
           builder: (context, state) {
             final visitId = state.pathParameters['visitId'] ?? '';
-            return AddTreatmentScreen(visitId: visitId);
+            return BlocProvider<TreatmentCubit>(
+              create: (context) => sl<TreatmentCubit>(),
+              child: AddTreatmentScreen(visitId: visitId),
+            );
           },
         ),
         //Öneri Girişi Rotası: /vet/visit/:visitId/recommendation/add
@@ -336,7 +352,10 @@ class AppRouter {
           name: 'addRecommendation',
           builder: (context, state) {
             final visitId = state.pathParameters['visitId'] ?? '';
-            return AddRecommendationScreen(visitId: visitId);
+            return BlocProvider<RecommendationCubit>(
+              create: (context) => sl<RecommendationCubit>(),
+              child: AddRecommendationScreen(visitId: visitId),
+            );
           },
         ),
         GoRoute(

@@ -12,24 +12,28 @@ abstract class RecommendationRemoteDataSource {
   });
 }
 
+//API implementasyonu
 class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSource {
   final Dio dio;
 
   RecommendationRemoteDataSourceImpl(this.dio);
 
+  //Belirli petId için öneri getirir.
   @override
   Future<List<RecommendationEntity>> getRecommendations(String petId) async {
     try {
       final response = await dio.get('/pets/$petId/recommendations');
       final List list = response.data;
       return list
-          .map((json) => RecommendationModel.fromJson(json as Map<String, dynamic>))
+          .map((json) =>
+              RecommendationModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       throw ServerException(e.message ?? 'Öneriler alınamadı.');
     }
   }
 
+//Yeni öneri ekleme
   @override
   Future<RecommendationEntity> addRecommendation({
     required String visitId,
@@ -44,7 +48,8 @@ class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSour
           'description': description,
         },
       );
-      return RecommendationModel.fromJson(response.data as Map<String, dynamic>);
+      return RecommendationModel.fromJson(
+          response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw ServerException(e.message ?? 'Öneri eklenemedi.');
     }

@@ -7,11 +7,13 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
 
   RecommendationRepositoryImpl(this.remoteDataSource);
 
+//Önerileri getirir
   @override
   Future<List<RecommendationEntity>> getRecommendations(String petId) async {
     return await remoteDataSource.getRecommendations(petId);
   }
 
+//Yeni öneri ekleme
   @override
   Future<RecommendationEntity> addRecommendation({
     required String visitId,

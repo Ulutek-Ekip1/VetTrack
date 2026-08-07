@@ -1,5 +1,6 @@
 import '../../domain/entities/recommendation_entity.dart';
 
+// API'den gelen JSON verisini Dart nesnesine dönüştürmek için
 class RecommendationModel extends RecommendationEntity {
   const RecommendationModel({
     required super.id,
@@ -9,6 +10,7 @@ class RecommendationModel extends RecommendationEntity {
     required super.createdAt,
   });
 
+//JSON -> Model dönüşümü
   factory RecommendationModel.fromJson(Map<String, dynamic> json) {
     return RecommendationModel(
       id: json['id'] as String,
@@ -19,6 +21,7 @@ class RecommendationModel extends RecommendationEntity {
     );
   }
 
+//Model -> JSON dönüşümü
   Map<String, dynamic> toJson() {
     return {
       'id': id,
