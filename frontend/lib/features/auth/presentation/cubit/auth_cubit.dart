@@ -50,10 +50,14 @@ class AuthCubit extends Cubit<AuthState> {
 
     try {
       final user = await loginWithEmail(email, password);
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      if (fcmToken != null) {
-        await registerDeviceTokenUseCase(
-            fcmToken: fcmToken, platform: 'android');
+      try {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          await registerDeviceTokenUseCase(
+              fcmToken: fcmToken, platform: 'android');
+        }
+      } catch (fcmError) {
+        // Hata yutulur, kullanıcının giriş yapması engellenmez.
       }
       emit(Authenticated(user));
     } catch (e) {
@@ -66,7 +70,11 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthLoading());
     try {
       final user = await registerUseCase(email, password, name, phone, role);
-      await sl<FirebaseMessagingService>().sendTokenToBackend();
+      try {
+        await sl<FirebaseMessagingService>().sendTokenToBackend();
+      } catch (fcmError) {
+        // Hata yutulur
+      }
       emit(Authenticated(user));
     } catch (e) {
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
@@ -88,7 +96,6 @@ class AuthCubit extends Cubit<AuthState> {
       await logoutUseCase();
       emit(const Unauthenticated());
     } catch (e) {
-      // Local logout (logoutUseCase) başarısız olursa
       emit(AuthError(e.toString()));
     }
   }
@@ -96,7 +103,6 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> resetPassword(String email) async {
     emit(const AuthLoading());
     try {
-
       final cleanEmail = email.trim();
       if (cleanEmail.isEmpty || !cleanEmail.contains("@")) {
         throw Exception("Lütfen geçerli bir e-posta adresi giriniz.");
