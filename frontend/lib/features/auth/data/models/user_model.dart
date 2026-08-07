@@ -12,21 +12,55 @@ class UserModel extends UserEntity {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    final rawRole = json['role'] as String?;
+    // Role parsing (supporting both top-level role and nested user_metadata role)
+    final rawRole = json['role'] as String? ??
+        (json['user_metadata'] is Map ? (json['user_metadata'] as Map)['role'] as String? : null);
     UserRole parsedRole = UserRole.owner; // Default
 
     if (rawRole == 'vet_staff' || rawRole == 'VET') {
       parsedRole = UserRole.vet;
     }
 
+    // Name parsing (supporting top-level name and nested user_metadata name/full_name)
+    String name = (json['name'] as String?) ?? "";
+    if (name.isEmpty && json['user_metadata'] is Map) {
+      final meta = json['user_metadata'] as Map;
+      name = (meta['name'] as String?) ?? (meta['full_name'] as String?) ?? "";
+    }
+    if (name.isEmpty) {
+      name = (json['email'] as String?)?.split('@').first ?? "Kullanıcı";
+    }
+
+    // Phone parsing
+    String? phone = json['phone'] as String?;
+    if ((phone == null || phone.isEmpty) && json['user_metadata'] is Map) {
+      final meta = json['user_metadata'] as Map;
+      phone = meta['phone'] as String?;
+    }
+
+    // CreatedAt parsing
+    DateTime createdAtVal;
+    final createdAtStr = (json['createdAt'] as String?) ?? (json['created_at'] as String?);
+    if (createdAtStr != null) {
+      try {
+        createdAtVal = DateTime.parse(createdAtStr);
+      } catch (_) {
+        createdAtVal = DateTime.now();
+      }
+    } else {
+      createdAtVal = DateTime.now();
+    }
+
+    final idVal = (json['id'] as String?) ?? "";
+
     return UserModel(
-      id: json['id'] as String,
-      authId: json['authId'] as String,
-      email: json['email'] as String,
-      name: json['name'] as String,
-      phone: json['phone'] as String?,
+      id: idVal,
+      authId: (json['authId'] as String?) ?? idVal,
+      email: (json['email'] as String?) ?? "",
+      name: name,
+      phone: phone,
       role: parsedRole,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: createdAtVal,
     );
   }
 

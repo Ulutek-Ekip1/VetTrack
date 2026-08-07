@@ -11,10 +11,17 @@ class AuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    final token = await localDataSource.getToken();
+    final path = options.path;
     
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
+    // Giriş ve kayıt gibi genel (public) isteklerde Authorization header'ı ekleme
+    if (path != '/auth/login' && path != '/auth/register') {
+      final token = await localDataSource.getToken();
+      print("AuthInterceptor - Request Path: $path, Token: ${token != null ? 'Present (Ends with ${token.substring(token.length > 10 ? token.length - 10 : 0)})' : 'NULL'}");
+      if (token != null) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
+    } else {
+      print("AuthInterceptor - Public Request Path: $path");
     }
 
     // İsteğe devam et
@@ -23,9 +30,11 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    print("AuthInterceptor - Error on path: ${err.requestOptions.path}, Status: ${err.response?.statusCode}, Error: ${err.message}, Response data: ${err.response?.data}");
     if (err.response?.statusCode == 401) {
       final requestPath = err.requestOptions.path;
       if (requestPath != '/auth/login' && requestPath != '/auth/register') {
+        print("AuthInterceptor - Session expired, redirecting to login...");
         getAuthCubit().handleSessionExpired();
       }
     }

@@ -55,4 +55,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
     return await remoteDataSource.updateOwnerProfile(data);
   }
+
+  @override
+  Future<UserEntity> signInWithGoogle() async {
+    return await remoteDataSource.signInWithGoogle();
+  }
 }
