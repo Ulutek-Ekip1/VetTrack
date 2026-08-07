@@ -38,8 +38,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Authentication authentication = new JwtAuthenticationToken(jwt);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JwtException ex) {
-                System.err.println("JWT Validation failed: " + ex.getMessage());
-                ex.printStackTrace();
                 // Token geçersizse isteği kesmek yerine anonymous (anonim) olarak devam etmesine izin veriyoruz.
                 // Yetkilendirme (authorization) katmanı korunan endpoint'leri zaten engelleyecektir.
             }

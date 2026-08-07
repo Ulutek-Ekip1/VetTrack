@@ -54,6 +54,10 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthLoading());
     try {
       final user = await signInWithGoogleUseCase();
+      if (user.id.isEmpty) {
+        emit(AuthInitial());
+        return;
+      }
       emit(Authenticated(user));
     } catch (e) {
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));

@@ -11,4 +11,4 @@ if exist .env (
     echo WARNING: .env file not found in the backend directory! Spring Boot may fail to start.
 )
 
-call mvnw spring-boot:run
+call mvnw spring-boot:run -Dspring-boot.run.profiles=local

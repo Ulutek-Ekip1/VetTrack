@@ -14,4 +14,4 @@ if (Test-Path .env) {
     Write-Warning ".env file not found in the backend directory! Spring Boot may fail to start."
 }
 
-.\mvnw spring-boot:run
+.\mvnw spring-boot:run -Dspring-boot.run.profiles=local
