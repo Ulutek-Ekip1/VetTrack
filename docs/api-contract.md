@@ -77,9 +77,12 @@
 | 17 | PUT | `/treatments/{id}` | Tedavi düzenle (15 dk) | vet_staff |
 | 18 | DELETE | `/treatments/{id}` | Tedavi sil (15 dk) | vet_staff |
 | 19 | POST | `/visits/{visitId}/recommendations` | Öneri gir | vet_staff |
-| 20 | GET | `/notifications` | Bildirim listesi | owner |
-| 21 | PUT | `/notifications/{id}/read` | Okundu işaretle | owner |
-| 22 | POST | `/devices/register` | FCM token kaydet | owner |
+| 20 | GET | `/notifications` | Bildirim listesi + okunmamış sayısı | owner |
+| 21 | GET | `/notifications/unread-count` | Okunmamış sayısı (badge için) | owner |
+| 22 | PATCH | `/notifications/{id}/read` | Okundu işaretle | owner |
+| 23 | PATCH | `/notifications/read-all` | Tümünü okundu işaretle | owner |
+| 24 | POST | `/devices/register` | FCM token kaydet | owner |
+| 25 | POST | `/devices/unregister` | FCM token sil (logout) | owner |
 
 ---
 
@@ -535,44 +538,68 @@
 
 **Kim:** Sadece `owner`. **PRD:** FR-11.
 
-**Query params:**
-
-| Param | Tip | Varsayılan | Açıklama |
-|---|---|---|---|
-| `page` | Integer | 0 | Sayfa numarası |
-| `size` | Integer | 20 | Sayfa başına bildirim (max 50) |
+Sahibin tüm bildirimlerini `sentAt` (yeniden eskiye) sırasıyla döner. Toplam okunmamış sayısı da aynı cevapta gelir; frontend badge için ayrıca istek atmak zorunda değil.
 
 **Response (200):**
 
 ```json
 {
-  "content": [
+  "notifications": [
     {
-      "id": "...",
-      "ownerId": "...",
-      "treatmentEntryId": "...",
+      "id": "3f2e...",
+      "type": "TREATMENT",
       "title": "Boncuk için yeni tedavi kaydı",
       "body": "Dr. Mehmet Yılmaz tarafından ilaç kaydı girildi",
+      "treatmentEntryId": "8a1b...",
       "isRead": false,
+      "readAt": null,
       "sentAt": "2026-07-29T14:32:11Z"
     }
   ],
-  "page": 0,
-  "size": 20,
-  "totalElements": 47,
-  "totalPages": 3
+  "unreadCount": 5
 }
+```
+
+**`type` değerleri:** `VACCINE` · `VISIT` · `TREATMENT` · `RECOMMENDATION` · `SYSTEM`
+Frontend bu değere göre ikon ve renk seçer. FCM push bildiriminde de `data.type` alanı olarak gönderilir.
+
+---
+
+### GET /notifications/unread-count — Okunmamış sayısı
+
+**Kim:** Sadece `owner`. **PRD:** FR-11.
+
+Sadece okunmamış bildirim sayısını döner. Badge güncellemesi gibi listeyi çekmeye gerek olmayan durumlar için hafif endpoint.
+
+**Response (200):**
+
+```json
+{ "unreadCount": 5 }
 ```
 
 ---
 
-### PUT /notifications/{id}/read — Okundu işaretle
+### PATCH /notifications/{id}/read — Okundu işaretle
 
 **Kim:** Bildirim sahibi (`owner`). **PRD:** FR-11.
 
-**Response (200):** `NotificationResponse` (`isRead: true`)
+**Response (204):** No Content
 
-> Not: İdempotent — zaten okunmuşsa tekrar 200 döner.
+> Not: İdempotent — zaten okunmuşsa hiçbir işlem yapılmadan 204 döner. Bildirim başkasına aitse 404 döner (kaynak varlığı sızdırılmaz).
+
+---
+
+### PATCH /notifications/read-all — Tümünü okundu işaretle
+
+**Kim:** Sadece `owner`. **PRD:** FR-11.
+
+Sahibin tüm okunmamış bildirimlerini tek istekte okundu işaretler. Bildirimler listesi ekranı açıldığında toplu işaretleme için kullanılır.
+
+**Response (200):**
+
+```json
+{ "unreadCount": 0 }
+```
 
 ---
 
@@ -582,16 +609,37 @@
 
 **Kim:** Sadece `owner`. **PRD:** FR-12.
 
+Uygulama açılışında veya login sonrası cihazın FCM token'ı sunucuya kaydedilir.
+
 **Request body:**
 
 | Alan | Tip | Zorunlu | Açıklama |
 |---|---|---|---|
-| `fcmToken` | String | Evet | Firebase token |
+| `fcmToken` | String | Evet | Firebase Cloud Messaging token |
 | `platform` | Enum | Evet | `ios`, `android` |
 
-**Response (200):** `DeviceTokenResponse`
+**Response (201):** No Content
 
-> Not: İdempotent — aynı owner + token varsa sessizce 200 döner. `ownerId` JWT'den çıkarılır.
+> Not: İdempotent — aynı token varsa mevcut kayıt yeni `userId` ve `platform` ile güncellenir, `lastSeen` yenilenir. `userId` JWT'den çıkarılır.
+
+---
+
+### POST /devices/unregister — FCM token sil (logout)
+
+**Kim:** Sadece `owner`. **PRD:** FR-12.
+
+Kullanıcı logout olurken çağrılır. İlgili cihaz token'ı silinerek eski cihaza bildirim gitmesi engellenir. Frontend logout akışında bu endpoint'i çağırdıktan sonra JWT'yi temizler.
+
+**Request body:**
+
+| Alan | Tip | Zorunlu | Açıklama |
+|---|---|---|---|
+| `fcmToken` | String | Evet | Silinecek Firebase token |
+| `platform` | Enum | Evet | `ios`, `android` (form uyumluluğu için; silme işleminde kullanılmaz) |
+
+**Response (204):** No Content
+
+> Not: İdempotent — token zaten yoksa yine 204 döner. Silme sadece token + `userId` eşleşmesinde gerçekleşir; başka kullanıcının token'ı silinmez.
 
 ---
 
@@ -621,9 +669,11 @@
 | DELETE /treatments/{id} | — | ✅ | — |
 | POST /visits/{visitId}/recommendations | — | ✅ | — |
 | GET /notifications | ✅ | — | — |
-| PUT /notifications/{id}/read | ✅ | — | — |
+| GET /notifications/unread-count | ✅ | — | — |
+| PATCH /notifications/{id}/read | ✅ | — | — |
+| PATCH /notifications/read-all | ✅ | — | — |
 | POST /devices/register | ✅ | — | — |
-
+| POST /devices/unregister | ✅ | — | — |
 ---
 
 ## Bekleyen teknik kararlar
