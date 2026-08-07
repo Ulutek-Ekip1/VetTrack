@@ -831,7 +831,7 @@ paths:
       summary: FCM token kaydet
       description: |
         Uygulama açılışında/girişte cihazın FCM token'ı kaydedilir (FR-12).
-        Aynı owner + token varsa sessizce 200 döner (idempotent).
+        Aynı token varsa mevcut kayıt yeni userId ve platform ile güncellenir (idempotent).
       security:
         - bearerAuth: []
       requestBody:
@@ -841,12 +841,32 @@ paths:
             schema:
               $ref: '#/components/schemas/DeviceRegisterRequest'
       responses:
-        '200':
-          description: Token kaydedildi
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeviceTokenResponse'
+        '201':
+          description: Token kaydedildi veya güncellendi
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /devices/unregister:
+    post:
+      tags: [Devices]
+      summary: FCM token sil (logout)
+      description: |
+        Logout sırasında çağrılır. İlgili cihaz token'ı silinerek eski cihaza bildirim
+        gönderilmesi engellenir (FR-12). Silme sadece token + userId eşleşmesinde
+        gerçekleşir; başka kullanıcının token'ı silinmez.
+        Token zaten yoksa yine 204 döner (idempotent).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRegisterRequest'
+      responses:
+        '204':
+          description: Token silindi (veya zaten yoktu)
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -1369,21 +1389,3 @@ components:
         platform:
           type: string
           enum: [ios, android]
-
-    DeviceTokenResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        ownerId:
-          type: string
-          format: uuid
-        fcmToken:
-          type: string
-        platform:
-          type: string
-          enum: [ios, android]
-        createdAt:
-          type: string
-          format: date-time
