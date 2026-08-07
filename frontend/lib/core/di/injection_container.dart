@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:vettrack_frontend/core/constants/app_constants.dart';
 import '../network/auth_interceptor.dart';
 import '../../features/auth/data/datasources/token_local_data_source.dart';
 
@@ -33,6 +34,7 @@ import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/login_with_email_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
+import '../../features/auth/domain/usecases/signin_with_google_usecase.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/domain/usecases/get_owner_profile_usecase.dart';
 import '../../features/auth/domain/usecases/update_owner_profile_usecase.dart';
@@ -67,7 +69,7 @@ Future<void> init() async {
 
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio(BaseOptions(
-      baseUrl: 'http://10.0.2.2:8080/api',
+      baseUrl: AppConstants.apiBaseUrl,
       connectTimeout: const Duration(seconds: 3),
       receiveTimeout: const Duration(seconds: 3),
       headers: {'Content-Type': 'application/json'},
@@ -92,6 +94,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => LoginWithEmailUseCase(sl()));
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => SignInWithGoogleUseCase(sl()));
   sl.registerLazySingleton(() => GetOwnerProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateOwnerProfileUseCase(sl()));
 
@@ -100,6 +103,7 @@ Future<void> init() async {
       loginWithEmail: sl(),
       registerUseCase: sl(),
       logoutUseCase: sl(),
+      signInWithGoogleUseCase: sl(),
       authRepository: sl(),
     ),
   );
