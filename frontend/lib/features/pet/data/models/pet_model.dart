@@ -25,13 +25,28 @@ class PetModel extends PetEntity {
       parsedGender = Gender.female;
     }
 
+    int? calculatedAge;
+    if (json['birthDate'] != null) {
+      calculatedAge = DateTime.now().year - DateTime.parse(json['birthDate'] as String).year;
+    } else if (json['estimatedBirthYear'] != null) {
+      calculatedAge = DateTime.now().year - (json['estimatedBirthYear'] as int);
+    } else if (json['age'] != null) {
+      calculatedAge = json['age'] as int?;
+    }
+
+    final String? species = json['species'] as String?;
+    final String? breed = json['breed'] as String?;
+    final String? combinedBreed = species != null && species.isNotEmpty
+        ? (breed != null && breed.isNotEmpty ? "$species / $breed" : species)
+        : breed;
+
     return PetModel(
       id: json['id'] as String,
       ownerId: json['ownerId'] as String,
       name: json['name'] as String,
-      age: json['age'] as int?,
+      age: calculatedAge,
       gender: parsedGender,
-      breed: json['breed'] as String?,
+      breed: combinedBreed,
       uniqueCode: json['uniqueCode'] as String,
       photoUrl: json['photoUrl'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),

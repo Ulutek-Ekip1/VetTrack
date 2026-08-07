@@ -14,13 +14,18 @@ class Validators {
     return null;
   }
 
-  /// Şifre doğrulama (Zorunlu, en az 8 karakter)
+  /// Şifre doğrulama (Zorunlu, en az 8 karakter, harf ve rakam içermelidir)
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Şifre zorunludur';
     }
     if (value.length < 8) {
       return 'Şifre en az 8 karakter olmalıdır';
+    }
+    final hasLetter = RegExp(r'[a-zA-Z]').hasMatch(value);
+    final hasDigit = RegExp(r'[0-9]').hasMatch(value);
+    if (!hasLetter || !hasDigit) {
+      return 'Şifreniz en az bir harf ve bir rakam içermelidir';
     }
     return null;
   }

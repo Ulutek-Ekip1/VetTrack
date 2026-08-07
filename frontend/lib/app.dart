@@ -5,6 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'core/di/injection_container.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'core/services/top_notification.dart';
+import 'core/services/update_service.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -14,6 +15,12 @@ class VetTrackApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authCubit = sl<AuthCubit>()..checkAuthStatus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navContext = AppRouter.navigatorKey.currentContext;
+      if (navContext != null) {
+        UpdateManager.checkVersion(navContext);
+      }
+    });
 
     return BlocProvider<AuthCubit>.value(
       value: authCubit,

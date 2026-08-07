@@ -43,7 +43,7 @@ class PetServiceTest {
                 .ownerId(mockOwnerId)
                 .name("Pamuk")
                 .breed("Tekir")
-                .age(2)
+                .species("Köpek")
                 .gender(Gender.male)
                 .build();
 

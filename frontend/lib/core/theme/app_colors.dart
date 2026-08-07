@@ -10,9 +10,8 @@ class AppColors {
   static const Color surfaceContainer = Color(0xFFEAEDFF);
   static const Color surfaceContainerHigh = Color(0xFFE2E7FF);
   static const Color surfaceContainerHighest = Color(0xFFDAE2FD);
-  static const Color onSurface = Color(0xFF0F172A);
-  static const Color onSurfaceVariant =
-      Color(0xFF334155); // Adjusted based on neutral
+  static const Color onSurface = Color(0xFF131B2E);
+  static const Color onSurfaceVariant = Color(0xFF434655);
   static const Color inverseSurface = Color(0xFF283044);
   static const Color inverseOnSurface = Color(0xFFEEF0FF);
   static const Color surfaceVariant = Color(0xFFDAE2FD);
@@ -23,7 +22,7 @@ class AppColors {
   static const Color surfaceTint = Color(0xFF0053DB);
 
   // Primary
-  static const Color primary = Color(0xFF2563EB);
+  static const Color primary = Color(0xFF004AC6);
   static const Color onPrimary = Color(0xFFFFFFFF);
   static const Color primaryContainer = Color(0xFF2563EB);
   static const Color onPrimaryContainer = Color(0xFFEEEFFF);
@@ -34,7 +33,7 @@ class AppColors {
   static const Color onPrimaryFixedVariant = Color(0xFF003EA8);
 
   // Secondary
-  static const Color secondary = Color(0xFF14B8A6);
+  static const Color secondary = Color(0xFF006B5F);
   static const Color onSecondary = Color(0xFFFFFFFF);
   static const Color secondaryContainer = Color(0xFF6DF5E1);
   static const Color onSecondaryContainer = Color(0xFF006F64);
@@ -44,7 +43,7 @@ class AppColors {
   static const Color onSecondaryFixedVariant = Color(0xFF005048);
 
   // Tertiary
-  static const Color tertiary = Color(0xFFFFB89C);
+  static const Color tertiary = Color(0xFF7B4832);
   static const Color onTertiary = Color(0xFFFFFFFF);
   static const Color tertiaryContainer = Color(0xFF985F48);
   static const Color onTertiaryContainer = Color(0xFFFFEDE7);
@@ -59,7 +58,15 @@ class AppColors {
   static const Color errorContainer = Color(0xFFFFDAD6);
   static const Color onErrorContainer = Color(0xFF93000A);
 
+  // Success
+  static const Color success = Color(0xFF10B981);
+  static const Color onSuccess = Color(0xFFFFFFFF);
+
+  // Warning
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color onWarning = Color(0xFFFFFFFF);
+
   // Background
   static const Color background = Color(0xFFFAF8FF);
-  static const Color onBackground = Color(0xFF0F172A);
+  static const Color onBackground = Color(0xFF131B2E);
 }

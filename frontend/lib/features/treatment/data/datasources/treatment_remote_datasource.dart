@@ -49,7 +49,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
       final response = await dio.post(
         '/visits/$visitId/treatments',
         data: {
-          'type': type,
+          'entryType': type,
           'title': title,
           if (description != null && description.isNotEmpty)
             'description': description,

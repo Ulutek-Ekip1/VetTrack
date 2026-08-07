@@ -98,8 +98,9 @@ public class AuthService {
             Owner owner = Owner.builder()
                     .id(id)
                     .email(email)
-                    .name(name)
+                    .fullName(name)
                     .phone(phone)
+                    .role("owner")
                     .build();
             ownerRepository.save(owner);
         }

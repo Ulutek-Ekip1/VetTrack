@@ -2,6 +2,7 @@ package com.vettrack.api.notification;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -24,6 +25,10 @@ public class Notification {
     @Column(name = "treatment_entry_id")
     private UUID treatmentEntryId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private NotificationType type;
+
     @Column(nullable = false, length = 200)
     private String title;
 
@@ -34,6 +39,9 @@ public class Notification {
     @Builder.Default
     private Boolean isRead = false;
 
+    @Column(name = "read_at")
+    private OffsetDateTime readAt;
+
     @Column(name = "sent_at", nullable = false, updatable = false)
     private OffsetDateTime sentAt;
 
@@ -41,6 +49,9 @@ public class Notification {
     protected void onCreate() {
         if (this.sentAt == null) {
             this.sentAt = OffsetDateTime.now();
+        }
+        if (this.type == null) {
+            this.type = NotificationType.SYSTEM;
         }
     }
 }

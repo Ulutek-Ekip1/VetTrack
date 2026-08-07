@@ -19,25 +19,15 @@ public class OwnerService {
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı"));
     }
 
-    /**
-     * Owner profil bilgilerini kısmen günceller (partial update).
-     * Sadece null olmayan alanlar güncellenir. Email güncellenemez.
-     */
     @Transactional
     public Owner updateOwner(UUID id, OwnerUpdateRequest request) {
         Owner owner = getOwnerById(id);
 
-        if (request.getName() != null) {
-            owner.setName(request.getName());
-        }
-        if (request.getSurname() != null) {
-            owner.setSurname(request.getSurname());
+        if (request.getFullName() != null) {
+            owner.setFullName(request.getFullName());
         }
         if (request.getPhone() != null) {
             owner.setPhone(request.getPhone());
-        }
-        if (request.getAddress() != null) {
-            owner.setAddress(request.getAddress());
         }
 
         return ownerRepository.save(owner);
