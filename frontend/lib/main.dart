@@ -10,11 +10,15 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  final messagingService = FirebaseMessagingService();
-  await messagingService.initNotifications();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    final messagingService = FirebaseMessagingService();
+    await messagingService.initNotifications();
+  } catch (e) {
+    debugPrint('Firebase başlatılamadı: $e');
+  }
 
   await Supabase.initialize(
     url: AppConstants.supabaseUrl,

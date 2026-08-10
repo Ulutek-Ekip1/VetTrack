@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/services/firebase_messaging_service.dart';
@@ -56,8 +57,9 @@ class AuthCubit extends Cubit<AuthState> {
       try {
         final fcmToken = await FirebaseMessaging.instance.getToken();
         if (fcmToken != null) {
+          final platform = defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
           await registerDeviceTokenUseCase(
-              fcmToken: fcmToken, platform: 'android');
+              fcmToken: fcmToken, platform: platform);
         }
       } catch (fcmError) {
         // Hata yutulur, kullanıcının giriş yapması engellenmez.

@@ -1,5 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:vettrack_frontend/core/services/top_notification.dart';
 import '../../features/notification/domain/usecases/unregister_device_token_usecase.dart';
 import '../di/injection_container.dart';
@@ -18,7 +18,9 @@ class FirebaseMessagingService {
     final token = await _messaging.getToken();
     if (token != null) {
       final registerTokenUseCase = sl<RegisterDeviceTokenUseCase>();
-      await registerTokenUseCase(fcmToken: token, platform: 'android');
+      final platform =
+          defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+      await registerTokenUseCase(fcmToken: token, platform: platform);
     }
   }
 
@@ -90,7 +92,9 @@ class FirebaseMessagingService {
     FirebaseMessaging.instance.onTokenRefresh.listen(
       (newToken) async {
         final registerToken = sl<RegisterDeviceTokenUseCase>();
-        await registerToken(fcmToken: newToken, platform: 'android');
+        final platform =
+            defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+        await registerToken(fcmToken: newToken, platform: platform);
       },
     ).onError(
       (err) {},

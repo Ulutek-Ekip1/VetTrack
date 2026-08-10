@@ -50,6 +50,7 @@ import 'package:vettrack_frontend/features/treatment/data/datasources/treatment_
 import 'package:vettrack_frontend/features/treatment/domain/repositories/treatment_repository.dart';
 
 // Notification Imports
+import 'package:vettrack_frontend/core/services/firebase_messaging_service.dart';
 import 'package:vettrack_frontend/features/notification/domain/usecases/get_notifications_usecase.dart';
 import 'package:vettrack_frontend/features/notification/domain/usecases/register_device_token_usecase.dart';
 import 'package:vettrack_frontend/features/notification/domain/usecases/unregister_device_token_usecase.dart';
@@ -197,6 +198,9 @@ Future<void> init() async {
   // ---------------------------------------------------------------------------
   // NOTIFICATION FEATURE
   // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<FirebaseMessagingService>(
+    () => FirebaseMessagingService(),
+  );
   sl.registerLazySingleton<NotificationRemoteDataSource>(
     () => NotificationRemoteDataSourceImpl(sl()),
   );
