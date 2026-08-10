@@ -24,7 +24,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
+        String message = (ex.getMessage() != null && !ex.getMessage().isBlank()) 
+                ? ex.getMessage() 
+                : "İstenen kaynak bulunamadığı için işlem gerçekleştirilemedi";
+        return buildResponse(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", message);
     }
 
     @ExceptionHandler(ConflictException.class)

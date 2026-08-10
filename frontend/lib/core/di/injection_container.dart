@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:vettrack_frontend/core/constants/app_constants.dart';
 import '../network/auth_interceptor.dart';
 import '../../features/auth/data/datasources/token_local_data_source.dart';
 
@@ -34,6 +35,7 @@ import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/login_with_email_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
+import '../../features/auth/domain/usecases/signin_with_google_usecase.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/domain/usecases/get_owner_profile_usecase.dart';
 import '../../features/auth/domain/usecases/update_owner_profile_usecase.dart';
@@ -57,8 +59,13 @@ import 'package:vettrack_frontend/features/recommendation/data/datasources/recom
 import 'package:vettrack_frontend/features/recommendation/domain/repositories/recommendation_repository.dart';
 
 // Notification Imports
+import 'package:vettrack_frontend/core/services/firebase_messaging_service.dart';
 import 'package:vettrack_frontend/features/notification/domain/usecases/get_notifications_usecase.dart';
 import 'package:vettrack_frontend/features/notification/domain/usecases/register_device_token_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/unregister_device_token_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/mark_as_read_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/mark_all_as_read_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/get_unread_count_usecase.dart';
 import 'package:vettrack_frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:vettrack_frontend/features/notification/data/repositories/notification_repository_impl.dart';
 import 'package:vettrack_frontend/features/notification/data/datasources/notification_remote_datasource.dart';
@@ -81,9 +88,9 @@ Future<void> init() async {
         : (kIsWeb ? 'http://localhost:8080/api' : 'http://10.0.2.2:8080/api');
 
     final dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 3),
-      receiveTimeout: const Duration(seconds: 3),
+      baseUrl: AppConstants.apiBaseUrl,
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
       headers: {'Content-Type': 'application/json'},
     ));
     dio.interceptors.add(AuthInterceptor(sl(), () => sl<AuthCubit>()));
@@ -106,6 +113,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => LoginWithEmailUseCase(sl()));
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => SignInWithGoogleUseCase(sl()));
   sl.registerLazySingleton(() => GetOwnerProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateOwnerProfileUseCase(sl()));
 
@@ -114,7 +122,10 @@ Future<void> init() async {
       loginWithEmail: sl(),
       registerUseCase: sl(),
       logoutUseCase: sl(),
+      signInWithGoogleUseCase: sl(),
       authRepository: sl(),
+      registerDeviceTokenUseCase: sl(),
+      unregisterDeviceTokenUseCase: sl(),
     ),
   );
 
@@ -201,6 +212,9 @@ Future<void> init() async {
   // ---------------------------------------------------------------------------
   // NOTIFICATION FEATURE
   // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<FirebaseMessagingService>(
+    () => FirebaseMessagingService(),
+  );
   sl.registerLazySingleton<NotificationRemoteDataSource>(
     () => NotificationRemoteDataSourceImpl(sl()),
   );
@@ -209,12 +223,39 @@ Future<void> init() async {
   );
 
   sl.registerLazySingleton(() => RegisterDeviceTokenUseCase(sl()));
+  sl.registerLazySingleton(() => UnregisterDeviceTokenUseCase(sl()));
   sl.registerLazySingleton(() => GetNotificationsUseCase(sl()));
+  sl.registerLazySingleton(() => MarkAsReadUseCase(sl()));
+  sl.registerLazySingleton(() => MarkAllAsReadUseCase(sl()));
+  sl.registerLazySingleton(() => GetUnreadCountUseCase(sl()));
 
   sl.registerFactory(
     () => NotificationCubit(
       registerDeviceTokenUseCase: sl(),
       getNotificationsUseCase: sl(),
+      markAsReadUseCase: sl(),
+      markAllAsReadUseCase: sl(),
+      getUnreadCountUseCase: sl(),
+    ),
+  );
+
+  // ---------------------------------------------------------------------------
+  // RECOMMENDATION FEATURE
+  // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<RecommendationRemoteDataSource>(
+    () => RecommendationRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<RecommendationRepository>(
+    () => RecommendationRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton(() => AddRecommendationUseCase(sl()));
+  sl.registerLazySingleton(() => GetRecommendationsUseCase(sl()));
+
+  sl.registerFactory(
+    () => RecommendationCubit(
+      addRecommendationUseCase: sl(),
+      getRecommendationsUseCase: sl(),
     ),
   );
 
@@ -238,3 +279,4 @@ Future<void> init() async {
     ),
   );
 }
+

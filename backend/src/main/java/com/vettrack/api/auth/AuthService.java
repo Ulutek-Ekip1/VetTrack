@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class AuthService {
 
@@ -27,8 +30,8 @@ public class AuthService {
     private final RestTemplate restTemplate;
 
     public AuthService(
-            @Value("${SUPABASE_URL}") String supabaseUrl,
-            @Value("${SUPABASE_SERVICE_KEY}") String supabaseServiceKey,
+            @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
+            @Value("${supabase.service-key:${SUPABASE_SERVICE_KEY:}}") String supabaseServiceKey,
             OwnerRepository ownerRepository,
             RestTemplate restTemplate
     ) {
@@ -62,60 +65,41 @@ public class AuthService {
             );
 
             AuthResponse authResponse = mapToAuthResponse(resp.getBody());
-
-            if (request.getEmail() != null && authResponse != null && authResponse.getUser() instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> userMap = (Map<String, Object>) authResponse.getUser();
-                String supabaseUserIdStr = (String) userMap.get("id");
-                
-                if (supabaseUserIdStr != null) {
-                    UUID supabaseUserId = UUID.fromString(supabaseUserIdStr);
-                    saveOwnerIfNotExist(supabaseUserId, request.getEmail(), request.getName(), request.getPhone());
-                }
-            }
-
             return authResponse;
         } catch (HttpClientErrorException ex) {
             HttpStatusCode status = ex.getStatusCode();
-            if (status.value() == HttpStatus.CONFLICT.value()) {
+            String responseBody = ex.getResponseBodyAsString();
+            if (status.value() == HttpStatus.CONFLICT.value() || 
+                status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value() || 
+                status.value() == 422 ||
+                responseBody.contains("already_exists") || 
+                responseBody.contains("already registered") ||
+                responseBody.contains("user_already_exists")) {
                 throw new ConflictException("EMAIL_ALREADY_EXISTS");
             } else if (status.value() == HttpStatus.BAD_REQUEST.value()) {
-                String responseBody = ex.getResponseBodyAsString();
-                if (responseBody.contains("already_exists") || responseBody.contains("already registered")) {
-                    throw new ConflictException("EMAIL_ALREADY_EXISTS");
-                }
                 throw new ConflictException("Invalid registration request");
+            } else if (status.value() == HttpStatus.TOO_MANY_REQUESTS.value()) {
+                throw new IllegalArgumentException("Supabase e-posta gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.");
             } else {
-                throw new RuntimeException("Registration failed");
+                throw new RuntimeException("Registration failed: [" + status + "] " + responseBody, ex);
             }
         } catch (Exception ex) {
-            throw new RuntimeException("Registration failed", ex);
+            throw new RuntimeException("Registration failed: " + ex.getMessage(), ex);
         }
     }
 
-    private void saveOwnerIfNotExist(UUID id, String email, String name, String phone) {
-        if (ownerRepository.findByEmail(email).isEmpty()) {
-            Owner owner = Owner.builder()
-                    .id(id)
-                    .email(email)
-                    .fullName(name)
-                    .phone(phone)
-                    .role("owner")
-                    .build();
-            ownerRepository.save(owner);
-        }
-    }
+
 
     public AuthResponse login(LoginRequest request) {
         String url = supabaseUrl + "/auth/v1/token?grant_type=password";
 
-        HttpHeaders headers = createHeaders(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
 
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("email", request.getEmail());
-        formData.add("password", request.getPassword());
+        Map<String, String> body = new HashMap<>();
+        body.put("email", request.getEmail());
+        body.put("password", request.getPassword());
 
-        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(formData, headers);
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
 
         try {
             ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
@@ -125,7 +109,11 @@ public class AuthService {
         } catch (HttpClientErrorException ex) {
             HttpStatusCode status = ex.getStatusCode();
             if (status.value() == HttpStatus.UNAUTHORIZED.value() || status.value() == HttpStatus.BAD_REQUEST.value()) {
-                throw new UnauthorizedException("E-posta veya şifre hatalı");
+                String responseBody = ex.getResponseBodyAsString();
+                if (responseBody.contains("Email not confirmed") || responseBody.contains("email_not_confirmed")) {
+                    throw new UnauthorizedException("E-posta adresi doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.");
+                }
+                throw new UnauthorizedException("E-posta veya şifre hatalı: " + responseBody);
             } else {
                 throw new RuntimeException("Login failed");
             }

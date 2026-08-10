@@ -1,0 +1,18 @@
+package com.vettrack.api.notification.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class NotificationListResponse {
+
+    private List<NotificationResponse> notifications;
+    private long unreadCount;
+}

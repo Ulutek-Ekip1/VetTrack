@@ -100,7 +100,7 @@ public class PetController {
     public ResponseEntity<Pet> updatePet(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id,
-            @RequestBody PetUpdateRequest request
+            @Valid @RequestBody PetUpdateRequest request
     ) {
         Pet pet = petService.getPetById(id);
         if (jwt != null) {

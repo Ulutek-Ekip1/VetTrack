@@ -20,11 +20,13 @@ dependencies:
   equatable: ^2.0.5
   google_fonts: ^6.1.0
   flutter_secure_storage: ^10.3.1
+  firebase_core: ^3.15.2
   qr_flutter: ^4.1.0
   flutter_svg: ^2.0.10
   url_launcher: ^6.3.0 #magaza lnikini acmak icin
   package_info_plus: ^10.0.0 #cihazdaki uygulama sürüm bilgilerini almak için
   fl_chart: ^0.68.0
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:

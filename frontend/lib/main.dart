@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vettrack_frontend/core/services/firebase_messaging_service.dart';
+import 'app.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'core/di/injection_container.dart' as di;
-import 'core/di/injection_container.dart';
-import 'core/theme/app_theme.dart';
-import 'core/router/app_router.dart';
 import 'core/constants/app_constants.dart';
-import 'features/auth/presentation/cubit/auth_cubit.dart';
-import 'features/pet/presentation/cubit/pet_cubit.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  usePathUrlStrategy();
 
   await Supabase.initialize(
     url: AppConstants.supabaseUrl,
@@ -21,21 +18,5 @@ void main() async {
 
   await di.init();
 
-  runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider<AuthCubit>(
-          create: (context) => sl<AuthCubit>()..checkAuthStatus(),
-        ),
-        BlocProvider<PetCubit>(
-          create: (context) => sl<PetCubit>(),
-        ),
-      ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        routerConfig: AppRouter.createRouter(sl<AuthCubit>()),
-      ),
-    ),
-  );
+  runApp(const VetTrackApp());
 }

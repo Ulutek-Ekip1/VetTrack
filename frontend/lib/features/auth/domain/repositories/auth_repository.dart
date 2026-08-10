@@ -15,4 +15,5 @@ abstract class AuthRepository {
     String? phone,
     String? address,
   });
+  Future<UserEntity> signInWithGoogle();
 }

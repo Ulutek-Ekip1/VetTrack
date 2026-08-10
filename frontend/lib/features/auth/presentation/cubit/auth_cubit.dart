@@ -1,8 +1,15 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection_container.dart';
+import '../../../../core/services/firebase_messaging_service.dart';
+import '../../../notification/domain/usecases/register_device_token_usecase.dart';
+import '../../../notification/domain/usecases/unregister_device_token_usecase.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/login_with_email_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/signin_with_google_usecase.dart';
 import '../../domain/repositories/auth_repository.dart';
 import 'auth_state.dart';
 
@@ -10,20 +17,26 @@ class AuthCubit extends Cubit<AuthState> {
   final LoginWithEmailUseCase loginWithEmail;
   final RegisterUseCase registerUseCase;
   final LogoutUseCase logoutUseCase;
+  final SignInWithGoogleUseCase signInWithGoogleUseCase;
   final AuthRepository authRepository;
+  final RegisterDeviceTokenUseCase registerDeviceTokenUseCase;
+  final UnregisterDeviceTokenUseCase unregisterDeviceTokenUseCase;
 
   AuthCubit({
     required this.loginWithEmail,
     required this.registerUseCase,
     required this.logoutUseCase,
+    required this.signInWithGoogleUseCase,
     required this.authRepository,
+    required this.registerDeviceTokenUseCase,
+    required this.unregisterDeviceTokenUseCase,
   }) : super(AuthInitial());
 
   Future<void> checkAuthStatus() async {
     emit(const AuthLoading());
     try {
       final user = await authRepository.getCurrentUser().timeout(
-            const Duration(seconds: 3),
+            const Duration(seconds: 15),
             onTimeout: () => null,
           );
       if (user != null) {
@@ -41,6 +54,30 @@ class AuthCubit extends Cubit<AuthState> {
 
     try {
       final user = await loginWithEmail(email, password);
+      try {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          final platform = defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+          await registerDeviceTokenUseCase(
+              fcmToken: fcmToken, platform: platform);
+        }
+      } catch (fcmError) {
+        // Hata yutulur, kullanıcının giriş yapması engellenmez.
+      }
+      emit(Authenticated(user));
+    } catch (e) {
+      emit(AuthError(e.toString().replaceAll("Exception: ", "")));
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    emit(const AuthLoading());
+    try {
+      final user = await signInWithGoogleUseCase();
+      if (user.id.isEmpty) {
+        emit(AuthInitial());
+        return;
+      }
       emit(Authenticated(user));
     } catch (e) {
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
@@ -52,6 +89,11 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthLoading());
     try {
       final user = await registerUseCase(email, password, name, phone, role);
+      try {
+        await sl<FirebaseMessagingService>().sendTokenToBackend();
+      } catch (fcmError) {
+        // Hata yutulur
+      }
       emit(Authenticated(user));
     } catch (e) {
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
@@ -61,6 +103,15 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> signOut() async {
     emit(const AuthLoading());
     try {
+      try {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          await sl<FirebaseMessagingService>().removeTokenFromBackend();
+        }
+      } catch (_) {
+        // FCM token silme işlemi başarsız olsa bile (örneğin sunucuya ulaşılamıyor),
+        // kullanıcının çıkış yapmasını engellememek için hatayı yutuyoruz.
+      }
       await logoutUseCase();
       emit(const Unauthenticated());
     } catch (e) {

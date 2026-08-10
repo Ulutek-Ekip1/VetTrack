@@ -7,8 +7,11 @@ import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_state.da
 import 'package:vettrack_frontend/features/auth/domain/usecases/login_with_email_usecase.dart';
 import 'package:vettrack_frontend/features/auth/domain/usecases/register_usecase.dart';
 import 'package:vettrack_frontend/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/signin_with_google_usecase.dart';
 import 'package:vettrack_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:vettrack_frontend/core/theme/app_theme.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/register_device_token_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/unregister_device_token_usecase.dart';
 
 class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   FakeAuthCubit(super.initialState);
@@ -20,6 +23,8 @@ class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   @override
   late final LogoutUseCase logoutUseCase;
   @override
+  late final SignInWithGoogleUseCase signInWithGoogleUseCase;
+  @override
   late final AuthRepository authRepository;
 
   @override
@@ -27,6 +32,9 @@ class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
 
   @override
   Future<void> signInWithEmail(String email, String password) async {}
+
+  @override
+  Future<void> signInWithGoogle() async {}
 
   @override
   Future<void> signUp(String email, String password, String name, String? phone,
@@ -47,6 +55,16 @@ class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   void triggerError(String errorMessage) {
     emit(AuthError(errorMessage));
   }
+
+  @override
+  // TODO: implement registerDeviceTokenUseCase
+  RegisterDeviceTokenUseCase get registerDeviceTokenUseCase =>
+      throw UnimplementedError();
+
+  @override
+  // TODO: implement unregisterDeviceTokenUseCase
+  UnregisterDeviceTokenUseCase get unregisterDeviceTokenUseCase =>
+      throw UnimplementedError();
 }
 
 void main() {

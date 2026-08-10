@@ -1,12 +1,13 @@
 package com.vettrack.api.notification;
 
 import com.vettrack.api.common.exception.UnauthorizedException;
+import com.vettrack.api.notification.dto.NotificationListResponse;
+import com.vettrack.api.notification.dto.UnreadCountResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -17,19 +18,32 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public ResponseEntity<List<Notification>> getNotifications(Authentication authentication) {
+    public ResponseEntity<NotificationListResponse> getNotifications(Authentication authentication) {
         UUID ownerId = extractOwnerId(authentication);
-        List<Notification> notifications = notificationService.getOwnerNotifications(ownerId);
-        return ResponseEntity.ok(notifications);
+        return ResponseEntity.ok(notificationService.getOwnerNotifications(ownerId));
     }
 
-    @PutMapping("/{id}/read")
+    @GetMapping("/unread-count")
+    public ResponseEntity<UnreadCountResponse> getUnreadCount(Authentication authentication) {
+        UUID ownerId = extractOwnerId(authentication);
+        long count = notificationService.getUnreadCount(ownerId);
+        return ResponseEntity.ok(UnreadCountResponse.builder().unreadCount(count).build());
+    }
+
+    @PatchMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(
             Authentication authentication,
             @PathVariable UUID id) {
         UUID ownerId = extractOwnerId(authentication);
         notificationService.markAsRead(id, ownerId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/read-all")
+    public ResponseEntity<UnreadCountResponse> markAllAsRead(Authentication authentication) {
+        UUID ownerId = extractOwnerId(authentication);
+        notificationService.markAllAsRead(ownerId);
+        return ResponseEntity.ok(UnreadCountResponse.builder().unreadCount(0).build());
     }
 
     private UUID extractOwnerId(Authentication authentication) {

@@ -11,10 +11,14 @@ class AuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    final token = await localDataSource.getToken();
+    final path = options.path;
     
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
+    // Giriş ve kayıt gibi genel (public) isteklerde Authorization header'ı ekleme
+    if (path != '/auth/login' && path != '/auth/register') {
+      final token = await localDataSource.getToken();
+      if (token != null) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
     }
 
     // İsteğe devam et

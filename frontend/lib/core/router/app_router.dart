@@ -111,6 +111,7 @@ class AppRouter {
   }
 
   static GoRouter createRouter([AuthCubit? authCubit]) {
+    if (_router != null) return _router!;
     final routerInstance = GoRouter(
       navigatorKey: navigatorKey,
       initialLocation: AppRoutes.welcome,

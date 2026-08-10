@@ -6,5 +6,10 @@ import java.util.List;
 import java.util.UUID;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
+
     List<Notification> findByOwnerIdOrderBySentAtDesc(UUID ownerId);
+
+    long countByOwnerIdAndIsReadFalse(UUID ownerId);
+
+    List<Notification> findByOwnerIdAndIsReadFalse(UUID ownerId);
 }
