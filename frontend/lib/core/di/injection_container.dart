@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -82,11 +81,6 @@ Future<void> init() async {
       () => const FlutterSecureStorage());
 
   sl.registerLazySingleton<Dio>(() {
-    const envBaseUrl = String.fromEnvironment('API_BASE_URL');
-    final baseUrl = envBaseUrl.isNotEmpty
-        ? envBaseUrl
-        : (kIsWeb ? 'http://localhost:8080/api' : 'http://10.0.2.2:8080/api');
-
     final dio = Dio(BaseOptions(
       baseUrl: AppConstants.apiBaseUrl,
       connectTimeout: const Duration(seconds: 15),
@@ -258,25 +252,4 @@ Future<void> init() async {
       getRecommendationsUseCase: sl(),
     ),
   );
-
-  // ---------------------------------------------------------------------------
-  // RECOMMENDATION FEATURE
-  // ---------------------------------------------------------------------------
-  sl.registerLazySingleton<RecommendationRemoteDataSource>(
-    () => RecommendationRemoteDataSourceImpl(sl()),
-  );
-  sl.registerLazySingleton<RecommendationRepository>(
-    () => RecommendationRepositoryImpl(sl()),
-  );
-
-  sl.registerLazySingleton(() => AddRecommendationUseCase(sl()));
-  sl.registerLazySingleton(() => GetRecommendationsUseCase(sl()));
-
-  sl.registerFactory(
-    () => RecommendationCubit(
-      addRecommendationUseCase: sl(),
-      getRecommendationsUseCase: sl(),
-    ),
-  );
 }
-

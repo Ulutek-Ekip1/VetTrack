@@ -101,10 +101,6 @@ class AppRouter {
       GlobalKey<NavigatorState>();
   static GoRouter? _router;
 
-  // Geliştirme aşamasında tasarımları doğrudan URL yazarak görüntüleyebilmek için
-  // bu değeri 'true' yapabilirsiniz.
-  static bool bypassAuth = true;
-
   static GoRouter get router {
     _router ??= createRouter();
     return _router!;
@@ -123,10 +119,6 @@ class AppRouter {
 
       //Auth & Rol Bazlı Redirect
       redirect: (BuildContext context, GoRouterState state) {
-        if (bypassAuth) {
-          return null;
-        }
-
         final authState = authCubit?.state;
         final isLoggedIn = authState is Authenticated;
         final location = state.matchedLocation;
