@@ -44,22 +44,50 @@ class NotificationListScreen extends StatelessWidget {
           } else if (state is NotificationError) {
             return Center(child: Text(state.message));
           } else if (state is NotificationLoaded) {
-            final notifications = state.notificationList.notifications;
+            final notifications = List.of(state.notificationList.notifications);
 
             if (notifications.isEmpty) {
-              return const Center(child: Text('Henüz bildiriminiz yok'));
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.notifications_off_outlined,
+                        size: 64, color: Colors.grey.shade400),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Henüz bildiriminiz yok',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+              );
             }
 
-            return ListView.builder(
-              itemCount: notifications.length,
+            // En yeniden en eskiye sıralama (Descending)
+            notifications.sort((a, b) {
+              final aDate = a.sentAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+              final bDate = b.sentAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+              return bDate.compareTo(aDate);
+            });
+
+            // Tarihe göre gruplama işlemi
+            final groups = <String, List<dynamic>>{};
+            for (var item in notifications) {
+              String groupName = "Bilinmiyor";
+              if (item.sentAt != null) {
+                groupName = Formatters.formatDate(item.sentAt!);
+              }
+              groups.putIfAbsent(groupName, () => []).add(item);
+            }
+
+            return ListView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(AppDimensions.containerMargin),
-              itemBuilder: (context, index) {
-                final currentNotification = notifications[index];
-                String date = "Bilinmiyor";
-                if (currentNotification.sentAt != null) {
-                  date = Formatters.formatDate(currentNotification.sentAt!);
-                }
+              children: groups.entries.map((entry) {
+                final groupName = entry.key;
+                final items = entry.value;
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -67,19 +95,21 @@ class NotificationListScreen extends StatelessWidget {
                       padding: const EdgeInsets.only(
                           left: 4.0, bottom: 8.0, top: 12.0),
                       child: Text(
-                        date,
+                        groupName,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF131B2E),
                         ),
                       ),
                     ),
-                    NotificationCard(
-                      notification: currentNotification,
-                    ),
+                    ...items.map((currentNotification) {
+                      return NotificationCard(
+                        notification: currentNotification,
+                      );
+                    }),
                   ],
                 );
-              },
+              }).toList(),
             );
           }
 
