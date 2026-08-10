@@ -95,7 +95,8 @@ abstract class AppRoutes {
 }
 
 class AppRouter {
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
   static GoRouter? _router;
 
   static GoRouter get router {

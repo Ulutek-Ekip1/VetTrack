@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "832962206682",
+    "project_id": "vettrack-ce0ad",
+    "storage_bucket": "vettrack-ce0ad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:832962206682:android:2a7579e82653cb98e4fee3",
+        "android_client_info": {
+          "package_name": "com.example.vettrack_frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsntYXo_gXL7mBO3xHDq-8K8UQYjgjGc8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

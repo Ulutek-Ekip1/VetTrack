@@ -10,6 +10,8 @@ import 'package:vettrack_frontend/features/auth/domain/usecases/logout_usecase.d
 import 'package:vettrack_frontend/features/auth/domain/usecases/signin_with_google_usecase.dart';
 import 'package:vettrack_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:vettrack_frontend/core/theme/app_theme.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/register_device_token_usecase.dart';
+import 'package:vettrack_frontend/features/notification/domain/usecases/unregister_device_token_usecase.dart';
 
 class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   FakeAuthCubit(super.initialState);
@@ -53,6 +55,16 @@ class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   void triggerError(String errorMessage) {
     emit(AuthError(errorMessage));
   }
+
+  @override
+  // TODO: implement registerDeviceTokenUseCase
+  RegisterDeviceTokenUseCase get registerDeviceTokenUseCase =>
+      throw UnimplementedError();
+
+  @override
+  // TODO: implement unregisterDeviceTokenUseCase
+  UnregisterDeviceTokenUseCase get unregisterDeviceTokenUseCase =>
+      throw UnimplementedError();
 }
 
 void main() {
