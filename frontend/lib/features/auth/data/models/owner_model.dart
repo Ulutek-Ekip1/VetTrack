@@ -12,14 +12,46 @@ class OwnerModel extends OwnerEntity {
   });
 
   factory OwnerModel.fromJson(Map<String, dynamic> json) {
+    String nameVal = (json['name'] as String?) ?? "";
+    String? surnameVal = json['surname'] as String?;
+
+    if (nameVal.isEmpty) {
+      final fullName = (json['fullName'] as String?) ?? "";
+      if (fullName.isNotEmpty) {
+        final parts = fullName.split(' ');
+        if (parts.length > 1) {
+          surnameVal = parts.last;
+          nameVal = parts.sublist(0, parts.length - 1).join(' ');
+        } else {
+          nameVal = fullName;
+        }
+      }
+    }
+
+    if (nameVal.isEmpty) {
+      nameVal = (json['email'] as String?)?.split('@').first ?? "Sahip";
+    }
+
+    DateTime createdAtVal;
+    final createdAtStr = (json['createdAt'] as String?) ?? (json['created_at'] as String?);
+    if (createdAtStr != null) {
+      try {
+        createdAtVal = DateTime.parse(createdAtStr);
+      } catch (_) {
+        createdAtVal = DateTime.now();
+      }
+    } else {
+      createdAtVal = DateTime.now();
+    }
+
     return OwnerModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      surname: json['surname'] as String?,
-      email: json['email'] as String,
+      id: (json['id'] as String?) ?? "",
+      name: nameVal,
+      surname: surnameVal,
+      email: (json['email'] as String?) ?? "",
       phone: json['phone'] as String?,
       address: json['address'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: createdAtVal,
     );
   }
 

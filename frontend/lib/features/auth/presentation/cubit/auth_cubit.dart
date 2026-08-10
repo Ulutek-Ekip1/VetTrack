@@ -8,6 +8,7 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/login_with_email_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/signin_with_google_usecase.dart';
 import '../../domain/repositories/auth_repository.dart';
 import 'auth_state.dart';
 
@@ -15,6 +16,7 @@ class AuthCubit extends Cubit<AuthState> {
   final LoginWithEmailUseCase loginWithEmail;
   final RegisterUseCase registerUseCase;
   final LogoutUseCase logoutUseCase;
+  final SignInWithGoogleUseCase signInWithGoogleUseCase;
   final AuthRepository authRepository;
   final RegisterDeviceTokenUseCase registerDeviceTokenUseCase;
   final UnregisterDeviceTokenUseCase unregisterDeviceTokenUseCase;
@@ -23,6 +25,7 @@ class AuthCubit extends Cubit<AuthState> {
     required this.loginWithEmail,
     required this.registerUseCase,
     required this.logoutUseCase,
+    required this.signInWithGoogleUseCase,
     required this.authRepository,
     required this.registerDeviceTokenUseCase,
     required this.unregisterDeviceTokenUseCase,
@@ -58,6 +61,20 @@ class AuthCubit extends Cubit<AuthState> {
         }
       } catch (fcmError) {
         // Hata yutulur, kullanıcının giriş yapması engellenmez.
+      }
+      emit(Authenticated(user));
+    } catch (e) {
+      emit(AuthError(e.toString().replaceAll("Exception: ", "")));
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    emit(const AuthLoading());
+    try {
+      final user = await signInWithGoogleUseCase();
+      if (user.id.isEmpty) {
+        emit(AuthInitial());
+        return;
       }
       emit(Authenticated(user));
     } catch (e) {

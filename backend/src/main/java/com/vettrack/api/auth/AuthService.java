@@ -85,11 +85,13 @@ public class AuthService {
                     throw new ConflictException("EMAIL_ALREADY_EXISTS");
                 }
                 throw new ConflictException("Invalid registration request");
+            } else if (status.value() == HttpStatus.TOO_MANY_REQUESTS.value()) {
+                throw new IllegalArgumentException("Supabase e-posta gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.");
             } else {
-                throw new RuntimeException("Registration failed");
+                throw new RuntimeException("Registration failed: [" + status + "] " + ex.getResponseBodyAsString(), ex);
             }
         } catch (Exception ex) {
-            throw new RuntimeException("Registration failed", ex);
+            throw new RuntimeException("Registration failed: " + ex.getMessage(), ex);
         }
     }
 
@@ -109,13 +111,13 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
         String url = supabaseUrl + "/auth/v1/token?grant_type=password";
 
-        HttpHeaders headers = createHeaders(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
 
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("email", request.getEmail());
-        formData.add("password", request.getPassword());
+        Map<String, String> body = new HashMap<>();
+        body.put("email", request.getEmail());
+        body.put("password", request.getPassword());
 
-        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(formData, headers);
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
 
         try {
             ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
@@ -125,7 +127,11 @@ public class AuthService {
         } catch (HttpClientErrorException ex) {
             HttpStatusCode status = ex.getStatusCode();
             if (status.value() == HttpStatus.UNAUTHORIZED.value() || status.value() == HttpStatus.BAD_REQUEST.value()) {
-                throw new UnauthorizedException("E-posta veya şifre hatalı");
+                String responseBody = ex.getResponseBodyAsString();
+                if (responseBody.contains("Email not confirmed") || responseBody.contains("email_not_confirmed")) {
+                    throw new UnauthorizedException("E-posta adresi doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.");
+                }
+                throw new UnauthorizedException("E-posta veya şifre hatalı: " + responseBody);
             } else {
                 throw new RuntimeException("Login failed");
             }

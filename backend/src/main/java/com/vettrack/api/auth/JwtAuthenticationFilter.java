@@ -38,8 +38,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Authentication authentication = new JwtAuthenticationToken(jwt);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JwtException ex) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
-                return;
+                // Token geçersizse isteği kesmek yerine anonymous (anonim) olarak devam etmesine izin veriyoruz.
+                // Yetkilendirme (authorization) katmanı korunan endpoint'leri zaten engelleyecektir.
             }
         }
 

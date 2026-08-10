@@ -1,4 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../models/user_model.dart';
 import '../models/owner_model.dart';
 import '../../domain/entities/user_entity.dart';
@@ -12,6 +16,7 @@ abstract class AuthRemoteDataSource {
   Future<UserModel?> getCurrentUser();
   Future<OwnerModel> getOwnerProfile();
   Future<OwnerModel> updateOwnerProfile(Map<String, dynamic> data);
+  Future<UserModel> signInWithGoogle();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -100,6 +105,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel?> getCurrentUser() async {
     try {
+      // Supabase OAuth dönüşlerinde oturumu senkronize etmek için:
+      final supabaseSession = Supabase.instance.client.auth.currentSession;
+      if (supabaseSession != null) {
+        final cachedToken = await localDataSource.getToken();
+        if (cachedToken == null || cachedToken != supabaseSession.accessToken) {
+          await localDataSource.cacheToken(supabaseSession.accessToken);
+        }
+      }
+
       // API Sözleşmesindeki endpoint: GET /auth/me
       // Bu isteğin başarılı olması için Dio'nun içine Token'ın Header olarak eklenmesi gerekir (Interceptor).
       final response = await dio.get('/auth/me');
@@ -127,6 +141,80 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception(_handleDioError(e));
       }
       rethrow;
+    }
+  }
+
+  @override
+  Future<UserModel> signInWithGoogle() async {
+    try {
+      if (kIsWeb) {
+        // Web'de Google Giriş için Supabase'in kendi OAuth akışını kullanıyoruz.
+        // Bu, idToken uyuşmazlığını ve pop-up engelleyicileri çözer.
+        final redirectTo = Uri.base.origin;
+        
+        await Supabase.instance.client.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: redirectTo,
+        );
+        
+        // Yönlendirme yapılacağı için bu metodun return değerine ulaşılmayacaktır.
+        // Flutter geçişi sırasında hata fırlatılmaması için boş bir nesne dönüyoruz.
+        return UserModel(
+          id: '',
+          authId: '',
+          email: '',
+          name: 'Yönlendiriliyor...',
+          role: UserRole.owner,
+          createdAt: DateTime.now(),
+        );
+      } else {
+        // Mobil için mevcut google_sign_in akışı
+        final googleSignIn = GoogleSignIn(
+          serverClientId: AppConstants.googleWebClientId.isEmpty ? null : AppConstants.googleWebClientId,
+          scopes: ['email', 'profile', 'openid'],
+        );
+        final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+        if (googleUser == null) {
+          throw Exception("Google ile giriş iptal edildi.");
+        }
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final idToken = googleAuth.idToken;
+        final accessToken = googleAuth.accessToken;
+
+        if (idToken == null) {
+          throw Exception("Google Kimlik Doğrulama Token'ı alınamadı.");
+        }
+
+        final response = await Supabase.instance.client.auth.signInWithIdToken(
+          provider: OAuthProvider.google,
+          idToken: idToken,
+          accessToken: accessToken,
+        );
+
+        if (response.user == null || response.session == null) {
+          throw Exception("Supabase oturumu başlatılamadı.");
+        }
+
+        // Cache the token locally
+        await localDataSource.cacheToken(response.session!.accessToken);
+
+        final user = response.user!;
+        final metadata = user.userMetadata ?? {};
+        final rawRole = metadata['role'] as String? ?? 'owner';
+
+        return UserModel(
+          id: user.id,
+          authId: user.id,
+          email: user.email ?? '',
+          name: (metadata['name'] ?? metadata['full_name'] ?? 'Google Kullanıcısı') as String,
+          phone: user.phone,
+          role: rawRole == 'vet_staff' || rawRole == 'VET' ? UserRole.vet : UserRole.owner,
+          createdAt: DateTime.parse(user.createdAt),
+        );
+      }
+    } catch (e) {
+      throw Exception("Google giriş hatası: $e");
     }
   }
 
