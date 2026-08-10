@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class TopNotificationData {
   final String title;
   final String body;
-  String type;
+  final String type;
   final VoidCallback? onTap;
 
   TopNotificationData(
@@ -19,7 +19,7 @@ final ValueNotifier<TopNotificationData?> topNotificationNotifier =
 Timer? _hideTimer;
 
 class TopNotification extends StatefulWidget {
-  TopNotification(
+  const TopNotification(
       {super.key,
       required this.title,
       required this.body,
@@ -27,13 +27,13 @@ class TopNotification extends StatefulWidget {
       this.onTap});
   final String title;
   final String body;
-  String type;
+  final String type;
   final VoidCallback? onTap;
 
   static void show(
       {required String title,
       required String body,
-      type = 'SYSTEM',
+      String type = 'SYSTEM',
       VoidCallback? onTap}) {
     _hideTimer?.cancel();
     topNotificationNotifier.value =
