@@ -49,6 +49,14 @@ import 'package:vettrack_frontend/features/treatment/data/repositories/treatment
 import 'package:vettrack_frontend/features/treatment/data/datasources/treatment_remote_datasource.dart';
 import 'package:vettrack_frontend/features/treatment/domain/repositories/treatment_repository.dart';
 
+// Recommendation Imports
+import 'package:vettrack_frontend/features/recommendation/domain/usecases/add_recommendation_usecase.dart';
+import 'package:vettrack_frontend/features/recommendation/domain/usecases/get_recommendations_usecase.dart';
+import 'package:vettrack_frontend/features/recommendation/presentation/cubit/recommendation_cubit.dart';
+import 'package:vettrack_frontend/features/recommendation/data/repositories/recommendation_repository_impl.dart';
+import 'package:vettrack_frontend/features/recommendation/data/datasources/recommendation_remote_datasource.dart';
+import 'package:vettrack_frontend/features/recommendation/domain/repositories/recommendation_repository.dart';
+
 // Notification Imports
 import 'package:vettrack_frontend/core/services/firebase_messaging_service.dart';
 import 'package:vettrack_frontend/features/notification/domain/usecases/get_notifications_usecase.dart';
@@ -222,6 +230,26 @@ Future<void> init() async {
       markAsReadUseCase: sl(),
       markAllAsReadUseCase: sl(),
       getUnreadCountUseCase: sl(),
+    ),
+  );
+
+  // ---------------------------------------------------------------------------
+  // RECOMMENDATION FEATURE
+  // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<RecommendationRemoteDataSource>(
+    () => RecommendationRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<RecommendationRepository>(
+    () => RecommendationRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton(() => AddRecommendationUseCase(sl()));
+  sl.registerLazySingleton(() => GetRecommendationsUseCase(sl()));
+
+  sl.registerFactory(
+    () => RecommendationCubit(
+      addRecommendationUseCase: sl(),
+      getRecommendationsUseCase: sl(),
     ),
   );
 }
