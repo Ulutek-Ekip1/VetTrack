@@ -27,8 +27,8 @@ public class AuthService {
     private final RestTemplate restTemplate;
 
     public AuthService(
-            @Value("${SUPABASE_URL}") String supabaseUrl,
-            @Value("${SUPABASE_SERVICE_KEY}") String supabaseServiceKey,
+            @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
+            @Value("${supabase.service-key:${SUPABASE_SERVICE_KEY:}}") String supabaseServiceKey,
             OwnerRepository ownerRepository,
             RestTemplate restTemplate
     ) {

@@ -26,7 +26,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthLoading());
     try {
       final user = await authRepository.getCurrentUser().timeout(
-            const Duration(seconds: 3),
+            const Duration(seconds: 15),
             onTimeout: () => null,
           );
       if (user != null) {

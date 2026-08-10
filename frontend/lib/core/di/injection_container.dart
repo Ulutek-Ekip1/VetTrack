@@ -70,8 +70,8 @@ Future<void> init() async {
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio(BaseOptions(
       baseUrl: AppConstants.apiBaseUrl,
-      connectTimeout: const Duration(seconds: 3),
-      receiveTimeout: const Duration(seconds: 3),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
       headers: {'Content-Type': 'application/json'},
     ));
     dio.interceptors.add(AuthInterceptor(sl(), () => sl<AuthCubit>()));
