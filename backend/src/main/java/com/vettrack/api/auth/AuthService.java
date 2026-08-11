@@ -123,6 +123,50 @@ public class AuthService {
         }
     }
 
+    /**
+     * Triggers Supabase to resend the signup confirmation email.
+     * <p>
+     * To prevent user enumeration, this method never throws for "user not found" or
+     * "already confirmed" states — the controller returns 200 OK regardless. Real
+     * infrastructure errors (5xx, network) still propagate as RuntimeException.
+     * <p>
+     * Rate limiting is enforced upstream by RateLimitingFilter (3 requests / hour / IP).
+     */
+    public void resendVerification(String email) {
+        String url = supabaseUrl + "/auth/v1/resend";
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("type", "signup");
+        body.put("email", email);
+
+        HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        try {
+            restTemplate.exchange(
+                    url, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+            log.info("Verification email resend requested for email hash={}", Integer.toHexString(email.hashCode()));
+        } catch (HttpClientErrorException ex) {
+            HttpStatusCode status = ex.getStatusCode();
+            String responseBody = ex.getResponseBodyAsString();
+
+            // Silently swallow client errors to prevent user enumeration.
+            // Supabase returns 400/422 for "user not found" or "already confirmed" — both are treated as success.
+            if (status.is4xxClientError()) {
+                log.info("Supabase resend returned {} for email hash={} — treating as success (enumeration guard)",
+                        status.value(), Integer.toHexString(email.hashCode()));
+                return;
+            }
+
+            log.error("Supabase resend failed with status {}: {}", status.value(), responseBody);
+            throw new RuntimeException("Verification email resend failed: [" + status + "] " + responseBody, ex);
+        } catch (Exception ex) {
+            log.error("Supabase resend failed: {}", ex.getMessage());
+            throw new RuntimeException("Verification email resend failed: " + ex.getMessage(), ex);
+        }
+    }
+
     private HttpHeaders createHeaders(MediaType mediaType) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(mediaType);
