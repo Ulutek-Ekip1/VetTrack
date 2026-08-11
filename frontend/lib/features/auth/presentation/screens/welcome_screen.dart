@@ -146,42 +146,42 @@ class WelcomeScreen extends StatelessWidget {
 
                           // Kayıt Ol Butonu (Şeftali - #FFB89C)
                           SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () {
-                                      context.push(AppRoutes.register);
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFFB89C),
-                                foregroundColor: const Color(0xFF131B2E),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : () {
+                                        context.push(AppRoutes.register);
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFFB89C),
+                                  foregroundColor: const Color(0xFF131B2E),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Kayıt Ol',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        color: const Color(0xFF131B2E),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.person_add_rounded,
+                                      size: 20,
+                                      color: Color(0xFF131B2E),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Kayıt Ol',
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      color: const Color(0xFF131B2E),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Icon(
-                                    Icons.person_add_rounded,
-                                    size: 20,
-                                    color: Color(0xFF131B2E),
-                                  ),
-                                ],
-                              ),
                             ),
-                          ),
 
                           const SizedBox(height: 20),
 

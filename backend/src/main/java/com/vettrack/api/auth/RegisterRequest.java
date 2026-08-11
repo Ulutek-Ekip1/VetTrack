@@ -2,6 +2,7 @@ package com.vettrack.api.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -21,4 +22,7 @@ public class RegisterRequest {
     private String password;
 
     private String phone;
+
+    @Pattern(regexp = "owner|vet_staff", message = "Geçersiz kullanıcı rolü")
+    private String role = "owner";
 }

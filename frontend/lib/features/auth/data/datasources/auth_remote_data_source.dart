@@ -149,7 +149,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       if (kIsWeb) {
         // Web'de Google Giriş için Supabase'in kendi OAuth akışını kullanıyoruz.
-        // Bu, idToken uyuşmazlığını ve pop-up engelleyicileri çözer.
+        // Web ortamı Veteriner Paneli olduğu için yönlendirme sonrası Supabase veya profil tarafında rol okunur.
         final redirectTo = Uri.base.origin;
         
         await Supabase.instance.client.auth.signInWithOAuth(
@@ -158,13 +158,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
         
         // Yönlendirme yapılacağı için bu metodun return değerine ulaşılmayacaktır.
-        // Flutter geçişi sırasında hata fırlatılmaması için boş bir nesne dönüyoruz.
         return UserModel(
           id: '',
           authId: '',
           email: '',
           name: 'Yönlendiriliyor...',
-          role: UserRole.owner,
+          role: UserRole.vet,
           createdAt: DateTime.now(),
         );
       } else {
@@ -200,8 +199,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         await localDataSource.cacheToken(response.session!.accessToken);
 
         final user = response.user!;
-        final metadata = user.userMetadata ?? {};
-        final rawRole = metadata['role'] as String? ?? 'owner';
+        var metadata = user.userMetadata ?? {};
+        var rawRole = metadata['role'] as String?;
+
+        // Eğer kullanıcı ilk kez Google ile giriş yapıyorsa ve rolü henüz set edilmediyse:
+        // Mobil tarafı olduğu için varsayılan rol 'owner' olarak güncellenir.
+        if (rawRole == null || rawRole.isEmpty) {
+          rawRole = 'owner';
+          try {
+            await Supabase.instance.client.auth.updateUser(
+              UserAttributes(data: {'role': 'owner'}),
+            );
+          } catch (_) {}
+        }
 
         return UserModel(
           id: user.id,

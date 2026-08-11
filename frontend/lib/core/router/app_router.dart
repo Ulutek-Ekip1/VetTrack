@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -135,6 +136,16 @@ class AppRouter {
         }
 
         final user = authState.user;
+
+        // Web klinik paneli yalnız veterinerlere, mobil uygulama yalnız
+        // hayvan sahiplerine açıktır. AuthCubit oturumu da temizler; bu
+        // kontrol derin bağlantılarda ikinci koruma katmanıdır.
+        final hasInvalidPlatformRole =
+            (kIsWeb && user.role == UserRole.owner) ||
+            (!kIsWeb && user.role == UserRole.vet);
+        if (hasInvalidPlatformRole) {
+          return location == AppRoutes.welcome ? null : AppRoutes.welcome;
+        }
 
         if (isLoggingIn) {
           return user.role == UserRole.owner

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
@@ -46,7 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _phoneController.text.trim().isEmpty
                 ? null
                 : _phoneController.text.trim(),
-            UserRole.owner,
+            kIsWeb ? UserRole.vet : UserRole.owner,
           );
     }
   }
@@ -171,7 +172,9 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                     );
                   }
                   if (state is Authenticated) {
-                    context.go(AppRoutes.ownerEmailVerification);
+                    context.go(kIsWeb
+                        ? AppRoutes.vetSearch
+                        : AppRoutes.ownerEmailVerification);
                   }
                 },
                 builder: (context, state) {
@@ -231,8 +234,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                             width: 1,
                           ),
                         ),
-                        color: AppColors.surfaceContainerLowest,
-                        child: Padding(
+                          color: AppColors.surfaceContainerLowest,
+                          child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Form(
                             key: _formKey,
@@ -241,7 +244,9 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                               children: [
                                 // Başlık
                                 Text(
-                                  "Kayıt Ol",
+                                  kIsWeb
+                                      ? "Veteriner Personel Kaydı"
+                                      : "Kayıt Ol",
                                   style:
                                       theme.textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -252,7 +257,9 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 const SizedBox(height: 8),
 
                                 Text(
-                                  "Evcil hayvanınızın sağlığını takip etmeye bugün başlayın.",
+                                  kIsWeb
+                                      ? "Klinik paneli için veteriner personel hesabınızı oluşturun."
+                                      : "Evcil hayvanınızın sağlığını takip etmeye bugün başlayın.",
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: AppColors.onSurfaceVariant,
                                   ),
