@@ -45,6 +45,22 @@ app:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080}
   rate-limiting:
     trusted-proxy-header-enabled: ${TRUSTED_PROXY_HEADER_ENABLED:false}
+    endpoints:
+      - paths:
+          - /auth/login
+          - /api/auth/login
+        max-requests: 10
+        window-seconds: 60
+      - paths:
+          - /auth/register
+          - /api/auth/register
+        max-requests: 10
+        window-seconds: 60
+      - paths:
+          - /auth/resend-verification
+          - /api/auth/resend-verification
+        max-requests: 3
+        window-seconds: 3600
 
 server:
   port: 8080

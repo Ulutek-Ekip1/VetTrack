@@ -59,6 +59,7 @@
 | 1 | POST | `/auth/register` | Kayıt ol | Herkese açık |
 | 2 | POST | `/auth/login` | Giriş yap | Herkese açık |
 | 3 | POST | `/auth/forgot-password` | Şifre sıfırlama | Herkese açık |
+| 3a | POST | `/auth/resend-verification` | Doğrulama e-postasını tekrar gönder | Herkese açık |
 | 4 | GET | `/auth/me` | Mevcut kullanıcı bilgisi | owner, vet_staff |
 | 4a | GET | `/owners/me` | Kullanıcı profil bilgisi | owner |
 | 4b | PUT | `/owners/me` | Profil güncelle | owner |
@@ -159,6 +160,30 @@
 ```
 
 > Not: E-posta kayıtlı olmasa bile 200 döner (güvenlik gereği).
+
+---
+
+### POST /auth/resend-verification — Doğrulama e-postasını tekrar gönder
+
+**Kim:** Herkese açık. **PRD:** US-16 (E-posta doğrulama akışı).
+
+**Request body:**
+
+| Alan | Tip | Zorunlu |
+|---|---|---|
+| `email` | String (email) | Evet |
+
+**Response (200):**
+
+```json
+{ "message": "Doğrulama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin." }
+```
+
+**Response (400):** Validation hatası (geçersiz e-posta formatı veya boş alan).
+
+**Response (429):** Rate limit aşıldı. Endpoint IP başına saatte 3 istek ile sınırlıdır.
+
+> Not: E-posta sistemde kayıtlı olmasa veya zaten doğrulanmış olsa bile 200 döner (kullanıcı enumeration'ını önlemek için). Frontend'e "doğrulama gönderildi" mesajı gösterilir; gerçek durum kullanıcıya sızdırılmaz.
 
 ---
 
@@ -650,6 +675,7 @@ Kullanıcı logout olurken çağrılır. İlgili cihaz token'ı silinerek eski c
 | POST /auth/register | — | — | ✅ |
 | POST /auth/login | — | — | ✅ |
 | POST /auth/forgot-password | — | — | ✅ |
+| POST /auth/resend-verification | — | — | ✅ |
 | GET /auth/me | ✅ | ✅ | — |
 | GET /owners/me | ✅ | — | — |
 | PUT /owners/me | ✅ | — | — |

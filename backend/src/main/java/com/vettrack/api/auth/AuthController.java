@@ -43,4 +43,21 @@ public class AuthController {
         AuthResponse resp = authService.login(request);
         return ResponseEntity.ok(resp);
     }
+
+    /**
+     * Resends the Supabase signup confirmation email.
+     * <p>
+     * Always returns 200 OK regardless of whether the email exists or is already confirmed —
+     * this prevents user enumeration. Real infrastructure errors (Supabase down, network) still
+     * surface as 5xx via the global exception handler.
+     * <p>
+     * Rate limited to 3 requests / hour / IP by RateLimitingFilter.
+     */
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Map<String, String>> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
+        authService.resendVerification(request.getEmail());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Doğrulama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin.");
+        return ResponseEntity.ok(response);
+    }
 }
