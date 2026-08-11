@@ -189,21 +189,62 @@
 
 ### GET /auth/me — Mevcut kullanıcı bilgisi
 
-**Kim:** JWT gerekli (her iki rol). **PRD:** FR-02.
+**Kim:** JWT gerekli (her iki rol). **PRD:** FR-02, US-14 (Google OAuth).
 
-**Response (200):**
+Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profilini döner. Frontend uygulamayı her açtığında veya login sonrasında bu endpoint'i çağırır.
+
+**JIT Provisioning:** Kullanıcının profil kaydı veritabanında yoksa (ör. Google ile ilk giriş), JWT claim'lerinden (`user_metadata.role`, `user_metadata.name` / `full_name`, `email`) otomatik olarak oluşturulur. Rol `user_metadata.role`'e göre belirlenir:
+- `owner` → `profiles` tablosuna kaydedilir (`OwnerService`)
+- `vet_staff` → `clinic_staff` tablosuna kaydedilir (`VetStaffService`)
+- Rol yoksa veya boşsa varsayılan `owner` kabul edilir
+
+**Response (200) — owner:**
 
 ```json
 {
   "id": "550e8400-...",
-  "authId": "660e8400-...",
   "email": "ayse@example.com",
-  "name": "Ayşe Yılmaz",
-  "phone": "+905551234567",
   "role": "owner",
-  "createdAt": "2026-07-29T14:32:11Z"
+  "profile": {
+    "id": "550e8400-...",
+    "fullName": "Ayşe Yılmaz",
+    "email": "ayse@example.com",
+    "phone": "+905551234567",
+    "role": "owner",
+    "isActive": true,
+    "createdAt": "2026-07-29T14:32:11Z",
+    "updatedAt": "2026-07-29T14:32:11Z"
+  }
 }
 ```
+
+**Response (200) — vet_staff:**
+
+```json
+{
+  "id": "660e8400-...",
+  "email": "dr.mehmet@vetklinik.com",
+  "role": "vet_staff",
+  "profile": {
+    "id": "770e8400-...",
+    "userId": "660e8400-...",
+    "clinicId": null,
+    "staffRole": "vet",
+    "licenseNumber": null,
+    "isActive": true,
+    "createdAt": "2026-08-11T12:00:00Z",
+    "updatedAt": "2026-08-11T12:00:00Z"
+  }
+}
+```
+
+**Response (401):** JWT eksik veya geçersiz.
+
+**Response (403 `ROLE_MISMATCH`):** JWT `user_metadata.role` alanı ile erişilen profil endpoint'i uyumsuz (örn. `vet_staff` bir kullanıcı doğrudan `/owners/me` çağırırsa).
+
+> Not: Top-level `id`, `email`, `role` alanları geriye dönük uyumluluk için korunur. Yeni frontend kodu `profile` alanını kullanmalıdır.
+
+> Güvenlik notu: `user_metadata` Supabase'de kullanıcı tarafından değiştirilebilir bir alandır. İleride rol belirleme mantığı `app_metadata`'ya taşınmalıdır (backend-only). Şu anki tasarım frontend'in doğru rolü set ettiği varsayımına dayanır.
 
 ---
 

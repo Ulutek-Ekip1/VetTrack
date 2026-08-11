@@ -1,5 +1,6 @@
 package com.vettrack.api.owner;
 
+import com.vettrack.api.common.exception.RoleMismatchException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -24,40 +25,55 @@ public class OwnerService {
 
     private Owner createOwnerFromAuthenticationContext(UUID id) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        
-        String email = "oauth-user@vettrack.com";
-        String fullName = "OAuth User";
-        
+
+        String email = null;
+        String fullName = null;
+        String role = "owner";
+
         if (auth instanceof JwtAuthenticationToken jwtAuth) {
             Jwt jwt = jwtAuth.getToken();
             email = jwt.getClaimAsString("email");
-            
+
             Map<String, Object> userMetadata = jwt.getClaim("user_metadata");
             if (userMetadata != null) {
-                fullName = (String) userMetadata.get("name");
-                if (fullName == null) {
-                    fullName = (String) userMetadata.get("full_name");
+                Object nameClaim = userMetadata.get("name");
+                if (nameClaim instanceof String s && !s.isBlank()) {
+                    fullName = s;
+                } else {
+                    Object fullNameClaim = userMetadata.get("full_name");
+                    if (fullNameClaim instanceof String s2 && !s2.isBlank()) {
+                        fullName = s2;
+                    }
+                }
+
+                // Reject if the JWT explicitly identifies this user as vet_staff — they should
+                // hit /auth/me (which routes to VetStaffService) not /owners/me.
+                Object roleClaim = userMetadata.get("role");
+                if (roleClaim instanceof String r && "vet_staff".equalsIgnoreCase(r)) {
+                    throw new RoleMismatchException(
+                            "This account is registered as vet_staff. Use the vet portal to sign in.");
                 }
             }
+
             if (fullName == null || fullName.isBlank()) {
                 fullName = jwt.getClaimAsString("name");
             }
         }
-        
+
         if (fullName == null || fullName.isBlank()) {
             fullName = "OAuth User";
         }
         if (email == null || email.isBlank()) {
             email = "oauth-" + id.toString() + "@vettrack.com";
         }
-        
+
         Owner owner = Owner.builder()
                 .id(id)
                 .email(email)
                 .fullName(fullName)
-                .role("owner")
+                .role(role)
                 .build();
-                
+
         return ownerRepository.save(owner);
     }
 
