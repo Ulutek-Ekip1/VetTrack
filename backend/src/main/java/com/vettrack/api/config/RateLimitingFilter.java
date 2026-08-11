@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -20,15 +21,26 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private static final int MAX_REQUESTS_PER_MINUTE = 10;
     private static final long ONE_MINUTE_IN_MILLIS = 60_000L;
 
+    @Value("${app.rate-limiting.trusted-proxy-header-enabled:false}")
+    private boolean trustedProxyHeaderEnabled;
+
     private final Map<String, RequestTracker> requestTrackers = new ConcurrentHashMap<>();
 
-    private static class RequestTracker {
-        long windowStart;
+    public static class RequestTracker {
+        final long windowStart;
         final AtomicInteger requestCount;
 
         RequestTracker(long windowStart) {
             this.windowStart = windowStart;
             this.requestCount = new AtomicInteger(1);
+        }
+
+        public long getWindowStart() {
+            return windowStart;
+        }
+
+        public int getRequestCount() {
+            return requestCount.get();
         }
     }
 
@@ -43,6 +55,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         if ("/api/auth/login".equals(path) || "/api/auth/register".equals(path) ||
             "/auth/login".equals(path) || "/auth/register".equals(path)) {
+
+            cleanExpiredTrackersIfNecessary();
 
             String clientIp = getClientIp(request);
             long currentTime = System.currentTimeMillis();
@@ -74,11 +88,30 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private void cleanExpiredTrackersIfNecessary() {
+        long currentTime = System.currentTimeMillis();
+        if (requestTrackers.size() > 100) {
+            requestTrackers.entrySet().removeIf(entry ->
+                (currentTime - entry.getValue().windowStart) > ONE_MINUTE_IN_MILLIS
+            );
+        }
+    }
+
     private String getClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            return xForwardedFor.split(",")[0].trim();
+        if (trustedProxyHeaderEnabled) {
+            String xForwardedFor = request.getHeader("X-Forwarded-For");
+            if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+                return xForwardedFor.split(",")[0].trim();
+            }
         }
         return request.getRemoteAddr();
+    }
+
+    public void setTrustedProxyHeaderEnabled(boolean trustedProxyHeaderEnabled) {
+        this.trustedProxyHeaderEnabled = trustedProxyHeaderEnabled;
+    }
+
+    public Map<String, RequestTracker> getRequestTrackers() {
+        return requestTrackers;
     }
 }

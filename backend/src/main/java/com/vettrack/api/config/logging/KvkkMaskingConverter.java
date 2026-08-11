@@ -11,7 +11,7 @@ public class KvkkMaskingConverter extends ClassicConverter {
     private static final Pattern PASSWORD_PATTERN = Pattern.compile("(?i)(\"password\"\\s*:\\s*\")[^\"]+(\")|(?i)(password=)[^&\\s,]+");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("([a-zA-Z0-9._%+-]{1,2})[a-zA-Z0-9._%+-]*@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})");
     private static final Pattern TCKN_PATTERN = Pattern.compile("\\b[1-9]\\d{2}(\\d{6})\\d{2}\\b");
-    private static final Pattern PHONE_PATTERN = Pattern.compile("\\b(05\\d{2})\\d{4}(\\d{2})\\b");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("\\b(05\\d{2})\\d{5}(\\d{2})\\b");
 
     @Override
     public String convert(ILoggingEvent event) {
@@ -37,7 +37,7 @@ public class KvkkMaskingConverter extends ClassicConverter {
 
         Matcher phoneMatcher = PHONE_PATTERN.matcher(message);
         if (phoneMatcher.find()) {
-            message = phoneMatcher.replaceAll("$1****$2");
+            message = phoneMatcher.replaceAll("$1*****$2");
         }
 
         return message;

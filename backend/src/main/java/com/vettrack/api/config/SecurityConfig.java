@@ -1,9 +1,9 @@
 package com.vettrack.api.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -28,6 +28,9 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080}")
+    private List<String> allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
@@ -44,7 +47,8 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
-                    "/actuator/**",
+                    "/actuator/health",
+                    "/actuator/info",
                     "/api/public/**",
                     "/error"
                 ).permitAll()
@@ -60,9 +64,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token", "Accept"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
