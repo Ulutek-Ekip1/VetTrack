@@ -51,6 +51,7 @@ public class AuthService {
 
         Map<String, Object> userMetadata = new HashMap<>();
         userMetadata.put("name", request.getName());
+        userMetadata.put("role", request.getRole());
         if (request.getPhone() != null) {
             userMetadata.put("phone", request.getPhone());
         }

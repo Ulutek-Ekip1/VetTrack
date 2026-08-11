@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -155,8 +156,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 1,
                           ),
                         ),
-                        color: AppColors.surfaceContainerLowest,
-                        child: Padding(
+                          color: AppColors.surfaceContainerLowest,
+                          child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Form(
                             key: _formKey,
@@ -165,7 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 // Başlıklar
                                 Text(
-                                  "Giriş Yap",
+                                  kIsWeb
+                                      ? "Veteriner Personel Girişi"
+                                      : "Giriş Yap",
                                   style:
                                       theme.textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -181,6 +184,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: AppColors.onSurfaceVariant,
                                   ),
                                 ),
+                                if (kIsWeb) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "Klinik yönetim paneline erişmek için personel hesabınızı kullanın.",
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
 
                                 const SizedBox(height: 20),
 
@@ -455,28 +468,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Kayıt Ol Yönlendirmesi
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Hesabınız yok mu?",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              context.push(AppRoutes.register);
-                            },
-                            child: Text(
-                              "Kayıt Ol",
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: const Color(0xFF14B8A6),
-                                fontWeight: FontWeight.bold,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Hesabınız yok mu?",
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: AppColors.onSurfaceVariant,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                            TextButton(
+                              onPressed: () {
+                                context.push(AppRoutes.register);
+                              },
+                              child: Text(
+                                "Kayıt Ol",
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: const Color(0xFF14B8A6),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       const SizedBox(height: 24),
 
                       // Footer
