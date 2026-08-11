@@ -76,6 +76,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleUnsupportedFileType(UnsupportedFileTypeException ex) {
         return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_FILE_TYPE", ex.getMessage());
     }
+    @ExceptionHandler(RoleMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleRoleMismatch(RoleMismatchException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, "ROLE_MISMATCH", ex.getMessage());
+    }
+
     @ExceptionHandler(EditWindowExpiredException.class)
     public ResponseEntity<Map<String, Object>> handleEditWindowExpired(EditWindowExpiredException ex) {
         return buildResponse(HttpStatus.FORBIDDEN, "EDIT_WINDOW_EXPIRED", ex.getMessage());

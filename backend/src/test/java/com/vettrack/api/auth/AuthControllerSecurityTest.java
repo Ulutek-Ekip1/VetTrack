@@ -38,7 +38,15 @@ class AuthControllerSecurityTest {
 
     @Test
     void whenJwtToken_thenOk() throws Exception {
-        mockMvc.perform(get("/auth/me").with(jwt()))
+        // Real Supabase JWTs always carry a UUID subject and an email claim; the previous
+        // default jwt() postprocessor set sub='user' which broke after JIT profile sync
+        // was added (UUID.fromString fails). We supply a realistic token here.
+        String userId = java.util.UUID.randomUUID().toString();
+        mockMvc.perform(get("/auth/me").with(jwt().jwt(builder -> builder
+                .subject(userId)
+                .claim("email", "test-" + userId + "@vettrack.local")
+                .claim("user_metadata", java.util.Map.of("role", "owner", "name", "Test User"))
+        )))
             .andExpect(status().isOk());
     }
 }
