@@ -149,6 +149,12 @@
     <version>8.48.0</version>
 </dependency>
 
+<!-- Caffeine Cache for RateLimitingFilter -->
+<dependency>
+    <groupId>com.github.ben-manes.caffeine</groupId>
+    <artifactId>caffeine</artifactId>
+</dependency>
+
 <!-- H2 Database for Running Tests -->
 <dependency>
     <groupId>com.h2database</groupId>
