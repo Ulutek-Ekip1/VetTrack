@@ -15,7 +15,7 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: 1
-    validate-on-migrate: false
+    validate-on-migrate: true
   security:
     oauth2:
       resourceserver:
@@ -37,7 +37,7 @@ firebase:
 
 sentry:
   dsn: ${SENTRY_DSN:}
-  traces-sample-rate: 1.0
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
   send-default-pii: false
 
 app:
