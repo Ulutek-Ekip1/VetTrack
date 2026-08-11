@@ -1,5 +1,7 @@
 package com.vettrack.api.treatment;
 
+import com.vettrack.api.audit.AuditLog;
+import com.vettrack.api.audit.AuditLogRepository;
 import com.vettrack.api.common.exception.EditWindowExpiredException;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.ConflictException;
@@ -20,6 +22,7 @@ public class TreatmentService {
 
     private final TreatmentEntryRepository treatmentEntryRepository;
     private final VisitRepository visitRepository;
+    private final AuditLogRepository auditLogRepository; // Eklendi
 
     private static final int EDIT_WINDOW_MINUTES = 15;
 
@@ -69,7 +72,19 @@ public class TreatmentService {
         if (request.getAttachmentUrl() != null) entry.setAttachmentUrl(request.getAttachmentUrl());
         if (request.getStatus() != null) entry.setStatus(request.getStatus());
 
-        return treatmentEntryRepository.save(entry);
+        TreatmentEntry updatedEntry = treatmentEntryRepository.save(entry);
+
+        // EC-08: 15 dakikalık süre içinde yapılan güncelleme için Audit Log kaydı
+        AuditLog auditLog = AuditLog.builder()
+                .entityName("TreatmentEntry")
+                .entityId(updatedEntry.getId())
+                .action("UPDATE")
+                .changedBy(vetStaffId)
+                .details("Treatment entry updated within the 15-minute edit window. Title: " + updatedEntry.getTitle())
+                .build();
+        auditLogRepository.save(auditLog);
+
+        return updatedEntry;
     }
 
     @Transactional
@@ -77,7 +92,18 @@ public class TreatmentService {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
         checkEditWindow(entry);
+
         treatmentEntryRepository.delete(entry);
+
+        // EC-08: 15 dakikalık süre içinde yapılan silme işlemi için Audit Log kaydı
+        AuditLog auditLog = AuditLog.builder()
+                .entityName("TreatmentEntry")
+                .entityId(treatmentId)
+                .action("DELETE")
+                .changedBy(vetStaffId)
+                .details("Treatment entry deleted within the 15-minute edit window.")
+                .build();
+        auditLogRepository.save(auditLog);
     }
 
     private TreatmentEntry getTreatmentById(UUID id) {
