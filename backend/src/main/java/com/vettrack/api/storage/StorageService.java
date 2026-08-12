@@ -31,8 +31,12 @@ public class StorageService {
     public String uploadPetPhoto(MultipartFile file, UUID petId) {
         validateFile(file);
 
-        String extension = getExtension(file.getOriginalFilename());
-        String filePath = petId.toString() + extension;
+        // Object key kasıtlı olarak uzantısız ve tek: petId. Doğru Content-Type upload'da
+        // ayarlandığı için sunum bundan etkilenmez; bu sayede (a) silme işlemi hiçbir zaman
+        // istemciden gelen bir URL string'ine güvenmeden doğrudan petId'den path üretebilir,
+        // (b) farklı formatla yeniden yüklemede eski dosya bucket'ta öksüz kalmaz — aynı key
+        // x-upsert ile ezilir.
+        String filePath = petId.toString();
 
         try {
             storageClient.post()
@@ -53,25 +57,10 @@ public class StorageService {
         return storageUrl + "/object/public/" + BUCKET + "/" + filePath + "?v=" + System.currentTimeMillis();
     }
 
-    public void deletePetPhoto(String photoUrl) {
-        if (photoUrl == null || photoUrl.isBlank()) {
-            return;
-        }
-
-        String marker = "/object/public/" + BUCKET + "/";
-        int markerIndex = photoUrl.indexOf(marker);
-        if (markerIndex == -1) {
-            return;
-        }
-
-        String pathWithQuery = photoUrl.substring(markerIndex + marker.length());
-        String path = pathWithQuery.contains("?")
-                ? pathWithQuery.substring(0, pathWithQuery.indexOf('?'))
-                : pathWithQuery;
-
+    public void deletePetPhoto(UUID petId) {
         try {
             storageClient.delete()
-                    .uri("/object/{bucket}/{path}", BUCKET, path)
+                    .uri("/object/{bucket}/{path}", BUCKET, petId.toString())
                     .retrieve()
                     .toBodilessEntity();
         } catch (org.springframework.web.client.RestClientException e) {
@@ -92,12 +81,5 @@ public class StorageService {
                     "Sadece JPEG, PNG ve WebP formatları kabul edilir"
             );
         }
-    }
-
-    private String getExtension(String filename) {
-        if (filename == null || !filename.contains(".")) {
-            return ".jpg";
-        }
-        return filename.substring(filename.lastIndexOf("."));
     }
 }

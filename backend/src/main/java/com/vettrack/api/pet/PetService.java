@@ -86,7 +86,7 @@ public class PetService {
         if (pet.getPhotoUrl() == null) {
             return;
         }
-        storageService.deletePetPhoto(pet.getPhotoUrl());
+        storageService.deletePetPhoto(petId);
         pet.setPhotoUrl(null);
         petRepository.save(pet);
     }

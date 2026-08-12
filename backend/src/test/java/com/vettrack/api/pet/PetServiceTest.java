@@ -61,7 +61,7 @@ class PetServiceTest {
         assertThatThrownBy(() -> petService.deletePetPhoto(petId, otherOwnerId))
                 .isInstanceOf(AccessDeniedException.class);
 
-        verify(storageService, never()).deletePetPhoto(anyString());
+        verify(storageService, never()).deletePetPhoto(any(UUID.class));
     }
 
     @Test
@@ -80,21 +80,20 @@ class PetServiceTest {
 
         petService.deletePetPhoto(petId, mockOwnerId);
 
-        verify(storageService, never()).deletePetPhoto(anyString());
+        verify(storageService, never()).deletePetPhoto(any(UUID.class));
         verify(petRepository, never()).save(any(Pet.class));
     }
 
     @Test
-    @DisplayName("Fotoğrafı olan hayvanın sahibi sildiğinde StorageService çağrılmalı ve photoUrl temizlenmeli")
+    @DisplayName("Fotoğrafı olan hayvanın sahibi sildiğinde StorageService petId ile çağrılmalı ve photoUrl temizlenmeli")
     void testDeletePetPhoto_HasPhoto_DeletesAndClearsUrl() {
         UUID petId = UUID.randomUUID();
-        String photoUrl = "https://storage.example.com/object/public/pet-photos/" + petId + ".jpg?v=1";
         Pet pet = Pet.builder()
                 .id(petId)
                 .ownerId(mockOwnerId)
                 .name("Duman")
                 .gender(Gender.male)
-                .photoUrl(photoUrl)
+                .photoUrl("https://storage.example.com/object/public/pet-photos/" + petId + "?v=1")
                 .build();
 
         when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
@@ -102,9 +101,33 @@ class PetServiceTest {
 
         petService.deletePetPhoto(petId, mockOwnerId);
 
-        verify(storageService).deletePetPhoto(photoUrl);
+        verify(storageService).deletePetPhoto(petId);
         assertThat(pet.getPhotoUrl()).isNull();
         verify(petRepository).save(pet);
+    }
+
+    @Test
+    @DisplayName("Başka bir pete ait Storage URL'i photoUrl'e yazılsa bile silme her zaman kendi petId'sini hedeflemeli (P1 güvenlik açığı fix'i)")
+    void testDeletePetPhoto_MaliciousPhotoUrl_StillTargetsOwnPetId() {
+        UUID petId = UUID.randomUUID();
+        UUID victimPetId = UUID.randomUUID();
+        Pet pet = Pet.builder()
+                .id(petId)
+                .ownerId(mockOwnerId)
+                .name("Duman")
+                .gender(Gender.male)
+                // Kötü niyetli sahip, PetCreateRequest.photoUrl üzerinden başka bir pet'in
+                // Storage URL'ini kendi kaydına yazmış olabilir.
+                .photoUrl("https://storage.example.com/object/public/pet-photos/" + victimPetId)
+                .build();
+
+        when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
+        when(petRepository.save(any(Pet.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        petService.deletePetPhoto(petId, mockOwnerId);
+
+        verify(storageService).deletePetPhoto(petId);
+        verify(storageService, never()).deletePetPhoto(victimPetId);
     }
 
     @Test
