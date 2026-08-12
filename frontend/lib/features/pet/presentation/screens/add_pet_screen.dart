@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/pet_entity.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
+import '../widgets/pet_profile_photo_bottom_sheet.dart';
 
 class AddPetScreen extends StatefulWidget {
   const AddPetScreen({super.key});
@@ -23,6 +26,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
   final _speciesFocusNode = FocusNode();
   final _breedFocusNode = FocusNode();
   final _ageFocusNode = FocusNode();
+  String? _localPhotoUrl;
 
   @override
   void dispose() {
@@ -99,7 +103,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
       final species = _speciesController.text.trim();
       final breed = _breedController.text.trim();
       final ageText = _ageController.text.trim();
-      final age = !_ageUnknown && ageText.isNotEmpty ? int.tryParse(ageText) : null;
+      final age =
+          !_ageUnknown && ageText.isNotEmpty ? int.tryParse(ageText) : null;
 
       // Tür ve Cinsi birleştirerek kaydediyoruz (örn. "Kedi / Tekir")
       final combinedBreed = species.isNotEmpty
@@ -107,11 +112,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
           : breed;
 
       context.read<PetCubit>().addPet(
-            name: name,
-            gender: _selectedGender,
-            age: age,
-            breed: combinedBreed.isNotEmpty ? combinedBreed : null,
-          );
+          name: name,
+          gender: _selectedGender,
+          age: age,
+          breed: combinedBreed.isNotEmpty ? combinedBreed : null,
+          petPhotoUrl: _localPhotoUrl);
     }
   }
 
@@ -173,23 +178,63 @@ class _AddPetScreenState extends State<AddPetScreen> {
                             color: Colors.grey.shade200,
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.grey.shade400),
+                            // Fotoğrafı buraya koyun, child yerine:
+                            image: _localPhotoUrl != null
+                                ? DecorationImage(
+                                    image: FileImage(File(_localPhotoUrl!)),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
                           ),
-                          child: const Icon(Icons.camera_alt,
-                              size: 40, color: Color(0xFF434655)),
+                          // Placeholder ikonu:
+                          child: _localPhotoUrl == null
+                              ? const Icon(Icons.camera_alt,
+                                  size: 40, color: Color(0xFF434655))
+                              : null,
                         ),
                         Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: primaryBlue,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.add,
-                                color: Colors.white, size: 16),
-                          ),
-                        ),
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  backgroundColor: Colors.white,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(28),
+                                    ),
+                                  ),
+                                  builder: (context) {
+                                    return PetProfilePhotoBottomSheet(
+                                      getPhotoUrl: (url) {
+                                        setState(() {
+                                          if (url == null) {
+                                            // Fotoğraf silindi
+                                            _localPhotoUrl = null;
+                                          } else {
+                                            // Yeni fotoğraf eklendi
+                                            _localPhotoUrl = url;
+                                          }
+                                        });
+                                      },
+                                    );
+                                  },
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: primaryBlue,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_outlined,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
+                            )),
                       ],
                     ),
                   ),
@@ -221,11 +266,14 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _buildGenderOption(Gender.male, 'Erkek', Icons.male, Colors.blue),
+                      _buildGenderOption(
+                          Gender.male, 'Erkek', Icons.male, Colors.blue),
                       const SizedBox(width: 8),
-                      _buildGenderOption(Gender.female, 'Dişi', Icons.female, Colors.pink),
+                      _buildGenderOption(
+                          Gender.female, 'Dişi', Icons.female, Colors.pink),
                       const SizedBox(width: 8),
-                      _buildGenderOption(Gender.unknown, 'Bilinmiyor', Icons.pets, Colors.teal),
+                      _buildGenderOption(Gender.unknown, 'Bilinmiyor',
+                          Icons.pets, Colors.teal),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -303,14 +351,17 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           },
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
-                            height: 56, // Metin kutusu yüksekliğiyle tam eşleşir
+                            height:
+                                56, // Metin kutusu yüksekliğiyle tam eşleşir
                             decoration: BoxDecoration(
                               color: _ageUnknown
                                   ? primaryBlue.withValues(alpha: 0.05)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: _ageUnknown ? primaryBlue : Colors.grey.shade400,
+                                color: _ageUnknown
+                                    ? primaryBlue
+                                    : Colors.grey.shade400,
                                 width: _ageUnknown ? 2 : 1,
                               ),
                             ),
@@ -318,8 +369,12 @@ class _AddPetScreenState extends State<AddPetScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  _ageUnknown ? Icons.check_circle : Icons.help_outline,
-                                  color: _ageUnknown ? primaryBlue : const Color(0xFF434655),
+                                  _ageUnknown
+                                      ? Icons.check_circle
+                                      : Icons.help_outline,
+                                  color: _ageUnknown
+                                      ? primaryBlue
+                                      : const Color(0xFF434655),
                                   size: 20,
                                 ),
                                 const SizedBox(width: 8),
@@ -328,7 +383,9 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
-                                    color: _ageUnknown ? primaryBlue : const Color(0xFF434655),
+                                    color: _ageUnknown
+                                        ? primaryBlue
+                                        : const Color(0xFF434655),
                                   ),
                                 ),
                               ],
@@ -377,7 +434,9 @@ class _AddPetScreenState extends State<AddPetScreen> {
       ),
     );
   }
-  Widget _buildGenderOption(Gender gender, String label, IconData icon, Color activeColor) {
+
+  Widget _buildGenderOption(
+      Gender gender, String label, IconData icon, Color activeColor) {
     final isSelected = _selectedGender == gender;
     return Expanded(
       child: InkWell(
@@ -390,7 +449,9 @@ class _AddPetScreenState extends State<AddPetScreen> {
         child: Container(
           height: 48,
           decoration: BoxDecoration(
-            color: isSelected ? activeColor.withValues(alpha: 0.08) : Colors.transparent,
+            color: isSelected
+                ? activeColor.withValues(alpha: 0.08)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected ? activeColor : Colors.grey.shade400,

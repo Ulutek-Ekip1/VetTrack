@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/features/pet/presentation/widgets/pet_profile_photo_bottom_sheet.dart';
 import '../../domain/entities/pet_entity.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
@@ -30,6 +32,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
   final _speciesFocusNode = FocusNode();
   final _breedFocusNode = FocusNode();
   final _ageFocusNode = FocusNode();
+  String? _localPhotoUrl;
+  bool isDeleted = false;
 
   @override
   void initState() {
@@ -49,7 +53,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
         try {
           final pet = petState.pets.firstWhere((p) => p.id == widget.petId);
           _nameController.text = pet.name;
-          
+
           if (pet.breed != null) {
             final parts = pet.breed!.split(' / ');
             if (parts.length > 1) {
@@ -93,19 +97,21 @@ class _EditPetScreenState extends State<EditPetScreen> {
       final species = _speciesController.text.trim();
       final breed = _breedController.text.trim();
       final ageText = _ageController.text.trim();
-      final age = !_ageUnknown && ageText.isNotEmpty ? int.tryParse(ageText) : null;
+      final age =
+          !_ageUnknown && ageText.isNotEmpty ? int.tryParse(ageText) : null;
 
       final combinedBreed = species.isNotEmpty
           ? (breed.isNotEmpty ? "$species / $breed" : species)
           : breed;
 
       context.read<PetCubit>().updatePet(
-            id: widget.petId,
-            name: name,
-            gender: _selectedGender,
-            age: age,
-            breed: combinedBreed.isNotEmpty ? combinedBreed : null,
-          );
+          id: widget.petId,
+          name: name,
+          gender: _selectedGender,
+          age: age,
+          breed: combinedBreed.isNotEmpty ? combinedBreed : null,
+          photoPath: _localPhotoUrl,
+          removePhoto: isDeleted);
     }
   }
 
@@ -116,9 +122,11 @@ class _EditPetScreenState extends State<EditPetScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Column(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 48),
+            Icon(Icons.warning_amber_rounded,
+                color: Color(0xFFEF4444), size: 48),
             SizedBox(height: 8),
-            Text('Evcil Hayvanı Sil?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Evcil Hayvanı Sil?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ],
         ),
         content: const Text(
@@ -131,11 +139,13 @@ class _EditPetScreenState extends State<EditPetScreen> {
               Expanded(
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24)),
                     side: const BorderSide(color: Colors.grey),
                   ),
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('İptal', style: TextStyle(color: Color(0xFF131B2E))),
+                  child: const Text('İptal',
+                      style: TextStyle(color: Color(0xFF131B2E))),
                 ),
               ),
               const SizedBox(width: 12),
@@ -144,7 +154,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFEF4444),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24)),
                   ),
                   onPressed: () {
                     Navigator.pop(dialogContext);
@@ -168,7 +179,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dostu Düzenle', style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
+        title: const Text('Dostu Düzenle',
+            style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Color(0xFFEF4444)),
@@ -215,29 +227,70 @@ class _EditPetScreenState extends State<EditPetScreen> {
                           color: Colors.grey.shade200,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.grey.shade400),
-                          image: _photoUrl != null && _photoUrl!.isNotEmpty
+                          image: _localPhotoUrl != null &&
+                                  _localPhotoUrl!.isNotEmpty
                               ? DecorationImage(
-                                  image: NetworkImage(_photoUrl!),
+                                  image: FileImage(File(_localPhotoUrl!)),
                                   fit: BoxFit.cover,
                                 )
-                              : null,
+                              : _photoUrl != null && _photoUrl!.isNotEmpty
+                                  ? DecorationImage(
+                                      image: NetworkImage(_photoUrl!),
+                                      fit: BoxFit.cover)
+                                  : null,
                         ),
-                        child: _photoUrl == null || _photoUrl!.isEmpty
-                            ? const Icon(Icons.camera_alt, size: 40, color: Color(0xFF434655))
+                        child: (_localPhotoUrl == null ||
+                                    _localPhotoUrl!.isEmpty) &&
+                                (_photoUrl == null || _photoUrl!.isEmpty)
+                            ? const Icon(Icons.camera_alt,
+                                size: 40, color: Color(0xFF434655))
                             : null,
                       ),
                       Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: primaryBlue,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.edit, color: Colors.white, size: 16),
-                        ),
-                      ),
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                backgroundColor: Colors.white,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(28),
+                                  ),
+                                ),
+                                builder: (context) {
+                                  return PetProfilePhotoBottomSheet(
+                                    getPhotoUrl: (url) {
+                                      setState(() {
+                                        if (url == null) {
+                                          // Fotoğraf silindi
+                                          isDeleted = true;
+                                          _localPhotoUrl = _photoUrl = null;
+                                        } else {
+                                          // Yeni fotoğraf eklendi
+                                          _localPhotoUrl = url;
+                                          isDeleted = false;
+                                        }
+                                      });
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: primaryBlue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_outlined,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          )),
                     ],
                   ),
                 ),
@@ -248,10 +301,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: 'Adı *',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
-                  validator: (val) =>
-                      val == null || val.trim().isEmpty ? 'Lütfen bir ad girin' : null,
+                  validator: (val) => val == null || val.trim().isEmpty
+                      ? 'Lütfen bir ad girin'
+                      : null,
                   onFieldSubmitted: (_) => _speciesFocusNode.requestFocus(),
                 ),
                 const SizedBox(height: 16),
@@ -265,11 +320,14 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _buildGenderOption(Gender.male, 'Erkek', Icons.male, Colors.blue),
+                    _buildGenderOption(
+                        Gender.male, 'Erkek', Icons.male, Colors.blue),
                     const SizedBox(width: 8),
-                    _buildGenderOption(Gender.female, 'Dişi', Icons.female, Colors.pink),
+                    _buildGenderOption(
+                        Gender.female, 'Dişi', Icons.female, Colors.pink),
                     const SizedBox(width: 8),
-                    _buildGenderOption(Gender.unknown, 'Bilinmiyor', Icons.pets, Colors.teal),
+                    _buildGenderOption(
+                        Gender.unknown, 'Bilinmiyor', Icons.pets, Colors.teal),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -279,10 +337,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: 'Türü * (örn. Kedi, Köpek)',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
-                  validator: (val) =>
-                      val == null || val.trim().isEmpty ? 'Lütfen hayvan türünü girin' : null,
+                  validator: (val) => val == null || val.trim().isEmpty
+                      ? 'Lütfen hayvan türünü girin'
+                      : null,
                   onFieldSubmitted: (_) => _breedFocusNode.requestFocus(),
                 ),
                 const SizedBox(height: 16),
@@ -292,7 +352,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: 'Cinsi / Irkı (örn. Tekir, Golden)',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   onFieldSubmitted: (_) => _ageFocusNode.requestFocus(),
                 ),
@@ -309,7 +370,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
                         enabled: !_ageUnknown,
                         decoration: InputDecoration(
                           labelText: 'Yaş',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8)),
                         ),
                         validator: (val) {
                           if (_ageUnknown) return null;
@@ -321,7 +383,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
                           }
                           return null;
                         },
-                        onFieldSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                        onFieldSubmitted: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -344,7 +407,9 @@ class _EditPetScreenState extends State<EditPetScreen> {
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: _ageUnknown ? primaryBlue : Colors.grey.shade400,
+                              color: _ageUnknown
+                                  ? primaryBlue
+                                  : Colors.grey.shade400,
                               width: _ageUnknown ? 2 : 1,
                             ),
                           ),
@@ -352,8 +417,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                _ageUnknown ? Icons.check_circle : Icons.help_outline,
-                                color: _ageUnknown ? primaryBlue : const Color(0xFF434655),
+                                _ageUnknown
+                                    ? Icons.check_circle
+                                    : Icons.help_outline,
+                                color: _ageUnknown
+                                    ? primaryBlue
+                                    : const Color(0xFF434655),
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
@@ -362,7 +431,9 @@ class _EditPetScreenState extends State<EditPetScreen> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
-                                  color: _ageUnknown ? primaryBlue : const Color(0xFF434655),
+                                  color: _ageUnknown
+                                      ? primaryBlue
+                                      : const Color(0xFF434655),
                                 ),
                               ),
                             ],
@@ -381,19 +452,22 @@ class _EditPetScreenState extends State<EditPetScreen> {
                         backgroundColor: buttonBlue,
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28)),
                       ),
                       onPressed: isLoading ? null : _onUpdate,
                       icon: isLoading
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2),
                             )
                           : const Icon(Icons.update),
                       label: Text(
                         isLoading ? 'Güncelleniyor...' : 'Güncelle',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     );
                   },
@@ -406,7 +480,9 @@ class _EditPetScreenState extends State<EditPetScreen> {
       ),
     );
   }
-  Widget _buildGenderOption(Gender gender, String label, IconData icon, Color activeColor) {
+
+  Widget _buildGenderOption(
+      Gender gender, String label, IconData icon, Color activeColor) {
     final isSelected = _selectedGender == gender;
     return Expanded(
       child: InkWell(
@@ -419,7 +495,9 @@ class _EditPetScreenState extends State<EditPetScreen> {
         child: Container(
           height: 48,
           decoration: BoxDecoration(
-            color: isSelected ? activeColor.withValues(alpha: 0.08) : Colors.transparent,
+            color: isSelected
+                ? activeColor.withValues(alpha: 0.08)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected ? activeColor : Colors.grey.shade400,

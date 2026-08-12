@@ -15,6 +15,7 @@ import 'package:vettrack_frontend/features/pet/domain/usecases/delete_pet_usecas
 import 'package:vettrack_frontend/features/pet/domain/usecases/get_pet_by_id_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/get_pets_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_photo_usecase.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/delete_pet_photo_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_usecase.dart';
 import 'package:vettrack_frontend/features/pet/presentation/cubit/pet_cubit.dart';
 
@@ -145,6 +146,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetPetByIdUseCase(sl()));
   sl.registerLazySingleton(() => UpdatePetUseCase(sl()));
   sl.registerLazySingleton(() => UpdatePetPhotoUseCase(sl()));
+  sl.registerLazySingleton(() => DeletePetPhotoUseCase(sl()));
   sl.registerLazySingleton(() => DeletePetUseCase(sl()));
 
   sl.registerFactory(
@@ -154,6 +156,7 @@ Future<void> init() async {
       getPetByIdUseCase: sl(),
       updatePetUseCase: sl(),
       updatePetPhotoUseCase: sl(),
+      deletePetPhotoUseCase: sl(),
       deletePetUseCase: sl(),
     ),
   );

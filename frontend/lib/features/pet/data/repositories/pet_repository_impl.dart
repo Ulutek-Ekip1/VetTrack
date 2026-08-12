@@ -58,4 +58,9 @@ class PetRepositoryImpl implements PetRepository {
   Future<void> deletePet(String id) async {
     await remoteDataSource.deletePet(id);
   }
+
+  @override
+  Future<void> deletePetPhoto(String id) async {
+    await remoteDataSource.deletePetPhoto(id);
+  }
 }
