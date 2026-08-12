@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vettrack_frontend/core/services/top_notification.dart';
 import '../../features/notification/domain/usecases/unregister_device_token_usecase.dart';
 import '../di/injection_container.dart';
@@ -16,6 +17,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class FirebaseMessagingService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   bool _tokenRefreshListening = false;
+  String? _pendingPetTimelinePath;
 
   Future<void> sendTokenToBackend() async {
     final token = await _messaging.getToken();
@@ -47,6 +49,13 @@ class FirebaseMessagingService {
       listenForTokenChanges();
     }
     return status;
+  }
+
+  Future<bool> openNotificationSettings() async {
+    if (kIsWeb) return false;
+    final uri = Uri.parse('app-settings:');
+    if (!await canLaunchUrl(uri)) return false;
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   void _handleNotificationClick(RemoteMessage message) {
@@ -81,9 +90,17 @@ class FirebaseMessagingService {
 
   void _navigateToPetTimeline(Map<String, dynamic> data) {
     final petId = data['petId']?.toString();
+    if (petId == null || petId.isEmpty) return;
+    _pendingPetTimelinePath = '/owner/pets/$petId/treatments';
+    flushPendingNavigation();
+  }
+
+  void flushPendingNavigation() {
+    final path = _pendingPetTimelinePath;
     final context = AppRouter.navigatorKey.currentContext;
-    if (petId != null && petId.isNotEmpty && context != null) {
-      context.push('/owner/pets/$petId/treatments');
-    }
+    if (path == null || context == null) return;
+
+    _pendingPetTimelinePath = null;
+    context.push(path);
   }
 }

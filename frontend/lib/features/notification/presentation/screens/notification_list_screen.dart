@@ -53,7 +53,25 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
           if (state is NotificationLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is NotificationError) {
-            return Center(child: Text(state.message));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_off_outlined, size: 48),
+                    const SizedBox(height: 12),
+                    Text(state.message, textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: context.read<NotificationCubit>().loadNotifications,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Yeniden Dene'),
+                    ),
+                  ],
+                ),
+              ),
+            );
           } else if (state is NotificationLoaded) {
             final notifications = List.of(state.notificationList.notifications);
 
