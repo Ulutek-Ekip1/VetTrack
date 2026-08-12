@@ -11,11 +11,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -34,9 +36,37 @@ public class VisitController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody VisitCreateRequest request
     ) {
+        requireVetOrAdmin(jwt);
         VetStaff vetStaff = vetStaffService.getOrCreateByUserId(UUID.fromString(jwt.getSubject()), jwt);
         Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getId());
         return new ResponseEntity<>(visit, HttpStatus.CREATED);
+    }
+
+    /**
+     * JIT vet-staff provisioning must only run for a vetted role. The current
+     * JWT setup does not yet map Supabase roles to Spring authorities, so this
+     * explicit check protects the endpoint until method-security conversion is
+     * introduced application-wide.
+     */
+    private void requireVetOrAdmin(Jwt jwt) {
+        String role = resolveRole(jwt);
+        if (!"vet_staff".equalsIgnoreCase(role) && !"admin".equalsIgnoreCase(role)) {
+            throw new AccessDeniedException("Bu işlem yalnızca veteriner personel tarafından yapılabilir");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private String resolveRole(Jwt jwt) {
+        Object userMetadata = jwt.getClaim("user_metadata");
+        if (userMetadata instanceof Map<?, ?> metadata) {
+            Object role = metadata.get("role");
+            if (role instanceof String roleValue && !roleValue.isBlank()) {
+                return roleValue;
+            }
+        }
+
+        String topLevelRole = jwt.getClaimAsString("role");
+        return topLevelRole == null || topLevelRole.isBlank() ? "owner" : topLevelRole;
     }
 
     @PutMapping("/{id}/close")
