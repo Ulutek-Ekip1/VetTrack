@@ -437,7 +437,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 **Hatalar:** 400, 401, 403, 404, 409 (`VISIT_ALREADY_OPEN`)
 
-> Not: `vetStaffId` JWT'den çıkarılır. `status` otomatik `ongoing`, `startedAt` otomatik şu an. Aynı hayvan için eşzamanlı ziyaret başlatma istekleri sunucuda kilitlenir; yalnız biri `201` alır, diğeri `409` alır. İstemci `409` durumunda kodla hasta aramasını yenileyip mevcut açık ziyarete yönlendirmelidir.
+> Not: `vetStaffId` JWT'den çıkarılır. `status` otomatik `ongoing`, `startedAt` otomatik şu an.
 
 ---
 
