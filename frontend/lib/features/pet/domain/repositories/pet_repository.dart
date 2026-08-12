@@ -18,4 +18,5 @@ abstract class PetRepository {
   });
   Future<String> updatePetPhoto(String id, String photoFilePath);
   Future<void> deletePet(String id);
+  Future<void> deletePetPhoto(String id);
 }
