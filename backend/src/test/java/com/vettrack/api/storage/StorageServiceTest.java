@@ -42,6 +42,9 @@ class StorageServiceTest {
     private RestClient.ResponseSpec responseSpec;
 
     @Mock
+    private RestClient.RequestHeadersUriSpec requestHeadersUriSpec;
+
+    @Mock
     private MultipartFile file;
 
     private StorageService storageService;
@@ -67,6 +70,14 @@ class StorageServiceTest {
             String result = storageService.uploadPetPhoto(file, UUID.randomUUID());
             assertNotNull(result);
             assertTrue(result.startsWith(STORAGE_URL));
+        }
+
+        @Test
+        @DisplayName("image/jpg content-type'ı (bazı cihazların JPEG için gönderdiği standart dışı tip) kabul edilmeli")
+        void shouldAcceptJpgAliasContentType() throws IOException {
+            setupValidUpload("image/jpg", "photo.jpg", 1024);
+            String result = storageService.uploadPetPhoto(file, UUID.randomUUID());
+            assertNotNull(result);
         }
 
         @Test
@@ -226,13 +237,13 @@ class StorageServiceTest {
     class SuccessTests {
 
         @Test
-        @DisplayName("Dönen URL doğru formatta olmalı")
+        @DisplayName("Dönen URL doğru formatta olmalı ve cache-busting versiyon parametresi taşımalı")
         void shouldReturnCorrectPublicUrl() throws IOException {
             UUID petId = UUID.randomUUID();
             setupValidUpload("image/jpeg", "photo.jpg", 1024);
             String result = storageService.uploadPetPhoto(file, petId);
-            String expected = STORAGE_URL + "/object/public/pet-photos/" + petId + ".jpg";
-            assertEquals(expected, result);
+            String expectedBase = STORAGE_URL + "/object/public/pet-photos/" + petId + ".jpg";
+            assertTrue(result.startsWith(expectedBase + "?v="));
         }
 
         @Test
@@ -241,7 +252,85 @@ class StorageServiceTest {
             UUID petId = UUID.randomUUID();
             setupValidUpload("image/png", "screenshot.png", 2048);
             String result = storageService.uploadPetPhoto(file, petId);
-            assertTrue(result.endsWith(petId + ".png"));
+            assertTrue(result.contains(petId + ".png"));
+        }
+    }
+
+    // =========================================================================
+    // Fotoğraf silme (DELETE /pets/{id}/photo) — StorageService.deletePetPhoto
+    // =========================================================================
+    @Nested
+    @DisplayName("Fotoğraf silme")
+    class DeletePhotoTests {
+
+        @Test
+        @DisplayName("null URL verildiğinde Supabase'e istek atılmamalı")
+        void shouldDoNothingWhenPhotoUrlIsNull() {
+            storageService.deletePetPhoto(null);
+            verifyNoInteractions(restClient);
+        }
+
+        @Test
+        @DisplayName("boş URL verildiğinde Supabase'e istek atılmamalı")
+        void shouldDoNothingWhenPhotoUrlIsBlank() {
+            storageService.deletePetPhoto("   ");
+            verifyNoInteractions(restClient);
+        }
+
+        @Test
+        @DisplayName("tanınmayan URL formatında Supabase'e istek atılmamalı")
+        void shouldDoNothingWhenUrlFormatIsUnrecognized() {
+            storageService.deletePetPhoto("https://example.com/random.jpg");
+            verifyNoInteractions(restClient);
+        }
+
+        @Test
+        @DisplayName("cache-busting parametreli URL'den doğru path çıkarılıp silme isteği atılmalı")
+        void shouldDeleteUsingPathExtractedFromUrl() {
+            UUID petId = UUID.randomUUID();
+            String photoUrl = STORAGE_URL + "/object/public/pet-photos/" + petId + ".jpg?v=1234567890";
+
+            when(restClient.delete()).thenReturn(requestHeadersUriSpec);
+            when(requestHeadersUriSpec.uri("/object/{bucket}/{path}", "pet-photos", petId + ".jpg"))
+                    .thenReturn(requestHeadersUriSpec);
+            when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+            when(responseSpec.toBodilessEntity()).thenReturn(null);
+
+            storageService.deletePetPhoto(photoUrl);
+
+            verify(requestHeadersUriSpec).uri("/object/{bucket}/{path}", "pet-photos", petId + ".jpg");
+        }
+
+        @Test
+        @DisplayName("versiyon parametresi olmayan eski URL'lerde de path doğru çıkarılmalı")
+        void shouldDeleteUsingPathWhenUrlHasNoQueryParam() {
+            UUID petId = UUID.randomUUID();
+            String photoUrl = STORAGE_URL + "/object/public/pet-photos/" + petId + ".png";
+
+            when(restClient.delete()).thenReturn(requestHeadersUriSpec);
+            when(requestHeadersUriSpec.uri("/object/{bucket}/{path}", "pet-photos", petId + ".png"))
+                    .thenReturn(requestHeadersUriSpec);
+            when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+            when(responseSpec.toBodilessEntity()).thenReturn(null);
+
+            storageService.deletePetPhoto(photoUrl);
+
+            verify(requestHeadersUriSpec).uri("/object/{bucket}/{path}", "pet-photos", petId + ".png");
+        }
+
+        @Test
+        @DisplayName("Supabase silme isteği başarısız olursa StorageException fırlatılmalı")
+        void shouldThrowStorageExceptionWhenDeleteFails() {
+            UUID petId = UUID.randomUUID();
+            String photoUrl = STORAGE_URL + "/object/public/pet-photos/" + petId + ".jpg?v=1";
+
+            when(restClient.delete()).thenReturn(requestHeadersUriSpec);
+            when(requestHeadersUriSpec.uri(anyString(), anyString(), anyString())).thenReturn(requestHeadersUriSpec);
+            when(requestHeadersUriSpec.retrieve()).thenThrow(new RestClientException("404 Not Found"));
+
+            StorageException ex = assertThrows(StorageException.class,
+                    () -> storageService.deletePetPhoto(photoUrl));
+            assertTrue(ex.getMessage().contains("Supabase Storage silme isteği başarısız"));
         }
     }
 

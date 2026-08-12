@@ -1,6 +1,7 @@
 package com.vettrack.api.pet;
 
 import com.vettrack.api.common.exception.ResourceNotFoundException;
+import com.vettrack.api.storage.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -18,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,6 +29,9 @@ class PetServiceTest {
 
     @Mock
     private PetRepository petRepository;
+
+    @Mock
+    private StorageService storageService;
 
     @InjectMocks
     private PetService petService;
@@ -34,6 +41,70 @@ class PetServiceTest {
     @BeforeEach
     void setUp() {
         mockOwnerId = UUID.randomUUID();
+    }
+
+    @Test
+    @DisplayName("Başkasının hayvanının fotoğrafı silinmeye çalışılırsa AccessDeniedException fırlatmalı")
+    void testDeletePetPhoto_NotOwner_ThrowsAccessDenied() {
+        UUID petId = UUID.randomUUID();
+        UUID otherOwnerId = UUID.randomUUID();
+        Pet pet = Pet.builder()
+                .id(petId)
+                .ownerId(mockOwnerId)
+                .name("Duman")
+                .gender(Gender.male)
+                .photoUrl("https://storage.example.com/object/public/pet-photos/" + petId + ".jpg")
+                .build();
+
+        when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
+
+        assertThatThrownBy(() -> petService.deletePetPhoto(petId, otherOwnerId))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(storageService, never()).deletePetPhoto(anyString());
+    }
+
+    @Test
+    @DisplayName("Fotoğrafı olmayan bir hayvanda silme işlemi Supabase'e istek atmadan sessizce başarılı olmalı")
+    void testDeletePetPhoto_NoExistingPhoto_IsNoOp() {
+        UUID petId = UUID.randomUUID();
+        Pet pet = Pet.builder()
+                .id(petId)
+                .ownerId(mockOwnerId)
+                .name("Duman")
+                .gender(Gender.male)
+                .photoUrl(null)
+                .build();
+
+        when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
+
+        petService.deletePetPhoto(petId, mockOwnerId);
+
+        verify(storageService, never()).deletePetPhoto(anyString());
+        verify(petRepository, never()).save(any(Pet.class));
+    }
+
+    @Test
+    @DisplayName("Fotoğrafı olan hayvanın sahibi sildiğinde StorageService çağrılmalı ve photoUrl temizlenmeli")
+    void testDeletePetPhoto_HasPhoto_DeletesAndClearsUrl() {
+        UUID petId = UUID.randomUUID();
+        String photoUrl = "https://storage.example.com/object/public/pet-photos/" + petId + ".jpg?v=1";
+        Pet pet = Pet.builder()
+                .id(petId)
+                .ownerId(mockOwnerId)
+                .name("Duman")
+                .gender(Gender.male)
+                .photoUrl(photoUrl)
+                .build();
+
+        when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
+        when(petRepository.save(any(Pet.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        petService.deletePetPhoto(petId, mockOwnerId);
+
+        verify(storageService).deletePetPhoto(photoUrl);
+        assertThat(pet.getPhotoUrl()).isNull();
+        verify(petRepository).save(pet);
     }
 
     @Test

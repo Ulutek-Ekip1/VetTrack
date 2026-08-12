@@ -15,6 +15,7 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -180,6 +181,32 @@ class PetSecurityTest {
         mockMvc.perform(put("/pets/" + randomNonExistentId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest))
+                .with(jwt().jwt(builder -> builder.subject(owner1Id.toString()))))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Bir sahibin başka bir sahibe ait petin fotoğrafını DELETE /pets/{id}/photo ile silmesi 403 Forbidden dönmeli")
+    void whenOwnerDeletesOtherOwnersPetPhoto_thenForbidden() throws Exception {
+        mockMvc.perform(delete("/pets/" + owner1Pet.getId() + "/photo")
+                .with(jwt().jwt(builder -> builder.subject(owner2Id.toString()))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Sahip, fotoğrafı olmayan kendi petinde DELETE /pets/{id}/photo çağırdığında yine 204 dönmeli (idempotent)")
+    void whenOwnerDeletesOwnPetPhotoWithNoExistingPhoto_thenNoContent() throws Exception {
+        mockMvc.perform(delete("/pets/" + owner1Pet.getId() + "/photo")
+                .with(jwt().jwt(builder -> builder.subject(owner1Id.toString()))))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Var olmayan bir pet için DELETE /pets/{id}/photo çağrıldığında 404 Not Found dönmeli")
+    void whenDeletingPhotoOfNonExistentPet_thenNotFound() throws Exception {
+        UUID randomNonExistentId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/pets/" + randomNonExistentId + "/photo")
                 .with(jwt().jwt(builder -> builder.subject(owner1Id.toString()))))
                 .andExpect(status().isNotFound());
     }

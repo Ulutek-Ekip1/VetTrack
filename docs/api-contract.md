@@ -68,6 +68,7 @@
 | 7 | GET | `/pets/{id}` | Hayvan detayı | owner |
 | 8 | PUT | `/pets/{id}` | Hayvan güncelle | owner |
 | 9 | POST | `/pets/{id}/photo` | Fotoğraf yükle | owner |
+| 9a | DELETE | `/pets/{id}/photo` | Fotoğraf sil | owner |
 | 10 | GET | `/pets/{id}/visits` | Hayvanın ziyaret geçmişi | owner |
 | 11 | GET | `/pets/{id}/recommendations` | Hayvanın önerileri | owner |
 | 12 | GET | `/visits/code/{code}` | Kod ile hasta bul | vet_staff |
@@ -350,15 +351,32 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 **Content-Type:** `multipart/form-data`
 
-**Form alanı:** `file` — image/jpeg, image/png veya image/webp, max 15MB
+**Form alanı:** `file` — image/jpeg, image/jpg, image/png veya image/webp, max 15MB
 
 **Response (200):**
 
 ```json
-{ "photoUrl": "https://xxx.supabase.co/storage/v1/pets/abc123.jpg" }
+{ "photoUrl": "https://xxx.supabase.co/storage/v1/pets/abc123.jpg?v=1755000000000" }
 ```
 
+> Not: `photoUrl` her yüklemede değişen bir `?v=` versiyon parametresi taşır — aynı hayvan için
+> fotoğraf güncellendiğinde URL de değişir, böylece CDN/istemci önbelleği eski fotoğrafı göstermeye devam etmez.
+
 **Hatalar:** 401, 403, 404, 413 (`FILE_TOO_LARGE`), 415 (`UNSUPPORTED_FILE_TYPE`)
+
+---
+
+### DELETE /pets/{id}/photo — Fotoğraf sil
+
+**Kim:** Sadece hayvanın sahibi.
+
+**Response:** `204 No Content`
+
+**Hatalar:** 401, 403 (başkasının hayvanı), 404
+
+**Notlar:**
+- Hayvanın zaten fotoğrafı yoksa hata fırlatılmaz, yine `204` döner (idempotent silme).
+- Supabase Storage'daki dosya da silinir, `pets.photo_url` `null`'a çekilir.
 
 ---
 
@@ -725,6 +743,7 @@ Kullanıcı logout olurken çağrılır. İlgili cihaz token'ı silinerek eski c
 | GET /pets/{id} | ✅ | — | — |
 | PUT /pets/{id} | ✅ | — | — |
 | POST /pets/{id}/photo | ✅ | — | — |
+| DELETE /pets/{id}/photo | ✅ | — | — |
 | GET /pets/{id}/visits | ✅ | — | — |
 | GET /pets/{id}/recommendations | ✅ | — | — |
 | GET /visits/code/{code} | — | ✅ | — |

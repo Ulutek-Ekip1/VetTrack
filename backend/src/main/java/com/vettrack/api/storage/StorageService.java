@@ -19,7 +19,7 @@ public class StorageService {
     private static final String BUCKET = "pet-photos";
     private static final long MAX_FILE_SIZE = 15 * 1024 * 1024;
     private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp"
+            "image/jpeg", "image/jpg", "image/png", "image/webp"
     );
 
     public StorageService(RestClient supabaseStorageClient,
@@ -48,7 +48,35 @@ public class StorageService {
         throw new StorageException("Supabase Storage isteği başarısız: " + e.getMessage(), e);
         }
 
-        return storageUrl + "/object/public/" + BUCKET + "/" + filePath;
+        // CDN/istemci önbelleğinin fotoğraf güncellendiğinde eskisini göstermemesi için
+        // URL her yüklemede değişen bir versiyon parametresi taşır.
+        return storageUrl + "/object/public/" + BUCKET + "/" + filePath + "?v=" + System.currentTimeMillis();
+    }
+
+    public void deletePetPhoto(String photoUrl) {
+        if (photoUrl == null || photoUrl.isBlank()) {
+            return;
+        }
+
+        String marker = "/object/public/" + BUCKET + "/";
+        int markerIndex = photoUrl.indexOf(marker);
+        if (markerIndex == -1) {
+            return;
+        }
+
+        String pathWithQuery = photoUrl.substring(markerIndex + marker.length());
+        String path = pathWithQuery.contains("?")
+                ? pathWithQuery.substring(0, pathWithQuery.indexOf('?'))
+                : pathWithQuery;
+
+        try {
+            storageClient.delete()
+                    .uri("/object/{bucket}/{path}", BUCKET, path)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new StorageException("Supabase Storage silme isteği başarısız: " + e.getMessage(), e);
+        }
     }
 
     private void validateFile(MultipartFile file) {

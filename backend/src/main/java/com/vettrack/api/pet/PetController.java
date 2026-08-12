@@ -128,6 +128,22 @@ public class PetController {
         return ResponseEntity.ok(Map.of("photoUrl", photoUrl));
     }
 
+    @DeleteMapping("/{id}/photo")
+    @Operation(summary = "Pet Fotoğrafını Sil", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Fotoğraf silindi (fotoğraf zaten yoksa da 204 döner)"),
+        @ApiResponse(responseCode = "403", description = "Erişim engellendi"),
+        @ApiResponse(responseCode = "404", description = "Pet bulunamadı")
+    })
+    public ResponseEntity<Void> deletePhoto(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        petService.deletePetPhoto(id, ownerId);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Pet Sil (Soft Delete)", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Void> deletePet(
