@@ -67,8 +67,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow all localhost/127.0.0.1 ports dynamically for Flutter Web
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://127.0.0.1:*", "http://localhost", "http://127.0.0.1", "*"));
+        configuration.setAllowedOrigins(allowedOrigins);
+
+        List<String> patterns = new java.util.ArrayList<>(Arrays.asList("http://localhost:*", "http://127.0.0.1:*"));
+        if (allowedOriginPatterns != null) {
+            patterns.addAll(allowedOriginPatterns.stream().filter(p -> !p.isBlank()).toList());
+        }
+        configuration.setAllowedOriginPatterns(patterns);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token", "Accept", "X-Requested-With"));
         configuration.setAllowCredentials(true);

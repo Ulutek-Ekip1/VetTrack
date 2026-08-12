@@ -34,23 +34,19 @@ public class VisitController {
     private final OwnerService ownerService;
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN') or isAuthenticated()")
     @Operation(summary = "Yeni Muayene Ziyareti Başlat", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Visit> createVisit(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody VisitCreateRequest request
     ) {
-        if (request.getPetId() != null) {
-            VetStaff vetStaff = vetStaffService.getOrCreateByUserId(UUID.fromString(jwt.getSubject()), jwt);
-            Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getId());
-            return new ResponseEntity<>(visit, HttpStatus.CREATED);
-        }
-        Visit created = visitService.createVisit(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        VetStaff vetStaff = vetStaffService.getOrCreateByUserId(UUID.fromString(jwt.getSubject()), jwt);
+        Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getId());
+        return new ResponseEntity<>(visit, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}/close")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN') or isAuthenticated()")
     public ResponseEntity<Visit> closeVisit(@PathVariable UUID id) {
         return ResponseEntity.ok(visitService.closeVisit(id));
     }
@@ -82,6 +78,7 @@ public class VisitController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     @Operation(summary = "Ziyaret Durumunu Güncelle (ör. ongoing -> completed)", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Visit> updateVisitStatus(
             @PathVariable UUID id,

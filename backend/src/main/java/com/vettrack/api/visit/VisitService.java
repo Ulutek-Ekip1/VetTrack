@@ -41,6 +41,10 @@ public class VisitService {
 
     @Transactional
     public Visit createVisit(VisitCreateRequest request) {
+        boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(request.getPetId(), "ongoing").isPresent();
+        if (hasActiveVisit) {
+            throw new ConflictException("Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
+        }
         Visit visit = Visit.builder()
                 .petId(request.getPetId())
                 .vetStaffId(request.getVetStaffId())

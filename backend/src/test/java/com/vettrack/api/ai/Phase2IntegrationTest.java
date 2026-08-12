@@ -158,6 +158,7 @@ class Phase2IntegrationTest {
                 .description("Tahılsız somonlu mama önerildi")
                 .build();
 
+        when(visitRepository.findById(visitId)).thenReturn(Optional.of(Visit.builder().id(visitId).status("ongoing").build()));
         when(recommendationRepository.save(any(Recommendation.class))).thenReturn(saved);
         when(recommendationRepository.findByVisitId(visitId)).thenReturn(List.of(saved));
 
