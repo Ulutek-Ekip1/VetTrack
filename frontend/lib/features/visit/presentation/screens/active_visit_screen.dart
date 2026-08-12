@@ -432,7 +432,7 @@ class _ActiveVisitScreenState extends State<ActiveVisitScreen> {
                                                       .isNotEmpty) ...[
                                                 const SizedBox(height: 2),
                                                 Text(
-                                                  'Şikayet: ${visit.chiefComplaint}',
+                                                  'Hasta Sahibi Şikayeti: ${visit.chiefComplaint}',
                                                   style: const TextStyle(
                                                       fontSize: 12,
                                                       color: Colors.black54),

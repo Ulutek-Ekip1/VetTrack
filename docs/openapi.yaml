@@ -1188,6 +1188,10 @@ components:
         status:
           type: string
           enum: [ongoing, completed]
+        chiefComplaint:
+          type: string
+          nullable: true
+          example: "Akut kusma ve iştahsızlık"
         startedAt:
           type: string
           format: date-time
@@ -1211,6 +1215,10 @@ components:
         status:
           type: string
           enum: [ongoing, completed]
+        chiefComplaint:
+          type: string
+          nullable: true
+          example: "Akut kusma ve iştahsızlık"
         startedAt:
           type: string
           format: date-time

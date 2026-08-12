@@ -418,6 +418,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
       "id": "...",
       "vetStaffName": "Dr. Mehmet Yılmaz",
       "status": "completed",
+      "chiefComplaint": "Akut kusma ve iştahsızlık",
       "startedAt": "...",
       "endedAt": "...",
       "treatments": [...],
@@ -481,6 +482,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "petId": "...",
   "vetStaffId": "...",
   "status": "ongoing",
+  "chiefComplaint": "Akut kusma ve iştahsızlık",
   "startedAt": "2026-07-29T14:32:11Z",
   "endedAt": null
 }
@@ -494,6 +496,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "vetStaffId": "...",
   "vetStaffName": "Dr. Mehmet Yılmaz",
   "status": "completed",
+  "chiefComplaint": "Akut kusma ve iştahsızlık",
   "startedAt": "...",
   "endedAt": "...",
   "treatments": [...],
