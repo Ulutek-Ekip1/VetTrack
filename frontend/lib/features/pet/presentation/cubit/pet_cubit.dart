@@ -5,6 +5,7 @@ import 'package:vettrack_frontend/features/pet/domain/usecases/delete_pet_usecas
 import 'package:vettrack_frontend/features/pet/domain/usecases/get_pet_by_id_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/get_pets_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_photo_usecase.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/delete_pet_photo_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_usecase.dart';
 import 'package:vettrack_frontend/features/pet/presentation/cubit/pet_state.dart';
 
@@ -14,6 +15,7 @@ class PetCubit extends Cubit<PetState> {
   final GetPetByIdUseCase getPetByIdUseCase;
   final UpdatePetUseCase updatePetUseCase;
   final UpdatePetPhotoUseCase updatePetPhotoUseCase;
+  final DeletePetPhotoUseCase deletePetPhotoUseCase;
   final DeletePetUseCase deletePetUseCase;
 
   PetCubit({
@@ -22,6 +24,7 @@ class PetCubit extends Cubit<PetState> {
     required this.getPetByIdUseCase,
     required this.updatePetUseCase,
     required this.updatePetPhotoUseCase,
+    required this.deletePetPhotoUseCase,
     required this.deletePetUseCase,
   }) : super(PetInitial());
 
@@ -76,6 +79,8 @@ class PetCubit extends Cubit<PetState> {
     Gender? gender,
     int? age,
     String? breed,
+    String? photoPath,
+    bool removePhoto = false,
   }) async {
     emit(PetActionLoading());
     try {
@@ -86,6 +91,16 @@ class PetCubit extends Cubit<PetState> {
         age: age,
         breed: breed,
       );
+
+      if (removePhoto) {
+        await deletePetPhotoUseCase.call(id: id);
+      } else if (photoPath != null) {
+        await updatePetPhotoUseCase.call(
+          id: id,
+          photoPath: photoPath,
+        );
+      }
+
       emit(const PetActionSuccess(message: 'Pet başarıyla güncellendi'));
       fetchPets();
     } catch (e) {

@@ -20,6 +20,7 @@ abstract class PetRemoteDataSource {
     String? breed,
   });
   Future<String> updatePetPhoto(String id, String photoFilePath);
+  Future<void> deletePetPhoto(String id);
   Future<void> deletePet(String id);
 }
 
@@ -136,6 +137,15 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
         data: formData,
       );
       return response.data['photoUrl'] as String;
+    } on DioException catch (e) {
+      throw ServerException(e.message);
+    }
+  }
+
+  @override
+  Future<void> deletePetPhoto(String id) async {
+    try {
+      await dio.delete('/pets/$id/photo');
     } on DioException catch (e) {
       throw ServerException(e.message);
     }
