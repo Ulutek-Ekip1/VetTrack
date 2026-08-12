@@ -1,0 +1,13 @@
+# Runtime configuration is supplied to `docker run --env-file`, never baked
+# into the image or transmitted in the Docker build context.
+.env
+.env.*
+
+# Docker builds the JAR in its own builder stage.
+target/
+
+# Local tooling and repository metadata are not required to build the service.
+.git/
+.idea/
+.vscode/
+*.iml

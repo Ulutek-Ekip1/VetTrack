@@ -1,5 +1,16 @@
+FROM maven:3.9.16-eclipse-temurin-17 AS build
+WORKDIR /app
+
+# Cache dependencies independently from application source changes.
+COPY pom.xml ./
+RUN mvn -B -DskipTests dependency:go-offline
+
+COPY src ./src
+RUN mvn -B -DskipTests package
+
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY target/*.jar app.jar
+
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
