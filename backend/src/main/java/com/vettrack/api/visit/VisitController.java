@@ -4,6 +4,8 @@ import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetService;
 import com.vettrack.api.vetstaff.VetStaff;
 import com.vettrack.api.vetstaff.VetStaffService;
+import com.vettrack.api.owner.Owner;
+import com.vettrack.api.owner.OwnerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,7 @@ public class VisitController {
     private final VisitService visitService;
     private final PetService petService;
     private final VetStaffService vetStaffService;
+    private final OwnerService ownerService;
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
@@ -48,6 +51,17 @@ public class VisitController {
         Pet pet = petService.getPetByUniqueCode(code);
         List<Visit> visits = visitService.getVisitsByUniqueCode(code);
         return ResponseEntity.ok(new PatientSearchResponse(pet, visits));
+    }
+
+    @GetMapping("/{visitId}/context")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ActiveVisitContextResponse> getActiveVisitContext(@PathVariable UUID visitId) {
+        Visit visit = visitService.getVisit(visitId);
+        Pet pet = petService.getPetById(visit.getPetId());
+        Owner owner = ownerService.getOwnerById(pet.getOwnerId());
+        return ResponseEntity.ok(new ActiveVisitContextResponse(
+                visit, pet, owner, visitService.getVisitsByPetId(pet.getId())
+        ));
     }
 
     @GetMapping("/pet/{petId}")

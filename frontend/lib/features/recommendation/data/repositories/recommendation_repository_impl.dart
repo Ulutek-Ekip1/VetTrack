@@ -13,6 +13,9 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
     return await remoteDataSource.getRecommendations(petId);
   }
 
+  @override
+  Future<List<RecommendationEntity>> getVisitRecommendations(String visitId) => remoteDataSource.getVisitRecommendations(visitId);
+
 //Yeni öneri ekleme
   @override
   Future<RecommendationEntity> addRecommendation({

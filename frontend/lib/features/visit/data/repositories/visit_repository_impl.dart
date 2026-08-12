@@ -2,6 +2,7 @@ import 'package:vettrack_frontend/features/visit/domain/entities/visit_entity.da
 import 'package:vettrack_frontend/features/visit/domain/repositories/visit_repository.dart';
 import 'package:vettrack_frontend/features/visit/data/datasources/visit_remote_datasource.dart';
 import 'package:vettrack_frontend/features/visit/domain/entities/patient_search_result.dart';
+import 'package:vettrack_frontend/features/visit/domain/entities/active_visit_context.dart';
 
 class VisitRepositoryImpl implements VisitRepository {
   final VisitRemoteDataSource remoteDataSource;
@@ -37,4 +38,7 @@ class VisitRepositoryImpl implements VisitRepository {
   Future<List<VisitEntity>> getPetVisitHistory(String petId) async {
     return await remoteDataSource.getPetVisitHistory(petId);
   }
+
+  @override
+  Future<ActiveVisitContext> getActiveVisitContext(String visitId) => remoteDataSource.getActiveVisitContext(visitId);
 }

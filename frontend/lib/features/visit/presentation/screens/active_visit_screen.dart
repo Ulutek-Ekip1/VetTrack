@@ -1,522 +1,83 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-//Tedavi/öneri modülü (15 dk kontrolü için)
-class VisitItem {
-  final String id;
-  final String text;
-  final String type;
-  final DateTime createdAt;
-
-  VisitItem({
-    required this.id,
-    required this.text,
-    required this.type,
-    required this.createdAt,
-  });
-
-  //15 dk silme süresini kontrol
-  bool get isDeletable {
-    final difference = DateTime.now().difference(createdAt);
-    return difference.inMinutes < 15;
-  }
-
-  //Kalan süreyi dakika/saniye olarak döndürür
-  int get remainingMinutes {
-    final diff = DateTime.now().difference(createdAt);
-    final remaining = 15 - diff.inMinutes;
-    return remaining > 0 ? remaining : 0;
-  }
-}
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vettrack_frontend/core/di/injection_container.dart';
+import 'package:vettrack_frontend/core/router/app_router.dart';
+import 'package:vettrack_frontend/features/visit/domain/entities/active_visit_context.dart';
+import 'package:vettrack_frontend/features/visit/domain/repositories/visit_repository.dart';
+import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_cubit.dart';
+import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_state.dart';
+import 'package:vettrack_frontend/features/treatment/domain/entities/treatment_entity.dart';
+import 'package:vettrack_frontend/features/treatment/domain/repositories/treatment_repository.dart';
+import 'package:vettrack_frontend/features/recommendation/domain/entities/recommendation_entity.dart';
+import 'package:vettrack_frontend/features/recommendation/domain/repositories/recommendation_repository.dart';
 
 class ActiveVisitScreen extends StatefulWidget {
   final String visitId;
-
-  const ActiveVisitScreen({
-    super.key,
-    required this.visitId,
-  });
-
-  @override
-  State<ActiveVisitScreen> createState() => _ActiveVisitScreenState();
+  const ActiveVisitScreen({super.key, required this.visitId});
+  @override State<ActiveVisitScreen> createState() => _ActiveVisitScreenState();
 }
 
 class _ActiveVisitScreenState extends State<ActiveVisitScreen> {
-  final _diagnosisController = TextEditingController();
-  final _notesController = TextEditingController();
-  final _prescriptionController = TextEditingController();
+  late Future<ActiveVisitContext> _context;
+  late Future<List<TreatmentEntity>> _treatments;
+  late Future<List<RecommendationEntity>> _recommendations;
+  @override void initState() { super.initState(); _reload(); }
+  void _reload() => setState(() {
+    _context = sl<VisitRepository>().getActiveVisitContext(widget.visitId);
+    _treatments = sl<TreatmentRepository>().getTreatments(widget.visitId);
+    _recommendations = sl<RecommendationRepository>().getVisitRecommendations(widget.visitId);
+  });
 
-  final List<VisitItem> _visitItems = [];
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    //Silme sürelerinin anlık güncellenmesi için her dakika arayüzü günceller
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      if (mounted) setState(() {});
-    });
+  Future<void> _close() async {
+    final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: const Text('Muayeneyi tamamla'),
+      content: const Text('Ziyaret kapatılacak. Hasta sahibine ziyaret özeti bildirimi gönderilecektir.'),
+      actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('İptal')), ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Tamamla ve kapat'))],
+    ));
+    if (confirmed == true && mounted) context.read<VisitCubit>().closeVisit(widget.visitId);
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _diagnosisController.dispose();
-    _notesController.dispose();
-    _prescriptionController.dispose();
-    super.dispose();
-  }
-
-  //Hızlı Tedavi/Öneri Ekleme
-  void _addQuickItem(String title, String type) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('$title Ekle'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: '$title detayını yazınız...',
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                setState(() {
-                  _visitItems.add(
-                    VisitItem(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      text: controller.text.trim(),
-                      type: type,
-                      createdAt: DateTime.now(),
-                    ),
-                  );
-                });
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Ekle'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Öğe Silme Mantığı (15 Dakika Kontrollü)
-  void _removeItem(VisitItem item) {
-    if (!item.isDeletable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Eklenme üzerinden 15 dakika geçtiği için bu kayıt silinemez!'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _visitItems.removeWhere((element) => element.id == item.id);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Kayıt silindi.'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  //Muayene Kapatma Onay İşlemi
-  void _onCloseVisit() {
-    if (_diagnosisController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lütfen muayeneyi kapatmadan önce bir teşhis giriniz.'),
-          backgroundColor: Colors.deepOrange,
-        ),
-      );
-      return;
-    }
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Muayeneyi Tamamla'),
-        content: const Text(
-          'Muayene kapatılacak ve hasta sahibinin mobil uygulamasına bildirim/özet olarak yansıtılacaktır. Onaylıyor musunuz?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal, foregroundColor: Colors.white),
-            onPressed: () {
-              Navigator.pop(context); // Dialogu kapat
-
-              // backend kaydetme mantığı buraya gelecek
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      'Ziyaret #${widget.visitId} başarıyla kapatıldı ve kaydedildi.'),
-                  backgroundColor: Colors.teal,
-                ),
-              );
-              Navigator.of(context).pop(); // Ekrandan çık
-            },
-            child: const Text('Tamamla ve Kapat'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 900;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Aktif Muayene (#${widget.visitId})'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Center(
-              child: Chip(
-                avatar: const Icon(Icons.fiber_manual_record,
-                    color: Colors.greenAccent, size: 12),
-                label: const Text('Muayene Devam Ediyor',
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
-                backgroundColor: Colors.teal.shade800,
-              ),
-            ),
-          )
-        ],
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1400),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: isDesktop
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 3, child: _buildExaminationForm()),
-                      const SizedBox(width: 24),
-                      Expanded(flex: 2, child: _buildPatientHistoryTimeline()),
-                    ],
-                  )
-                : SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        _buildExaminationForm(),
-                        const SizedBox(height: 24),
-                        _buildPatientHistoryTimeline(),
-                      ],
-                    ),
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Sol Taraf : Aktif Muayene ve Form Alanları
-  Widget _buildExaminationForm() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              //Hasta Künyesi
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.teal.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.teal.shade200),
-                ),
-                child: const Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: Colors.teal,
-                      child: Icon(Icons.pets, color: Colors.white, size: 28),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Pamuk (Kedi - Tekir, 3 Yaş)',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
-                          SizedBox(height: 4),
-                          Text('Sahibi: Zeynep Y. | İletişi: +90 555 *** ** 00',
-                              style: TextStyle(
-                                  color: Colors.black87, fontSize: 13)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Teşhis ve Bulgular
-              const Text('Teşhis & Klinik Bulgular',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _diagnosisController,
-                decoration: const InputDecoration(
-                  hintText: 'Örn: Akut Gastrit, Hafif Dehidrasyon',
-                  prefixIcon: Icon(Icons.healing),
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Hızlı Tedavi ve Öneri Ekleme Butonları
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _addQuickItem('Tedavi/Aşı', 'tedavi'),
-                      icon: const Icon(Icons.add_moderator),
-                      label: const Text('Tedavi/Aşı Ekle'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _addQuickItem('Ev İçin Öneri', 'oneri'),
-                      icon: const Icon(Icons.lightbulb_outline),
-                      label: const Text('Öneri Ekle'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Dynamic Tedavi & Öneri Çipleri (15 Dk Kısıtlamalı Silme)
-              if (_visitItems.isNotEmpty) ...[
-                const Text(
-                  'Eklenecek İşlemler (İlk 15 dk içinde silinebilir):',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _visitItems.map((item) {
-                    final canDelete = item.isDeletable;
-                    return Chip(
-                      avatar: Icon(
-                        item.type == 'tedavi'
-                            ? Icons.check_circle
-                            : Icons.lightbulb,
-                        size: 16,
-                        color:
-                            item.type == 'tedavi' ? Colors.teal : Colors.orange,
-                      ),
-                      label: Text(
-                        '${item.text} ${canDelete ? "(${item.remainingMinutes}dk)" : "(Süre Doldu)"}',
-                        style: TextStyle(
-                          color:
-                              canDelete ? Colors.black : Colors.grey.shade700,
-                          fontSize: 13,
-                        ),
-                      ),
-                      backgroundColor: item.type == 'tedavi'
-                          ? Colors.teal.shade50
-                          : Colors.orange.shade50,
-                      onDeleted: () => _removeItem(item),
-                      deleteIcon: Icon(
-                        Icons.cancel,
-                        size: 18,
-                        color: canDelete ? Colors.redAccent : Colors.grey,
-                      ),
-                      deleteButtonTooltipMessage: canDelete
-                          ? 'Sil'
-                          : '15 dakika dolduğu için silinemez',
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              //Reçete ve İlaç Notları
-              const Text('Reçete & İlaçlar',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _prescriptionController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  hintText: 'İlaç adı, dozaj ve kullanım sıklığını giriniz.',
-                  prefixIcon: Icon(Icons.medication),
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Klinik Notları
-              const Text('Hekim Notları',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _notesController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'Sadece klinikte görünecek dahili notları giriniz.',
-                  prefixIcon: Icon(Icons.note_alt_outlined),
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // Ziyaret Kapat Butonu
-              ElevatedButton.icon(
-                onPressed: _onCloseVisit,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  backgroundColor: Colors.teal,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                ),
-                icon: const Icon(Icons.check_circle_outline),
-                label: const Text('Muayeneyi Tamamla ve Kaydet',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Sağ Taraf: Geçmiş Medikal Zaman Çizgisi (Timeline)
-  Widget _buildPatientHistoryTimeline() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.history, color: Colors.teal),
-                SizedBox(width: 8),
-                Text('Tıbbi Geçmiş & Zaman Çizgisi',
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              ],
-            ),
-            const Divider(height: 24),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildTimelineTile(
-                    date: '12 Mart 2026',
-                    title: 'Karma Aşı (Doz 2)',
-                    subtitle:
-                        'Dr. Ahmet K. - Rutin aşı uygulaması yapıldı. Yan etki gözlenmedi.',
-                    icon: Icons.vaccines,
-                    iconColor: Colors.blue,
-                  ),
-                  _buildTimelineTile(
-                    date: '05 Ocak 2026',
-                    title: 'Genel Kontrol & Parazit',
-                    subtitle: 'İç-dış parazit damlası uygulandı. Kilo: 4.2 kg.',
-                    icon: Icons.sanitizer,
-                    iconColor: Colors.orange,
-                  ),
-                  _buildTimelineTile(
-                    date: '18 Kasım 2025',
-                    title: 'Kulak Enfeksiyonu Tedavisi',
-                    subtitle:
-                        'Sol kulakta kızarıklık. Damla reçete edildi (7 gün).',
-                    icon: Icons.medical_services,
-                    iconColor: Colors.redAccent,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimelineTile({
-    required String date,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color iconColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: iconColor.withValues(alpha: 0.15),
-                child: Icon(icon, size: 18, color: iconColor),
-              ),
-              Container(width: 2, height: 40, color: Colors.grey.shade300),
-            ],
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(date,
-                    style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 2),
-                Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 2),
-                Text(subtitle,
-                    style:
-                        const TextStyle(fontSize: 12, color: Colors.black54)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  @override Widget build(BuildContext context) => BlocListener<VisitCubit, VisitState>(
+    listener: (context, state) {
+      if (state is VisitClosed) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ziyaret kapatıldı. Hasta sahibine bildirim gönderildi.'), backgroundColor: Colors.teal));
+        context.go(AppRoutes.vetSearch);
+      } else if (state is VisitError) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: Colors.red));
+      }
+    },
+    child: FutureBuilder<ActiveVisitContext>(future: _context, builder: (context, snapshot) {
+      if (snapshot.connectionState != ConnectionState.done) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      if (snapshot.hasError) return Scaffold(appBar: AppBar(title: const Text('Aktif Muayene')), body: Center(child: Text('Ziyaret bilgileri alınamadı: ${snapshot.error}')));
+      final data = snapshot.requireData;
+      return Scaffold(appBar: AppBar(title: Text('Aktif Muayene • ${data.pet.name}'), backgroundColor: Colors.teal, foregroundColor: Colors.white), body: RefreshIndicator(
+        onRefresh: () async => _reload(), child: ListView(padding: const EdgeInsets.all(20), children: [
+          Card(child: ListTile(leading: const CircleAvatar(child: Icon(Icons.pets)), title: Text(data.pet.name, style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text('Sahibi: ${data.ownerName}${data.ownerPhone == null ? '' : ' • ${data.ownerPhone}'}\nKod: ${data.pet.uniqueCode}')),
+          const SizedBox(height: 16),
+          Row(children: [Expanded(child: OutlinedButton.icon(onPressed: () async { final saved = await context.push<bool>('/vet/visit/${widget.visitId}/treatment/add'); if (saved == true) _reload(); }, icon: const Icon(Icons.medication), label: const Text('Tedavi ekle'))), const SizedBox(width: 12), Expanded(child: OutlinedButton.icon(onPressed: () async { final saved = await context.push<bool>('/vet/visit/${widget.visitId}/recommendation/add'); if (saved == true) _reload(); }, icon: const Icon(Icons.lightbulb_outline), label: const Text('Öneri ekle')))]),
+          const SizedBox(height: 20), const Text('Ziyaret geçmişi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ...data.history.map((visit) => ListTile(leading: Icon(visit.isOngoing ? Icons.pending : Icons.check_circle, color: visit.isOngoing ? Colors.orange : Colors.teal), title: Text(visit.isOngoing ? 'Devam eden muayene' : 'Tamamlanan muayene'), subtitle: Text('Başlangıç: ${visit.startedAt.toLocal()}'))),
+          const SizedBox(height: 16), const Text('Bu ziyaretteki tedaviler', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          FutureBuilder<List<TreatmentEntity>>(future: _treatments, builder: (context, treatmentSnapshot) {
+            if (treatmentSnapshot.connectionState != ConnectionState.done) return const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator()));
+            if (treatmentSnapshot.hasError) return const Text('Tedavi kayıtları yüklenemedi.');
+            final treatments = treatmentSnapshot.data ?? const [];
+            if (treatments.isEmpty) return const Text('Henüz tedavi kaydı yok.');
+            return Column(children: treatments.map((t) => ListTile(leading: const Icon(Icons.medication, color: Colors.teal), title: Text(t.title), subtitle: Text(t.description ?? t.type))).toList());
+          }),
+          const SizedBox(height: 16), const Text('Bu ziyaretteki öneriler', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          FutureBuilder<List<RecommendationEntity>>(future: _recommendations, builder: (context, recommendationSnapshot) {
+            if (recommendationSnapshot.connectionState != ConnectionState.done) return const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator()));
+            if (recommendationSnapshot.hasError) return const Text('Öneriler yüklenemedi.');
+            final recommendations = recommendationSnapshot.data ?? const [];
+            if (recommendations.isEmpty) return const Text('Henüz öneri kaydı yok.');
+            return Column(children: recommendations.map((r) => ListTile(leading: const Icon(Icons.lightbulb_outline, color: Colors.orange), title: Text(r.type), subtitle: Text(r.description))).toList());
+          }),
+          const SizedBox(height: 20), BlocBuilder<VisitCubit, VisitState>(builder: (context, state) => ElevatedButton.icon(onPressed: state is VisitLoading ? null : _close, icon: const Icon(Icons.check_circle_outline), label: Text(state is VisitLoading ? 'Kapatılıyor...' : 'Muayeneyi tamamla ve kaydet'), style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white, padding: const EdgeInsets.all(16)))),
+          const Padding(padding: EdgeInsets.only(top: 10), child: Text('Tedavi kayıtları yalnızca ilk 15 dakika içinde düzenlenebilir veya silinebilir.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey))),
+        ]),
+      ));
+    }),
+  );
 }

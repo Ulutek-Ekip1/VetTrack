@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:vettrack_frontend/core/error/exceptions.dart';
 import 'package:vettrack_frontend/features/visit/data/models/visit_model.dart';
 import 'package:vettrack_frontend/features/visit/data/models/patient_search_result_model.dart';
+import 'package:vettrack_frontend/features/visit/data/models/active_visit_context_model.dart';
 
 abstract class VisitRemoteDataSource {
   Future<PatientSearchResultModel> searchByCode(String code);
@@ -10,6 +11,7 @@ abstract class VisitRemoteDataSource {
   Future<List<VisitModel>> getOwnerVisitHistory();
   Future<List<VisitModel>> getVetVisitHistory();
   Future<List<VisitModel>> getPetVisitHistory(String petId);
+  Future<ActiveVisitContextModel> getActiveVisitContext(String visitId);
 }
 
 class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
@@ -81,6 +83,16 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
       return list.map((json) => VisitModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(e.message);
+    }
+  }
+
+  @override
+  Future<ActiveVisitContextModel> getActiveVisitContext(String visitId) async {
+    try {
+      final response = await dio.get('/visits/$visitId/context');
+      return ActiveVisitContextModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data is Map ? (e.response!.data['message'] as String?) : e.message);
     }
   }
 }

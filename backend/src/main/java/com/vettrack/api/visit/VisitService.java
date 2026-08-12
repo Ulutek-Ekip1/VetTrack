@@ -65,4 +65,10 @@ public class VisitService {
         petService.getPetById(petId);
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId);
     }
+
+    @Transactional(readOnly = true)
+    public Visit getVisit(UUID visitId) {
+        return visitRepository.findById(visitId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
+    }
 }

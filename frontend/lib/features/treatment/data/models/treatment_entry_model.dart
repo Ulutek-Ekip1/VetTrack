@@ -31,7 +31,7 @@ class TreatmentEntryModel extends TreatmentEntity {
     return TreatmentEntryModel(
       id: (json['id'] ?? json['treatment_id'] ?? '').toString(),
       visitId: (json['visitId'] ?? json['visit_id'] ?? '').toString(),
-      type: (json['type'] ?? 'note').toString(),
+      type: (json['entryType'] ?? json['entry_type'] ?? json['type'] ?? 'note').toString(),
       title: (json['title'] ?? '').toString(),
       description: json['description'] as String?,
       attachmentUrl: (json['attachmentUrl'] ?? json['attachment_url']) as String?,

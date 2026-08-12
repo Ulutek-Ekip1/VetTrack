@@ -340,7 +340,10 @@ class AppRouter {
           name: 'activeVisit',
           builder: (context, state) {
             final visitId = state.pathParameters['visitId'] ?? '';
-            return ActiveVisitScreen(visitId: visitId);
+            return BlocProvider<VisitCubit>(
+              create: (context) => sl<VisitCubit>(),
+              child: ActiveVisitScreen(visitId: visitId),
+            );
           },
         ),
         //Tedavi Girişi Rotası: /vet/visit/:visitId/treatment/add
