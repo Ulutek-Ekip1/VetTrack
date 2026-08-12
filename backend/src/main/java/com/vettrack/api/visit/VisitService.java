@@ -3,6 +3,7 @@ package com.vettrack.api.visit;
 import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.pet.Pet;
+import com.vettrack.api.pet.PetRepository;
 import com.vettrack.api.pet.PetService;
 import com.vettrack.api.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +20,20 @@ public class VisitService {
 
     private final VisitRepository visitRepository;
     private final PetService petService;
+    private final PetRepository petRepository;
     private final NotificationService notificationService;
 
     @Transactional
     public Visit createVisit(UUID petId, UUID vetStaffId) {
-        Pet pet = petService.getPetById(petId);
+        // Lock the parent pet row first. Concurrent requests for the same pet
+        // serialize here; after the first transaction commits, the second one
+        // observes its ongoing visit and receives the documented 409 response.
+        Pet pet = petRepository.findByIdForVisitCreation(petId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evcil hayvan bulunamadı ID: " + petId));
+        if (pet.getDeletedAt() != null) {
+            throw new ResourceNotFoundException("Evcil hayvan bulunamadı ID: " + petId);
+        }
 
-        // Eşzamanlı Ziyaret Kilidi (EC-02): Repository'deki findByPetIdAndStatus metodunu kullanıyoruz
         boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(pet.getId(), "ongoing").isPresent();
         if (hasActiveVisit) {
             throw new ConflictException("Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");

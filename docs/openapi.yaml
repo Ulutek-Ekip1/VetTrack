@@ -472,7 +472,8 @@ paths:
       summary: Yeni ziyaret başlat
       description: |
         Doktor, hasta için yeni ziyaret açar. Açık ziyaret varsa
-        409 döner (EC-02).
+        409 döner (EC-02). Aynı hayvan için eşzamanlı istekler sunucuda
+        serialleştirilir; yalnız biri 201 alır, diğer istek 409 alır.
       security:
         - bearerAuth: []
       requestBody:
