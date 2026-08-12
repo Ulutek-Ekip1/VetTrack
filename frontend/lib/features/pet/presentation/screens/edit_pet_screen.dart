@@ -278,7 +278,18 @@ class _EditPetScreenState extends State<EditPetScreen> {
                                 },
                               );
                             },
-                            child: const Icon(Icons.camera_alt_outlined),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: primaryBlue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_outlined,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
                           )),
                     ],
                   ),
