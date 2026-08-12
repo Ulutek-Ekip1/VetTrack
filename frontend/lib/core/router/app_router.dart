@@ -24,6 +24,7 @@ import '../../features/visit/presentation/screens/doctor_search_screen.dart';
 import '../../features/visit/presentation/screens/active_visit_screen.dart';
 import '../../features/visit/presentation/screens/pet_visit_history_screen.dart';
 import '../../features/visit/presentation/screens/vet_visit_history_screen.dart';
+import '../../features/visit/presentation/cubit/visit_cubit.dart';
 import '../../features/treatment/presentation/screens/add_treatment_screen.dart';
 import '../../features/treatment/presentation/screens/pet_treatment_history_screen.dart';
 import '../../features/recommendation/presentation/screens/pet_recommendation_screen.dart';
@@ -34,6 +35,7 @@ import '../../features/home/presentation/pages/ai_chatbot_screen.dart';
 import '../../features/visit/presentation/screens/owner_visit_history_list_screen.dart';
 import 'main_shell_screen.dart';
 import 'not_found_screen.dart';
+import '../utils/app_platform.dart';
 import '../../features/auth/presentation/screens/email_verification_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/treatment/presentation/cubit/treatment_cubit.dart';
@@ -141,8 +143,8 @@ class AppRouter {
         // hayvan sahiplerine açıktır. AuthCubit oturumu da temizler; bu
         // kontrol derin bağlantılarda ikinci koruma katmanıdır.
         final hasInvalidPlatformRole =
-            (kIsWeb && user.role == UserRole.owner) ||
-            (!kIsWeb && user.role == UserRole.vet);
+            (AppPlatform.isVetWebExperience && user.role == UserRole.owner) ||
+            (AppPlatform.isMobileExperience && user.role == UserRole.vet);
         if (hasInvalidPlatformRole) {
           return location == AppRoutes.welcome ? null : AppRoutes.welcome;
         }
@@ -304,7 +306,10 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.vetSearch,
                   name: 'vetSearch',
-                  builder: (context, state) => const DoctorSearchScreen(),
+                  builder: (context, state) => BlocProvider<VisitCubit>(
+                    create: (context) => sl<VisitCubit>(),
+                    child: const DoctorSearchScreen(),
+                  ),
                 ),
               ],
             ),

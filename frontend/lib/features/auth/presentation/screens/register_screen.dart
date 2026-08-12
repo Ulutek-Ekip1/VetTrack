@@ -7,6 +7,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/utils/app_platform.dart';
 import '../../domain/entities/user_entity.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
@@ -47,7 +48,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _phoneController.text.trim().isEmpty
                 ? null
                 : _phoneController.text.trim(),
-            kIsWeb ? UserRole.vet : UserRole.owner,
+            AppPlatform.isVetWebExperience
+                ? UserRole.vet
+                : UserRole.owner,
           );
     }
   }
@@ -172,7 +175,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                     );
                   }
                   if (state is Authenticated) {
-                    context.go(kIsWeb
+                    context.go(AppPlatform.isVetWebExperience
                         ? AppRoutes.vetSearch
                         : AppRoutes.ownerEmailVerification);
                   }
@@ -244,7 +247,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                               children: [
                                 // Başlık
                                 Text(
-                                  kIsWeb
+                                  AppPlatform.isVetWebExperience
                                       ? "Veteriner Personel Kaydı"
                                       : "Kayıt Ol",
                                   style:
@@ -257,7 +260,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 const SizedBox(height: 8),
 
                                 Text(
-                                  kIsWeb
+                                  AppPlatform.isVetWebExperience
                                       ? "Klinik paneli için veteriner personel hesabınızı oluşturun."
                                       : "Evcil hayvanınızın sağlığını takip etmeye bugün başlayın.",
                                   style: theme.textTheme.bodyMedium?.copyWith(

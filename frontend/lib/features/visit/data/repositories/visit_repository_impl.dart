@@ -1,7 +1,7 @@
 import 'package:vettrack_frontend/features/visit/domain/entities/visit_entity.dart';
 import 'package:vettrack_frontend/features/visit/domain/repositories/visit_repository.dart';
 import 'package:vettrack_frontend/features/visit/data/datasources/visit_remote_datasource.dart';
-import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
+import 'package:vettrack_frontend/features/visit/domain/entities/patient_search_result.dart';
 
 class VisitRepositoryImpl implements VisitRepository {
   final VisitRemoteDataSource remoteDataSource;
@@ -9,7 +9,7 @@ class VisitRepositoryImpl implements VisitRepository {
   VisitRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<PetEntity> searchByCode(String code) async {
+  Future<PatientSearchResult> searchByCode(String code) async {
     return await remoteDataSource.searchByCode(code);
   }
 

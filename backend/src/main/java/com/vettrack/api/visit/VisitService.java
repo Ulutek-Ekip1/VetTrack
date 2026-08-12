@@ -20,8 +20,8 @@ public class VisitService {
     private final PetService petService;
 
     @Transactional
-    public Visit createVisit(String uniqueCode, UUID vetStaffId, String chiefComplaint) {
-        Pet pet = petService.getPetByUniqueCode(uniqueCode);
+    public Visit createVisit(UUID petId, UUID vetStaffId) {
+        Pet pet = petService.getPetById(petId);
 
         // Eşzamanlı Ziyaret Kilidi (EC-02): Repository'deki findByPetIdAndStatus metodunu kullanıyoruz
         boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(pet.getId(), "ongoing").isPresent();
@@ -33,7 +33,6 @@ public class VisitService {
                 .petId(pet.getId())
                 .vetStaffId(vetStaffId)
                 .status("ongoing")
-                .chiefComplaint(chiefComplaint)
                 .startedAt(OffsetDateTime.now())
                 .build();
 

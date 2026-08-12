@@ -21,6 +21,7 @@ class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
   final RegisterDeviceTokenUseCase registerDeviceTokenUseCase;
   final UnregisterDeviceTokenUseCase unregisterDeviceTokenUseCase;
+  int _sessionOperation = 0;
 
   AuthCubit({
     required this.loginWithEmail,
@@ -33,27 +34,32 @@ class AuthCubit extends Cubit<AuthState> {
   }) : super(AuthInitial());
 
   Future<void> checkAuthStatus() async {
+    final operation = ++_sessionOperation;
     emit(const AuthLoading());
     try {
       final user = await authRepository.getCurrentUser().timeout(
             const Duration(seconds: 15),
             onTimeout: () => null,
           );
+      if (operation != _sessionOperation) return;
       if (user != null) {
         emit(Authenticated(user));
       } else {
         emit(const Unauthenticated());
       }
     } catch (e) {
+      if (operation != _sessionOperation) return;
       emit(const Unauthenticated());
     }
   }
 
   Future<void> signInWithEmail(String email, String password) async {
+    final operation = ++_sessionOperation;
     emit(const AuthLoading());
 
     try {
       final user = await loginWithEmail(email, password);
+      if (operation != _sessionOperation) return;
       try {
         final fcmToken = await FirebaseMessaging.instance.getToken();
         if (fcmToken != null) {
@@ -66,29 +72,35 @@ class AuthCubit extends Cubit<AuthState> {
       }
       emit(Authenticated(user));
     } catch (e) {
+      if (operation != _sessionOperation) return;
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
   Future<void> signInWithGoogle() async {
+    final operation = ++_sessionOperation;
     emit(const AuthLoading());
     try {
       final user = await signInWithGoogleUseCase();
+      if (operation != _sessionOperation) return;
       if (user.id.isEmpty) {
         emit(AuthInitial());
         return;
       }
       emit(Authenticated(user));
     } catch (e) {
+      if (operation != _sessionOperation) return;
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
   Future<void> signUp(String email, String password, String name, String? phone,
       UserRole role) async {
+    final operation = ++_sessionOperation;
     emit(const AuthLoading());
     try {
       final user = await registerUseCase(email, password, name, phone, role);
+      if (operation != _sessionOperation) return;
       try {
         await sl<FirebaseMessagingService>().sendTokenToBackend();
       } catch (fcmError) {
@@ -96,11 +108,13 @@ class AuthCubit extends Cubit<AuthState> {
       }
       emit(Authenticated(user));
     } catch (e) {
+      if (operation != _sessionOperation) return;
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
   Future<void> signOut() async {
+    final operation = ++_sessionOperation;
     emit(const AuthLoading());
     try {
       try {
@@ -113,8 +127,10 @@ class AuthCubit extends Cubit<AuthState> {
         // kullanıcının çıkış yapmasını engellememek için hatayı yutuyoruz.
       }
       await logoutUseCase();
+      if (operation != _sessionOperation) return;
       emit(const Unauthenticated());
     } catch (e) {
+      if (operation != _sessionOperation) return;
       emit(AuthError(e.toString()));
     }
   }
@@ -146,6 +162,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   //Oturum süresi dolunca yerel tokenı silip uygulmayı unauthenticated duruma geçirmek için
   Future<void> handleSessionExpired() async {
+    ++_sessionOperation;
     await logoutUseCase();
     emit(const Unauthenticated(
         'Oturumunuzun süresi doldu, lütfen tekrar giriş yapın.'));
