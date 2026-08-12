@@ -52,8 +52,9 @@ class _ActiveVisitScreenState extends State<ActiveVisitScreen> {
                     child: const Text('Tamamla ve kapat'))
               ],
             ));
-    if (confirmed == true && mounted)
+    if (confirmed == true && mounted) {
       context.read<VisitCubit>().closeVisit(widget.visitId);
+    }
   }
 
   @override
