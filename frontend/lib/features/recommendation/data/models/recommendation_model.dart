@@ -13,11 +13,11 @@ class RecommendationModel extends RecommendationEntity {
 //JSON -> Model dönüşümü
   factory RecommendationModel.fromJson(Map<String, dynamic> json) {
     return RecommendationModel(
-      id: json['id'] as String,
-      visitId: json['visitId'] as String,
+      id: json['id'].toString(),
+      visitId: (json['visitId'] ?? json['visit_id']).toString(),
       type: json['type'] as String,
       description: json['description'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse((json['createdAt'] ?? json['created_at']) as String),
     );
   }
 

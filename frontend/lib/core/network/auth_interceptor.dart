@@ -27,7 +27,9 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.response?.statusCode == 401) {
+    final hasAuthorizationHeader =
+        err.requestOptions.headers['Authorization'] != null;
+    if (err.response?.statusCode == 401 && hasAuthorizationHeader) {
       final requestPath = err.requestOptions.path;
       if (requestPath != '/auth/login' && requestPath != '/auth/register') {
         getAuthCubit().handleSessionExpired();

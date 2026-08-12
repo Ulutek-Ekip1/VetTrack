@@ -25,6 +25,12 @@ public class Notification {
     @Column(name = "treatment_entry_id")
     private UUID treatmentEntryId;
 
+    @Column(name = "pet_id")
+    private UUID petId;
+
+    @Column(name = "visit_id")
+    private UUID visitId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private NotificationType type;

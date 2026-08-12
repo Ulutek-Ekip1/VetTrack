@@ -1,10 +1,18 @@
 package com.vettrack.api.visit;
 
+import com.vettrack.api.pet.Pet;
+import com.vettrack.api.pet.PetService;
+import com.vettrack.api.vetstaff.VetStaff;
+import com.vettrack.api.vetstaff.VetStaffService;
+import com.vettrack.api.owner.Owner;
+import com.vettrack.api.owner.OwnerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,34 +24,49 @@ import java.util.UUID;
 public class VisitController {
 
     private final VisitService visitService;
+    private final PetService petService;
+    private final VetStaffService vetStaffService;
+    private final OwnerService ownerService;
 
     @PostMapping
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
-    public ResponseEntity<Visit> createVisit(@Valid @RequestBody VisitCreateRequest request) {
-        Visit visit = visitService.createVisit(
-                request.getUniqueCode(),
-                request.getVetStaffId(),
-                request.getChiefComplaint()
-        );
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Visit> createVisit(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody VisitCreateRequest request
+    ) {
+        VetStaff vetStaff = vetStaffService.getOrCreateByUserId(UUID.fromString(jwt.getSubject()), jwt);
+        Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getId());
         return new ResponseEntity<>(visit, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}/close")
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Visit> closeVisit(@PathVariable UUID id) {
-        Visit visit = visitService.closeVisit(id);
-        return ResponseEntity.ok(visit);
+        return ResponseEntity.ok(visitService.closeVisit(id));
     }
 
     @GetMapping("/code/{code}")
-    public ResponseEntity<List<Visit>> getVisitsByCode(@PathVariable String code) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PatientSearchResponse> getPatientByCode(@PathVariable String code) {
+        Pet pet = petService.getPetByUniqueCode(code);
         List<Visit> visits = visitService.getVisitsByUniqueCode(code);
-        return ResponseEntity.ok(visits);
+        return ResponseEntity.ok(new PatientSearchResponse(pet, visits));
+    }
+
+    @GetMapping("/{visitId}/context")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ActiveVisitContextResponse> getActiveVisitContext(@PathVariable UUID visitId) {
+        Visit visit = visitService.getVisit(visitId);
+        Pet pet = petService.getPetById(visit.getPetId());
+        Owner owner = ownerService.getOwnerById(pet.getOwnerId());
+        return ResponseEntity.ok(new ActiveVisitContextResponse(
+                visit, pet, owner, visitService.getVisitsByPetId(pet.getId())
+        ));
     }
 
     @GetMapping("/pet/{petId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Visit>> getVisitsByPetId(@PathVariable UUID petId) {
-        List<Visit> visits = visitService.getVisitsByPetId(petId);
-        return ResponseEntity.ok(visits);
+        return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
     }
 }

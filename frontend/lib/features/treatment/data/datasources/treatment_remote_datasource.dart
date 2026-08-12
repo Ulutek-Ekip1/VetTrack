@@ -5,6 +5,7 @@ import 'package:vettrack_frontend/features/treatment/domain/entities/treatment_e
 
 abstract class TreatmentRemoteDataSource {
   Future<List<TreatmentEntity>> getTreatments(String visitId);
+  Future<List<TreatmentEntity>> getPetTreatments(String petId);
 
   Future<TreatmentEntryModel> addTreatment({
     required String visitId,
@@ -32,6 +33,16 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
           .map((json) =>
               TreatmentEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? 'Tedavi kayıtları alınamadı.');
+    }
+  }
+
+  @override
+  Future<List<TreatmentEntity>> getPetTreatments(String petId) async {
+    try {
+      final response = await dio.get('/pets/$petId/treatments');
+      return (response.data as List).map((json) => TreatmentEntryModel.fromJson(json as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
       throw ServerException(e.message ?? 'Tedavi kayıtları alınamadı.');
     }

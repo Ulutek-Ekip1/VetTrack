@@ -5,6 +5,8 @@ class NotificationModel extends NotificationEntity {
     required super.id,
     required super.ownerId,
     super.treatmentEntryId,
+    super.petId,
+    super.visitId,
     required super.title,
     required super.body,
     required super.type,
@@ -14,9 +16,11 @@ class NotificationModel extends NotificationEntity {
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: json['id'] as String? ?? '',
-      ownerId: json['ownerId'] as String? ?? '',
-      treatmentEntryId: json['treatmentEntryId'] as String?,
+      id: json['id']?.toString() ?? '',
+      ownerId: json['ownerId']?.toString() ?? '',
+      treatmentEntryId: json['treatmentEntryId']?.toString(),
+      petId: json['petId']?.toString(),
+      visitId: json['visitId']?.toString(),
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
       type: json['type'] as String? ?? 'SYSTEM',
@@ -32,6 +36,8 @@ class NotificationModel extends NotificationEntity {
       'id': id,
       'ownerId': ownerId,
       if (treatmentEntryId != null) 'treatmentEntryId': treatmentEntryId,
+      if (petId != null) 'petId': petId,
+      if (visitId != null) 'visitId': visitId,
       'title': title,
       'body': body,
       'type': type,

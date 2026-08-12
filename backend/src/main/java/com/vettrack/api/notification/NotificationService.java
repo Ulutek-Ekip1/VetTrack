@@ -67,6 +67,27 @@ public class NotificationService {
         return savedNotification;
     }
 
+    @Transactional
+    public Notification sendVisitClosedNotification(UUID ownerId, UUID petId, UUID visitId) {
+        Notification savedNotification = notificationRepository.save(Notification.builder()
+                .ownerId(ownerId).petId(petId).visitId(visitId).type(NotificationType.VISIT)
+                .title("Muayene tamamlandı")
+                .body("Evcil hayvanınızın muayenesi tamamlandı. Tedavi ve önerileri görüntüleyebilirsiniz.")
+                .isRead(false).build());
+
+        if (FirebaseApp.getApps().isEmpty()) return savedNotification;
+        for (DeviceToken token : deviceTokenRepository.findByUserId(ownerId)) {
+            try {
+                FirebaseMessaging.getInstance().sendAsync(Message.builder().setToken(token.getFcmToken())
+                        .putData("title", savedNotification.getTitle()).putData("body", savedNotification.getBody())
+                        .putData("type", savedNotification.getType().name())
+                        .putData("notificationId", savedNotification.getId().toString())
+                        .putData("petId", petId.toString()).putData("visitId", visitId.toString()).build());
+            } catch (Exception e) { log.error("FCM visit notification failed: {}", e.getMessage()); }
+        }
+        return savedNotification;
+    }
+
     @Transactional(readOnly = true)
     public NotificationListResponse getOwnerNotifications(UUID ownerId) {
         List<NotificationResponse> notifications = notificationRepository

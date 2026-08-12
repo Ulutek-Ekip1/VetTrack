@@ -15,7 +15,7 @@ class VisitModel extends VisitEntity {
     return VisitModel(
       id: json['id'] as String,
       petId: (json['petId'] ?? json['pet_id'] ?? '') as String,
-      vetStaffId: (json['vetStaffId'] ?? json['vet_staff_id'] ?? '') as String,
+      vetStaffId: (json['vetStaffId'] ?? json['vet_staff_id'] ?? '').toString(),
       vetStaffName: (json['vetStaffName'] ?? json['vet_staff_name']) as String?,
       status: (json['status'] ?? 'ongoing') as String,
       startedAt: json['startedAt'] != null

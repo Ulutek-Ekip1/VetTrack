@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:vettrack_frontend/features/visit/domain/entities/visit_entity.dart';
-import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
+import 'package:vettrack_frontend/features/visit/domain/entities/patient_search_result.dart';
 
 abstract class VisitState extends Equatable {
   const VisitState();
@@ -14,12 +14,12 @@ class VisitInitial extends VisitState {}
 class VisitLoading extends VisitState {}
 
 class VisitSearchResult extends VisitState {
-  final PetEntity pet;
+  final PatientSearchResult result;
 
-  const VisitSearchResult(this.pet);
+  const VisitSearchResult(this.result);
 
   @override
-  List<Object?> get props => [pet];
+  List<Object?> get props => [result.pet, result.visits];
 }
 
 class VisitStarted extends VisitState {

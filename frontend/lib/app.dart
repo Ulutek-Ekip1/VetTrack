@@ -8,6 +8,7 @@ import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/pet/presentation/cubit/pet_cubit.dart';
 import 'core/services/top_notification.dart';
 import 'core/services/update_service.dart';
+import 'core/services/firebase_messaging_service.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -22,6 +23,7 @@ class VetTrackApp extends StatelessWidget {
       if (navContext != null) {
         UpdateManager.checkVersion(navContext);
       }
+      sl<FirebaseMessagingService>().flushPendingNavigation();
     });
 
     return MultiBlocProvider(

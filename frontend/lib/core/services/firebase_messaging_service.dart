@@ -1,103 +1,106 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vettrack_frontend/core/services/top_notification.dart';
 import '../../features/notification/domain/usecases/unregister_device_token_usecase.dart';
 import '../di/injection_container.dart';
 import '../../features/notification/domain/usecases/register_device_token_usecase.dart';
 import '../../features/notification/domain/usecases/mark_as_read_usecase.dart';
+import '../router/app_router.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint("Arka planda bildirim geldi: ${message.messageId}");
+  debugPrint('Arka planda bildirim geldi: ${message.messageId}');
 }
 
 class FirebaseMessagingService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  bool _tokenRefreshListening = false;
+  String? _pendingPetTimelinePath;
 
   Future<void> sendTokenToBackend() async {
     final token = await _messaging.getToken();
-    if (token != null) {
-      final registerTokenUseCase = sl<RegisterDeviceTokenUseCase>();
-      final platform =
-          defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
-      await registerTokenUseCase(fcmToken: token, platform: platform);
-    }
+    if (token == null) return;
+    await sl<RegisterDeviceTokenUseCase>()(
+      fcmToken: token,
+      platform: defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
+    );
   }
 
   Future<void> removeTokenFromBackend() async {
     final token = await _messaging.getToken();
-    if (token != null) {
-      final unregisterTokenUseCase = sl<UnregisterDeviceTokenUseCase>();
-      await unregisterTokenUseCase(fcmToken: token);
-    }
+    if (token != null) await sl<UnregisterDeviceTokenUseCase>()(fcmToken: token);
   }
 
   Future<void> initNotifications() async {
-    NotificationSettings settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      _handleNotificationClick(message);
-    });
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationClick);
+    final message = await _messaging.getInitialMessage();
+    if (message != null) _handleNotificationClick(message);
+    _setupForegroundListener();
+  }
 
-    FirebaseMessaging.instance
-        .getInitialMessage()
-        .then((RemoteMessage? message) {
-      if (message != null) {
-        _handleNotificationClick(message);
-      }
-    });
+  Future<AuthorizationStatus> requestPermissionFromUser() async {
+    final settings = await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    final status = settings.authorizationStatus;
+    if (status == AuthorizationStatus.authorized || status == AuthorizationStatus.provisional) {
+      await sendTokenToBackend();
+      listenForTokenChanges();
+    }
+    return status;
+  }
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      _setupForegroundListener();
-    } else {}
+  Future<bool> openNotificationSettings() async {
+    if (kIsWeb) return false;
+    final uri = Uri.parse('app-settings:');
+    if (!await canLaunchUrl(uri)) return false;
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   void _handleNotificationClick(RemoteMessage message) {
     final notificationId = message.data['notificationId'];
-    if (notificationId != null) {
-      final markAsRead = sl<MarkAsReadUseCase>();
-      markAsRead(notificationId.toString());
-    }
-    // Yönlendirme yapılabilir
+    if (notificationId != null) sl<MarkAsReadUseCase>()(notificationId.toString());
+    _navigateToPetTimeline(message.data);
   }
 
   void _setupForegroundListener() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      final title = message.data['title'] ??
-          message.notification?.title ??
-          'Yeni Bildirim';
+    FirebaseMessaging.onMessage.listen((message) {
+      final title = message.data['title'] ?? message.notification?.title ?? 'Yeni Bildirim';
       final body = message.data['body'] ?? message.notification?.body ?? '';
-      final type = message.data['type'];
-      final notificationId = message.data['notificationId'];
-
       TopNotification.show(
-          title: title,
-          body: body,
-          type: type,
-          onTap: () {
-            if (notificationId != null) {
-              final markAsRead = sl<MarkAsReadUseCase>();
-              markAsRead(notificationId.toString());
-            }
-            // Yönlendirme yapılabilir
-          });
+        title: title,
+        body: body,
+        type: message.data['type'] ?? 'SYSTEM',
+        onTap: () => _handleNotificationClick(message),
+      );
     });
   }
 
   void listenForTokenChanges() {
-    FirebaseMessaging.instance.onTokenRefresh.listen(
-      (newToken) async {
-        final registerToken = sl<RegisterDeviceTokenUseCase>();
-        final platform =
-            defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
-        await registerToken(fcmToken: newToken, platform: platform);
-      },
-    ).onError(
-      (err) {},
-    );
+    if (_tokenRefreshListening) return;
+    _tokenRefreshListening = true;
+    _messaging.onTokenRefresh.listen((newToken) async {
+      await sl<RegisterDeviceTokenUseCase>()(
+        fcmToken: newToken,
+        platform: defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
+      );
+    });
+  }
+
+  void _navigateToPetTimeline(Map<String, dynamic> data) {
+    final petId = data['petId']?.toString();
+    if (petId == null || petId.isEmpty) return;
+    _pendingPetTimelinePath = '/owner/pets/$petId/treatments';
+    flushPendingNavigation();
+  }
+
+  void flushPendingNavigation() {
+    final path = _pendingPetTimelinePath;
+    final context = AppRouter.navigatorKey.currentContext;
+    if (path == null || context == null) return;
+
+    _pendingPetTimelinePath = null;
+    context.push(path);
   }
 }

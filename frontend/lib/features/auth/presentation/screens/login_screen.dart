@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +8,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/utils/app_platform.dart';
+import '../../domain/entities/user_entity.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -97,6 +98,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         content: Text('Hoşgeldiniz, ${state.user.name}'),
                       ),
                     );
+                    context.go(
+                      state.user.role == UserRole.vet
+                          ? AppRoutes.vetSearch
+                          : AppRoutes.ownerHome,
+                    );
                   }
                 },
                 builder: (context, state) {
@@ -166,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 // Başlıklar
                                 Text(
-                                  kIsWeb
+                                  AppPlatform.isVetWebExperience
                                       ? "Veteriner Personel Girişi"
                                       : "Giriş Yap",
                                   style:
@@ -184,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: AppColors.onSurfaceVariant,
                                   ),
                                 ),
-                                if (kIsWeb) ...[
+                                if (AppPlatform.isVetWebExperience) ...[
                                   const SizedBox(height: 8),
                                   Text(
                                     "Klinik yönetim paneline erişmek için personel hesabınızı kullanın.",

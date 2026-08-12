@@ -4,6 +4,8 @@ class NotificationEntity extends Equatable {
   final String id;
   final String ownerId;
   final String? treatmentEntryId;
+  final String? petId;
+  final String? visitId;
   final String title;
   final String body;
   final String type;
@@ -14,6 +16,8 @@ class NotificationEntity extends Equatable {
     required this.id,
     required this.ownerId,
     this.treatmentEntryId,
+    this.petId,
+    this.visitId,
     required this.title,
     required this.body,
     required this.type,
@@ -26,6 +30,8 @@ class NotificationEntity extends Equatable {
         id,
         ownerId,
         treatmentEntryId,
+        petId,
+        visitId,
         title,
         body,
         type,

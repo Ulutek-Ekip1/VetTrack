@@ -33,6 +33,8 @@ class NotificationCubit extends Cubit<NotificationState> {
     }
   }
 
+  Future<void> refresh() => loadNotifications();
+
   //Tokeni sunucuya kaydetme
   Future<void> registerDeviceToken(String token,
       {String platform = 'android'}) async {

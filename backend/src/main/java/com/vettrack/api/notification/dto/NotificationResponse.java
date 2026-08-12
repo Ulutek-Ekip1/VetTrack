@@ -21,6 +21,8 @@ public class NotificationResponse {
     private String title;
     private String body;
     private UUID treatmentEntryId;
+    private UUID petId;
+    private UUID visitId;
     private Boolean isRead;
     private OffsetDateTime readAt;
     private OffsetDateTime sentAt;
@@ -32,6 +34,8 @@ public class NotificationResponse {
                 .title(n.getTitle())
                 .body(n.getBody())
                 .treatmentEntryId(n.getTreatmentEntryId())
+                .petId(n.getPetId())
+                .visitId(n.getVisitId())
                 .isRead(n.getIsRead())
                 .readAt(n.getReadAt())
                 .sentAt(n.getSentAt())

@@ -8,6 +8,7 @@ import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../widgets/pet_card.dart';
+import '../../../notification/presentation/widgets/notification_badge_button.dart';
 
 class PetListScreen extends StatefulWidget {
   const PetListScreen({super.key});
@@ -67,14 +68,7 @@ class _PetListScreenState extends State<PetListScreen> {
                 ),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined,
-                  color: Color(0xFF434655)),
-              tooltip: 'Bildirimler',
-              onPressed: () {
-                context.push(AppRoutes.notifications);
-              },
-            ),
+            const NotificationBadgeButton(),
             IconButton(
               icon: const Icon(Icons.logout, color: Color(0xFF434655)),
               tooltip: 'Çıkış Yap',

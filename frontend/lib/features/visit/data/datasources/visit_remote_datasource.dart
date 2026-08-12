@@ -1,15 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:vettrack_frontend/core/error/exceptions.dart';
 import 'package:vettrack_frontend/features/visit/data/models/visit_model.dart';
-import 'package:vettrack_frontend/features/pet/data/models/pet_model.dart';
+import 'package:vettrack_frontend/features/visit/data/models/patient_search_result_model.dart';
+import 'package:vettrack_frontend/features/visit/data/models/active_visit_context_model.dart';
 
 abstract class VisitRemoteDataSource {
-  Future<PetModel> searchByCode(String code);
+  Future<PatientSearchResultModel> searchByCode(String code);
   Future<VisitModel> startVisit(String petId);
   Future<void> closeVisit(String visitId);
   Future<List<VisitModel>> getOwnerVisitHistory();
   Future<List<VisitModel>> getVetVisitHistory();
   Future<List<VisitModel>> getPetVisitHistory(String petId);
+  Future<ActiveVisitContextModel> getActiveVisitContext(String visitId);
 }
 
 class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
@@ -18,12 +20,17 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   VisitRemoteDataSourceImpl(this.dio);
 
   @override
-  Future<PetModel> searchByCode(String code) async {
+  Future<PatientSearchResultModel> searchByCode(String code) async {
     try {
-      final response = await dio.get('/visits/code/$code');
-      return PetModel.fromJson(response.data);
+      final response = await dio.get('/visits/code/${Uri.encodeComponent(code)}');
+      return PatientSearchResultModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      if (e.response?.statusCode == 404) {
+        throw ServerException('Kod bulunamadı. Lütfen erişim kodunu kontrol edin.');
+      }
+      final data = e.response?.data;
+      final message = data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerException(message ?? e.message);
     }
   }
 
@@ -76,6 +83,16 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
       return list.map((json) => VisitModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(e.message);
+    }
+  }
+
+  @override
+  Future<ActiveVisitContextModel> getActiveVisitContext(String visitId) async {
+    try {
+      final response = await dio.get('/visits/$visitId/context');
+      return ActiveVisitContextModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data is Map ? (e.response!.data['message'] as String?) : e.message);
     }
   }
 }

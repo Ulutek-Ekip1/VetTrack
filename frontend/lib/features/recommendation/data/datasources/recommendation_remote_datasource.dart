@@ -5,6 +5,7 @@ import 'package:vettrack_frontend/features/recommendation/domain/entities/recomm
 
 abstract class RecommendationRemoteDataSource {
   Future<List<RecommendationEntity>> getRecommendations(String petId);
+  Future<List<RecommendationEntity>> getVisitRecommendations(String visitId);
   Future<RecommendationEntity> addRecommendation({
     required String visitId,
     required String type,
@@ -28,6 +29,16 @@ class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSour
           .map((json) =>
               RecommendationModel.fromJson(json as Map<String, dynamic>))
           .toList();
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? 'Öneriler alınamadı.');
+    }
+  }
+
+  @override
+  Future<List<RecommendationEntity>> getVisitRecommendations(String visitId) async {
+    try {
+      final response = await dio.get('/visits/$visitId/recommendations');
+      return (response.data as List).map((json) => RecommendationModel.fromJson(json as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
       throw ServerException(e.message ?? 'Öneriler alınamadı.');
     }

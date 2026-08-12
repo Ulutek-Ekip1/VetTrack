@@ -12,9 +12,12 @@ class UserModel extends UserEntity {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    // Role parsing (supporting both top-level role and nested user_metadata role)
-    final rawRole = json['role'] as String? ??
-        (json['user_metadata'] is Map ? (json['user_metadata'] as Map)['role'] as String? : null);
+    // Supabase top-level `role` is usually `authenticated`; the application
+    // role is stored in user_metadata.role and must take precedence.
+    final metadataRole = json['user_metadata'] is Map
+        ? (json['user_metadata'] as Map)['role'] as String?
+        : null;
+    final rawRole = metadataRole ?? json['role'] as String?;
     UserRole parsedRole = UserRole.owner; // Default
 
     if (rawRole == 'vet_staff' || rawRole == 'VET') {

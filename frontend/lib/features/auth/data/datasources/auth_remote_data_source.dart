@@ -41,7 +41,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           await localDataSource.cacheToken(token);
         }
 
-        return UserModel.fromJson(userData);
+        return UserModel.fromJson(userData as Map<String, dynamic>);
       } else {
         throw Exception("Giriş başarısız: ${response.statusCode}");
       }
@@ -82,7 +82,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           await localDataSource.cacheToken(token);
         }
 
-        return UserModel.fromJson(userData);
+        final createdUser = UserModel.fromJson(userData as Map<String, dynamic>);
+
+        // Supabase, e-posta doğrulaması açıkken kayıt yanıtındaki user_metadata
+        // alanını eksik döndürebilir. Rol kayıt isteğinde zaten kesin olarak
+        // belirlendiğinden, ilk yönlendirmede varsayılan owner rolüne düşmeyelim.
+        return UserModel(
+          id: createdUser.id,
+          authId: createdUser.authId,
+          email: createdUser.email,
+          name: createdUser.name,
+          phone: createdUser.phone,
+          role: role,
+          createdAt: createdUser.createdAt,
+        );
       } else {
         throw Exception("Kayıt başarısız: ${response.statusCode}");
       }
