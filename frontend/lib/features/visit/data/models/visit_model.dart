@@ -9,6 +9,7 @@ class VisitModel extends VisitEntity {
     required super.status,
     required super.startedAt,
     super.endedAt,
+    super.chiefComplaint,
   });
 
   factory VisitModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +29,7 @@ class VisitModel extends VisitEntity {
           : (json['ended_at'] != null
               ? DateTime.parse(json['ended_at'] as String)
               : null),
+      chiefComplaint: (json['chiefComplaint'] ?? json['chief_complaint']) as String?,
     );
   }
 
@@ -40,6 +42,7 @@ class VisitModel extends VisitEntity {
       'status': status,
       'startedAt': startedAt.toIso8601String(),
       if (endedAt != null) 'endedAt': endedAt!.toIso8601String(),
+      if (chiefComplaint != null) 'chiefComplaint': chiefComplaint,
     };
   }
 }

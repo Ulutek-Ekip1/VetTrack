@@ -513,7 +513,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 | Alan | Tip | Zorunlu | Açıklama |
 |---|---|---|---|
-| `type` | Enum | Evet | `medication`, `xray`, `lab_result`, `note` |
+| `type` | Enum | Evet | `medication`, `xray`, `lab_result`, `note`, `vaccine`, `surgery` |
 | `title` | String (1-200) | Evet | Kısa başlık |
 | `description` | String | Hayır | Detaylı açıklama |
 | `attachmentUrl` | String (URI) | Hayır | Supabase Storage URL'si |

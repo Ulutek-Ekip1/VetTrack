@@ -8,6 +8,7 @@ class VisitEntity extends Equatable {
   final String status;
   final DateTime startedAt;
   final DateTime? endedAt;
+  final String? chiefComplaint;
 
   const VisitEntity({
     required this.id,
@@ -17,6 +18,7 @@ class VisitEntity extends Equatable {
     required this.status,
     required this.startedAt,
     this.endedAt,
+    this.chiefComplaint,
   });
 
   bool get isOngoing => status == 'ongoing';
@@ -30,5 +32,6 @@ class VisitEntity extends Equatable {
         status,
         startedAt,
         endedAt,
+        chiefComplaint,
       ];
 }

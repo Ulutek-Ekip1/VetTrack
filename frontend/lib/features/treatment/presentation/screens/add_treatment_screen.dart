@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entities/treatment_entity.dart';
 import '../cubit/treatment_cubit.dart';
 import '../cubit/treatment_state.dart';
 
@@ -36,12 +37,12 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
         if (_dosageController.text.trim().isNotEmpty)
           'Doz/Sıklık: ${_dosageController.text.trim()}',
         if (_notesController.text.trim().isNotEmpty)
-          'Açıklama: {$_dosageController.text.trim()}',
+          'Açıklama: ${_notesController.text.trim()}',
       ].join('\n');
 
       context.read<TreatmentCubit>().addTreatment(
             visitId: widget.visitId,
-            type: _selectedCategory,
+            type: categoryToTypeMap[_selectedCategory] ?? 'note',
             title: _treatmentTitleController.text.trim(),
             description: description.isNotEmpty ? description : null,
           );
@@ -114,9 +115,13 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
                             value: 'Operasyon',
                             child: Text('Cerrahi Operasyon')),
                         DropdownMenuItem(
-                            value: 'Kür', child: Text('Parazit Tedavisi')),
+                            value: 'Röntgen',
+                            child: Text('Röntgen / Sonuç Görüntüleme')),
                         DropdownMenuItem(
-                            value: 'Diğer', child: Text('Diğer İşlemler')),
+                            value: 'Laboratuvar',
+                            child: Text('Laboratuvar / Sonuç Görüntüleme')),
+                        DropdownMenuItem(
+                            value: 'Not', child: Text('Diğer Notlar')),
                       ],
                       onChanged: (val) {
                         if (val != null) {

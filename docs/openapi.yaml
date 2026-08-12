@@ -1234,7 +1234,7 @@ components:
       properties:
         type:
           type: string
-          enum: [medication, xray, lab_result, note]
+          enum: [medication, xray, lab_result, note, vaccine, surgery]
           example: "medication"
         title:
           type: string
@@ -1255,7 +1255,7 @@ components:
       properties:
         type:
           type: string
-          enum: [medication, xray, lab_result, note]
+          enum: [medication, xray, lab_result, note, vaccine, surgery]
         title:
           type: string
           minLength: 1
@@ -1279,7 +1279,7 @@ components:
           format: uuid
         type:
           type: string
-          enum: [medication, xray, lab_result, note]
+          enum: [medication, xray, lab_result, note, vaccine, surgery]
         title:
           type: string
         description:

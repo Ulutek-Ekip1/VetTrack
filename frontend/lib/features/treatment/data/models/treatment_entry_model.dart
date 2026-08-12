@@ -31,7 +31,7 @@ class TreatmentEntryModel extends TreatmentEntity {
     return TreatmentEntryModel(
       id: (json['id'] ?? json['treatment_id'] ?? '').toString(),
       visitId: (json['visitId'] ?? json['visit_id'] ?? '').toString(),
-      type: (json['entryType'] ?? json['entry_type'] ?? json['type'] ?? 'note').toString(),
+      type: (json['type'] ?? json['entryType'] ?? json['entry_type'] ?? 'note').toString(),
       title: (json['title'] ?? '').toString(),
       description: json['description'] as String?,
       attachmentUrl: (json['attachmentUrl'] ?? json['attachment_url']) as String?,
@@ -47,7 +47,7 @@ class TreatmentEntryModel extends TreatmentEntity {
           : (json['end_date'] != null
               ? DateTime.tryParse(json['end_date'] as String)
               : null),
-      editable: json['editable'] as bool? ?? false,
+      editable: (json['editable'] ?? json['isEditable'] ?? false) as bool,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String)
           : (json['created_at'] != null
