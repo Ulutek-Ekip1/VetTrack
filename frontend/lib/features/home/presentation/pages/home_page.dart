@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../../../features/auth/presentation/cubit/auth_state.dart';
 import '../../../../features/pet/presentation/cubit/pet_cubit.dart';
 import '../../../../features/pet/presentation/cubit/pet_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../core/di/injection_container.dart';
+import '../../../../core/services/firebase_messaging_service.dart';
+import '../../../../features/notification/presentation/cubit/notification_cubit.dart';
+import '../../../../features/notification/presentation/cubit/notification_state.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,11 +20,21 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  AuthorizationStatus? _notificationPermission;
   @override
   void initState() {
     super.initState();
     // Sayfa açıldığında pet listesini tazele
     context.read<PetCubit>().fetchPets();
+    context.read<NotificationCubit>().loadNotifications();
+    FirebaseMessaging.instance.getNotificationSettings().then((settings) {
+      if (mounted) setState(() => _notificationPermission = settings.authorizationStatus);
+    });
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    final status = await sl<FirebaseMessagingService>().requestPermissionFromUser();
+    if (mounted) setState(() => _notificationPermission = status);
   }
 
   @override
@@ -86,19 +101,18 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
-                            onPressed: () => context.push('/notifications'),
-                            tooltip: 'Bildirimler',
-                            splashRadius: 20,
-                            constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.all(8),
-                          ),
+                        BlocBuilder<NotificationCubit, NotificationState>(
+                          builder: (context, state) {
+                            final unread = state is NotificationLoaded ? state.notificationList.unreadCount : 0;
+                            return Badge(
+                              isLabelVisible: unread > 0,
+                              label: Text('$unread'),
+                              child: Container(
+                                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
+                                child: IconButton(icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22), onPressed: () => context.push('/notifications'), tooltip: 'Bildirimler'),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -109,6 +123,18 @@ class _HomePageState extends State<HomePage> {
               // İçerik Listesi
               SliverList(
                 delegate: SliverChildListDelegate([
+                  if (_notificationPermission == AuthorizationStatus.notDetermined || _notificationPermission == AuthorizationStatus.denied)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.notifications_active_outlined),
+                          title: const Text('Muayene güncellemelerini kaçırmayın'),
+                          subtitle: Text(_notificationPermission == AuthorizationStatus.denied ? 'İzin reddedildi. Güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz.' : 'Tedavi ve muayene güncellemeleri için bildirim izni verin.'),
+                          trailing: TextButton(onPressed: _requestNotificationPermission, child: const Text('Etkinleştir')),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 16), // Boşluk daraltıldı (24 -> 16)
 
                   // Hızlı İşlemler

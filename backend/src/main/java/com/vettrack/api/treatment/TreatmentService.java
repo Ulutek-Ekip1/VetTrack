@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.Comparator;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +59,14 @@ public class TreatmentService {
             return treatmentEntryRepository.findByVisitIdAndStatusOrderByStartDateDesc(visitId, status);
         }
         return treatmentEntryRepository.findByVisitIdOrderByStartDateDesc(visitId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TreatmentEntry> getTreatmentsByPet(UUID petId) {
+        return visitRepository.findByPetIdOrderByStartedAtDesc(petId).stream()
+                .flatMap(visit -> treatmentEntryRepository.findByVisitIdOrderByStartDateDesc(visit.getId()).stream())
+                .sorted(Comparator.comparing(TreatmentEntry::getStartDate, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
     }
 
     @Transactional

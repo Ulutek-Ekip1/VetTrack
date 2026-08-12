@@ -67,6 +67,11 @@ public class TreatmentController {
         return ResponseEntity.ok(treatmentService.getTreatmentsByVisit(visitId, status));
     }
 
+    @GetMapping("/pets/{petId}/treatments")
+    public ResponseEntity<List<TreatmentEntry>> getPetTreatments(@PathVariable UUID petId) {
+        return ResponseEntity.ok(treatmentService.getTreatmentsByPet(petId));
+    }
+
     @PutMapping("/treatments/{id}")
     @Operation(
         summary = "Tedavi Düzenle (15 dk pencere)",

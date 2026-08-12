@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vettrack_frontend/features/notification/domain/entities/notification_entity.dart';
 
 import '../../../../core/constants/app_dimensions.dart';
@@ -75,6 +76,9 @@ class NotificationCard extends StatelessWidget {
         ),
         onTap: () {
           context.read<NotificationCubit>().markAsRead(notification.id);
+          if (notification.petId != null) {
+            context.push('/owner/pets/${notification.petId}/treatments');
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(14),

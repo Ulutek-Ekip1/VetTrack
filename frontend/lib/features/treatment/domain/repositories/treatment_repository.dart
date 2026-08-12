@@ -2,6 +2,7 @@ import 'package:vettrack_frontend/features/treatment/domain/entities/treatment_e
 
 abstract class TreatmentRepository {
   Future<List<TreatmentEntity>> getTreatments(String visitId);
+  Future<List<TreatmentEntity>> getPetTreatments(String petId);
   Future<TreatmentEntity> addTreatment({
     required String visitId,
     required String type,

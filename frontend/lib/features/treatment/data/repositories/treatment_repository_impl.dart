@@ -13,6 +13,9 @@ class TreatmentRepositoryImpl implements TreatmentRepository {
   }
 
   @override
+  Future<List<TreatmentEntity>> getPetTreatments(String petId) => remoteDataSource.getPetTreatments(petId);
+
+  @override
   Future<TreatmentEntity> addTreatment({
     required String visitId,
     required String type,

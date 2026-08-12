@@ -61,11 +61,8 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await loginWithEmail(email, password);
       if (operation != _sessionOperation) return;
       try {
-        final fcmToken = await FirebaseMessaging.instance.getToken();
-        if (fcmToken != null) {
-          final platform = defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
-          await registerDeviceTokenUseCase(
-              fcmToken: fcmToken, platform: platform);
+        if (user.role == UserRole.owner) {
+          sl<FirebaseMessagingService>().listenForTokenChanges();
         }
       } catch (fcmError) {
         // Hata yutulur, kullanıcının giriş yapması engellenmez.
@@ -102,7 +99,9 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await registerUseCase(email, password, name, phone, role);
       if (operation != _sessionOperation) return;
       try {
-        await sl<FirebaseMessagingService>().sendTokenToBackend();
+        if (user.role == UserRole.owner) {
+          sl<FirebaseMessagingService>().listenForTokenChanges();
+        }
       } catch (fcmError) {
         // Hata yutulur
       }

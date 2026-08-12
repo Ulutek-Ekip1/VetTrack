@@ -4,6 +4,7 @@ import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetService;
+import com.vettrack.api.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ public class VisitService {
 
     private final VisitRepository visitRepository;
     private final PetService petService;
+    private final NotificationService notificationService;
 
     @Transactional
     public Visit createVisit(UUID petId, UUID vetStaffId) {
@@ -51,7 +53,10 @@ public class VisitService {
         visit.setStatus("completed");
         visit.setEndedAt(OffsetDateTime.now());
 
-        return visitRepository.save(visit);
+        Visit closedVisit = visitRepository.save(visit);
+        Pet pet = petService.getPetById(visit.getPetId());
+        notificationService.sendVisitClosedNotification(pet.getOwnerId(), pet.getId(), closedVisit.getId());
+        return closedVisit;
     }
 
     @Transactional(readOnly = true)

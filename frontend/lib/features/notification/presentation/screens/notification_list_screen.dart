@@ -7,8 +7,19 @@ import 'package:vettrack_frontend/features/notification/presentation/cubit/notif
 import '../../../../core/constants/app_dimensions.dart';
 import '../widgets/notification_card.dart';
 
-class NotificationListScreen extends StatelessWidget {
+class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
+
+  @override
+  State<NotificationListScreen> createState() => _NotificationListScreenState();
+}
+
+class _NotificationListScreenState extends State<NotificationListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<NotificationCubit>().loadNotifications();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +92,9 @@ class NotificationListScreen extends StatelessWidget {
               groups.putIfAbsent(groupName, () => []).add(item);
             }
 
-            return ListView(
+            return RefreshIndicator(
+              onRefresh: () => context.read<NotificationCubit>().refresh(),
+              child: ListView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(AppDimensions.containerMargin),
               children: groups.entries.map((entry) {
@@ -110,6 +123,7 @@ class NotificationListScreen extends StatelessWidget {
                   ],
                 );
               }).toList(),
+              ),
             );
           }
 
