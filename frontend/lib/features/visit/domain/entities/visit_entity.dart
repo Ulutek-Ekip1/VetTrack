@@ -21,7 +21,7 @@ class VisitEntity extends Equatable {
     this.chiefComplaint,
   });
 
-  bool get isOngoing => status == 'ongoing';
+  bool get isOngoing => status.toLowerCase() == 'ongoing';
 
   @override
   List<Object?> get props => [

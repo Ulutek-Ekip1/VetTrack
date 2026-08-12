@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/entities/treatment_entity.dart';
+import '../../presentation/utils/treatment_category_localization.dart';
 import '../cubit/treatment_cubit.dart';
 import '../cubit/treatment_state.dart';
 
@@ -42,7 +42,8 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
 
       context.read<TreatmentCubit>().addTreatment(
             visitId: widget.visitId,
-            type: categoryToTypeMap[_selectedCategory] ?? 'note',
+            type:
+                TreatmentCategoryLocalization.categoryToType(_selectedCategory),
             title: _treatmentTitleController.text.trim(),
             description: description.isNotEmpty ? description : null,
           );
@@ -199,7 +200,6 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
               ),
             ),
           ),
-        )
-      );
+        ));
   }
 }

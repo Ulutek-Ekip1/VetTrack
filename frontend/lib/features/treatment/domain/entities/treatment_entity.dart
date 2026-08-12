@@ -2,24 +2,6 @@ import 'package:equatable/equatable.dart';
 
 enum TreatmentStatus { planned, inProgress, completed, cancelled }
 
-const Map<String, String> categoryToTypeMap = {
-  'Aşı': 'vaccine',
-  'İlaç': 'medication',
-  'Operasyon': 'surgery',
-  'Röntgen': 'xray',
-  'Laboratuvar': 'lab_result',
-  'Not': 'note',
-};
-
-const Map<String, String> typeToCategoryMap = {
-  'vaccine': 'Aşı',
-  'medication': 'İlaç',
-  'surgery': 'Operasyon',
-  'xray': 'Röntgen',
-  'lab_result': 'Laboratuvar',
-  'note': 'Not',
-};
-
 class TreatmentEntity extends Equatable {
   final String id;
   final String visitId;

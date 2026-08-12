@@ -14,22 +14,24 @@ class VisitModel extends VisitEntity {
 
   factory VisitModel.fromJson(Map<String, dynamic> json) {
     return VisitModel(
-      id: json['id'] as String,
-      petId: (json['petId'] ?? json['pet_id'] ?? '') as String,
+      id: json['id'].toString(),
+      petId: (json['petId'] ?? json['pet_id'] ?? '').toString(),
       vetStaffId: (json['vetStaffId'] ?? json['vet_staff_id'] ?? '').toString(),
-      vetStaffName: (json['vetStaffName'] ?? json['vet_staff_name']) as String?,
-      status: (json['status'] ?? 'ongoing') as String,
+      vetStaffName: (json['vetStaffName'] ?? json['vet_staff_name']).toString(),
+      status: (json['status'] ?? 'ongoing').toString(),
       startedAt: json['startedAt'] != null
-          ? DateTime.parse(json['startedAt'] as String)
+          ? (DateTime.tryParse(json['startedAt'] as String) ?? DateTime.now())
           : (json['started_at'] != null
-              ? DateTime.parse(json['started_at'] as String)
+              ? (DateTime.tryParse(json['started_at'] as String) ??
+                  DateTime.now())
               : DateTime.now()),
       endedAt: json['endedAt'] != null
-          ? DateTime.parse(json['endedAt'] as String)
+          ? DateTime.tryParse(json['endedAt'] as String)
           : (json['ended_at'] != null
-              ? DateTime.parse(json['ended_at'] as String)
+              ? DateTime.tryParse(json['ended_at'] as String)
               : null),
-      chiefComplaint: (json['chiefComplaint'] ?? json['chief_complaint']) as String?,
+      chiefComplaint:
+          (json['chiefComplaint'] ?? json['chief_complaint']) as String?,
     );
   }
 

@@ -10,6 +10,7 @@ import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_cubit.
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_state.dart';
 import 'package:vettrack_frontend/features/treatment/domain/entities/treatment_entity.dart';
 import 'package:vettrack_frontend/features/treatment/domain/repositories/treatment_repository.dart';
+import 'package:vettrack_frontend/features/treatment/presentation/utils/treatment_category_localization.dart';
 import 'package:vettrack_frontend/features/recommendation/domain/entities/recommendation_entity.dart';
 import 'package:vettrack_frontend/features/recommendation/domain/repositories/recommendation_repository.dart';
 
@@ -254,7 +255,8 @@ class _ActiveVisitScreenState extends State<ActiveVisitScreen> {
                                     t.description!.isNotEmpty)
                                   t.description
                                 else
-                                  typeToCategoryMap[t.type] ?? t.type,
+                                  TreatmentCategoryLocalization.typeToCategory(
+                                      t.type),
                                 if (canDelete)
                                   '($remaining dk içinde silinebilir)'
                               ].join(' • '),
