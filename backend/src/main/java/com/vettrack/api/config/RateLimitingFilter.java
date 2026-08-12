@@ -32,11 +32,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private final RateLimitProperties properties;
 
-    // Path -> rule lookup, built once at startup for O(1) match
     private Map<String, RateLimitProperties.EndpointRule> ruleByPath;
-
-    // Single cache shared across all rate-limited endpoints; key format: 'ip:path'
-    // Expire window is set to the longest configured window to cover all rules safely
     private Cache<String, RequestTracker> requestTrackers;
 
     @Override
@@ -44,14 +40,24 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         ruleByPath = new HashMap<>();
         int longestWindowSeconds = 60;
 
-        for (RateLimitProperties.EndpointRule rule : properties.getEndpoints()) {
-            for (String path : rule.getPaths()) {
-                ruleByPath.put(path, rule);
-            }
-            if (rule.getWindowSeconds() > longestWindowSeconds) {
-                longestWindowSeconds = rule.getWindowSeconds();
+        if (properties.getEndpoints() != null) {
+            for (RateLimitProperties.EndpointRule rule : properties.getEndpoints()) {
+                for (String path : rule.getPaths()) {
+                    ruleByPath.put(path, rule);
+                }
+                if (rule.getWindowSeconds() > longestWindowSeconds) {
+                    longestWindowSeconds = rule.getWindowSeconds();
+                }
             }
         }
+
+        // Add dynamic AI rate limit rules if not present in yml
+        RateLimitProperties.EndpointRule aiRule = new RateLimitProperties.EndpointRule();
+        aiRule.setMaxRequests(10);
+        aiRule.setWindowSeconds(60);
+        aiRule.setPaths(java.util.List.of("/api/ai/chat", "/ai/chat"));
+        ruleByPath.putIfAbsent("/api/ai/chat", aiRule);
+        ruleByPath.putIfAbsent("/ai/chat", aiRule);
 
         requestTrackers = Caffeine.newBuilder()
                 .expireAfterWrite(longestWindowSeconds, TimeUnit.SECONDS)
@@ -87,43 +93,6 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         RateLimitProperties.EndpointRule rule = ruleByPath.get(path);
 
-<<<<<<< HEAD
-        boolean isAuthPath = "/api/auth/login".equals(path) || "/api/auth/register".equals(path) ||
-                             "/auth/login".equals(path) || "/auth/register".equals(path);
-        boolean isAiChatPath = "/api/ai/chat".equals(path) || "/ai/chat".equals(path);
-
-        if (isAuthPath || isAiChatPath) {
-
-            String clientIp = getClientIp(request);
-            long currentTime = System.currentTimeMillis();
-            int maxAllowed = isAiChatPath ? 10 : MAX_REQUESTS_PER_MINUTE;
-            String trackerKey = isAiChatPath ? "AI:" + clientIp : "AUTH:" + clientIp;
-
-            RequestTracker tracker = requestTrackers.asMap().compute(trackerKey, (key, existingTracker) -> {
-                if (existingTracker == null || (currentTime - existingTracker.windowStart) > ONE_MINUTE_IN_MILLIS) {
-                    return new RequestTracker(currentTime);
-                } else {
-                    existingTracker.requestCount.incrementAndGet();
-                    return existingTracker;
-                }
-            });
-
-            if (tracker != null && tracker.requestCount.get() > maxAllowed) {
-                long elapsedSeconds = (currentTime - tracker.windowStart) / 1000L;
-                long remainingSeconds = Math.max(1L, 60L - elapsedSeconds);
-                response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-                response.setHeader("Retry-After", String.valueOf(remainingSeconds));
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write("""
-                    {
-                        "status": 429,
-                        "error": "TOO_MANY_REQUESTS",
-                        "message": "Çok fazla istek gönderildi. Lütfen 1 dakika sonra tekrar deneyiniz."
-                    }
-                    """);
-                return;
-=======
         if (rule == null) {
             filterChain.doFilter(request, response);
             return;
@@ -140,12 +109,14 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             } else {
                 existingTracker.requestCount.incrementAndGet();
                 return existingTracker;
->>>>>>> e9bf8e1456931a4c321546075031930d414e80f9
             }
         });
 
         if (tracker != null && tracker.requestCount.get() > rule.getMaxRequests()) {
+            long elapsedSeconds = (currentTime - tracker.windowStart) / 1000L;
+            long remainingSeconds = Math.max(1L, rule.getWindowSeconds() - elapsedSeconds);
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+            response.setHeader("Retry-After", String.valueOf(remainingSeconds));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write("""
@@ -161,11 +132,6 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Resolves the client IP address.
-     * Security Note: trusted-proxy-header-enabled should only be set to true when running behind a trusted reverse proxy
-     * (e.g., Nginx, AWS ALB, Cloudflare) that reliably overwrites/sanitizes incoming X-Forwarded-For headers.
-     */
     private String getClientIp(HttpServletRequest request) {
         if (properties.isTrustedProxyHeaderEnabled()) {
             String xForwardedFor = request.getHeader("X-Forwarded-For");

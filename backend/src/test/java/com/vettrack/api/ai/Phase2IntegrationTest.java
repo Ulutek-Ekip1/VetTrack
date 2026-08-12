@@ -9,7 +9,7 @@ import com.vettrack.api.ai.service.AiChatService;
 import com.vettrack.api.ai.service.EmergencySafetyService;
 import com.vettrack.api.ai.service.GeminiService;
 import com.vettrack.api.ai.service.PetContextService;
-import com.vettrack.api.config.GlobalExceptionHandler;
+import com.vettrack.api.common.exception.GlobalExceptionHandler;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
 import com.vettrack.api.recommendation.Recommendation;
