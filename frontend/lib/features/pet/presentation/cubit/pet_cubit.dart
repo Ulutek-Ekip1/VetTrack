@@ -43,15 +43,19 @@ class PetCubit extends Cubit<PetState> {
     required Gender gender,
     int? age,
     String? breed,
+    String? petPhotoUrl,
   }) async {
     emit(PetActionLoading());
     try {
-      await addPetUseCase.call(
+      final newPet = await addPetUseCase.call(
         name: name,
         gender: gender,
         age: age,
         breed: breed,
       );
+      if (petPhotoUrl != null) {
+        await updatePetPhotoUseCase.call(photoPath: petPhotoUrl, id: newPet.id);
+      }
       emit(const PetActionSuccess(message: 'Pet başarıyla eklendi'));
       fetchPets();
     } catch (e) {
