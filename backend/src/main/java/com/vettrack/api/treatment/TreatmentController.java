@@ -1,5 +1,6 @@
 package com.vettrack.api.treatment;
 
+import com.vettrack.api.auth.AccessControlService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class TreatmentController {
 
     private final TreatmentService treatmentService;
+    private final AccessControlService accessControlService;
 
     @PostMapping("/visits/{visitId}/treatments")
     @Operation(
@@ -42,6 +44,7 @@ public class TreatmentController {
             @Parameter(description = "Ziyaret UUID") @PathVariable UUID visitId,
             @Valid @RequestBody TreatmentCreateRequest request
     ) {
+        accessControlService.requireVetOrAdmin(jwt);
         UUID vetStaffId = UUID.fromString(jwt.getSubject());
         TreatmentEntry entry = treatmentService.createTreatment(visitId, request, vetStaffId);
         return ResponseEntity.status(HttpStatus.CREATED).body(entry);
@@ -60,15 +63,21 @@ public class TreatmentController {
         @ApiResponse(responseCode = "404", description = "Ziyaret bulunamadı")
     })
     public ResponseEntity<List<TreatmentEntry>> getTreatments(
+            @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "Ziyaret UUID") @PathVariable UUID visitId,
             @Parameter(description = "Durum filtresi: PLANNED, IN_PROGRESS, COMPLETED, CANCELLED")
             @RequestParam(required = false) TreatmentStatus status
     ) {
+        accessControlService.requireVetOrOwnerOfVisit(jwt, visitId);
         return ResponseEntity.ok(treatmentService.getTreatmentsByVisit(visitId, status));
     }
 
     @GetMapping("/pets/{petId}/treatments")
-    public ResponseEntity<List<TreatmentEntry>> getPetTreatments(@PathVariable UUID petId) {
+    public ResponseEntity<List<TreatmentEntry>> getPetTreatments(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID petId
+    ) {
+        accessControlService.requireVetOrOwnerOfPet(jwt, petId);
         return ResponseEntity.ok(treatmentService.getTreatmentsByPet(petId));
     }
 
@@ -90,6 +99,7 @@ public class TreatmentController {
             @Parameter(description = "Tedavi UUID") @PathVariable UUID id,
             @RequestBody TreatmentUpdateRequest request
     ) {
+        accessControlService.requireVetOrAdmin(jwt);
         UUID vetStaffId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(treatmentService.updateTreatment(id, request, vetStaffId));
     }
@@ -110,6 +120,7 @@ public class TreatmentController {
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "Tedavi UUID") @PathVariable UUID id
     ) {
+        accessControlService.requireVetOrAdmin(jwt);
         UUID vetStaffId = UUID.fromString(jwt.getSubject());
         treatmentService.deleteTreatment(id, vetStaffId);
         return ResponseEntity.noContent().build();
