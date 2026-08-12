@@ -313,7 +313,9 @@ paths:
       summary: Hayvan fotoğrafı yükle
       description: |
         Fotoğraf Supabase Storage'a yüklenir (FR-09). Max 15MB (EC-06).
-        Kabul edilen tipler: image/jpeg, image/png, image/webp.
+        Kabul edilen tipler: image/jpeg, image/jpg, image/png, image/webp.
+        Dönen `photoUrl` her yüklemede değişen bir versiyon parametresi (`?v=`) taşır;
+        CDN/istemci önbelleğinin güncellenen fotoğraf yerine eskisini göstermesini önler.
       security:
         - bearerAuth: []
       parameters:
@@ -369,6 +371,25 @@ paths:
                 error: UNSUPPORTED_FILE_TYPE
                 message: "Sadece JPEG, PNG ve WebP formatları kabul edilir"
                 timestamp: "2026-07-29T14:32:11Z"
+    delete:
+      tags: [Pets]
+      summary: Hayvan fotoğrafını sil
+      description: |
+        Hayvanın mevcut fotoğrafını Supabase Storage'dan ve kayıttan siler.
+        Hayvanın zaten fotoğrafı yoksa hata fırlatılmaz, yine 204 döner (idempotent).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: Fotoğraf silindi (veya zaten yoktu)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /pets/{id}/visits:
     get:

@@ -19,7 +19,7 @@ public class StorageService {
     private static final String BUCKET = "pet-photos";
     private static final long MAX_FILE_SIZE = 15 * 1024 * 1024;
     private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp"
+            "image/jpeg", "image/jpg", "image/png", "image/webp"
     );
 
     public StorageService(RestClient supabaseStorageClient,
@@ -31,8 +31,12 @@ public class StorageService {
     public String uploadPetPhoto(MultipartFile file, UUID petId) {
         validateFile(file);
 
-        String extension = getExtension(file.getOriginalFilename());
-        String filePath = petId.toString() + extension;
+        // Object key kasıtlı olarak uzantısız ve tek: petId. Doğru Content-Type upload'da
+        // ayarlandığı için sunum bundan etkilenmez; bu sayede (a) silme işlemi hiçbir zaman
+        // istemciden gelen bir URL string'ine güvenmeden doğrudan petId'den path üretebilir,
+        // (b) farklı formatla yeniden yüklemede eski dosya bucket'ta öksüz kalmaz — aynı key
+        // x-upsert ile ezilir.
+        String filePath = petId.toString();
 
         try {
             storageClient.post()
@@ -48,7 +52,20 @@ public class StorageService {
         throw new StorageException("Supabase Storage isteği başarısız: " + e.getMessage(), e);
         }
 
-        return storageUrl + "/object/public/" + BUCKET + "/" + filePath;
+        // CDN/istemci önbelleğinin fotoğraf güncellendiğinde eskisini göstermemesi için
+        // URL her yüklemede değişen bir versiyon parametresi taşır.
+        return storageUrl + "/object/public/" + BUCKET + "/" + filePath + "?v=" + System.currentTimeMillis();
+    }
+
+    public void deletePetPhoto(UUID petId) {
+        try {
+            storageClient.delete()
+                    .uri("/object/{bucket}/{path}", BUCKET, petId.toString())
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new StorageException("Supabase Storage silme isteği başarısız: " + e.getMessage(), e);
+        }
     }
 
     private void validateFile(MultipartFile file) {
@@ -64,12 +81,5 @@ public class StorageService {
                     "Sadece JPEG, PNG ve WebP formatları kabul edilir"
             );
         }
-    }
-
-    private String getExtension(String filename) {
-        if (filename == null || !filename.contains(".")) {
-            return ".jpg";
-        }
-        return filename.substring(filename.lastIndexOf("."));
     }
 }

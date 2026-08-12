@@ -78,6 +78,20 @@ public class PetService {
     }
 
     @Transactional
+    public void deletePetPhoto(UUID petId, UUID ownerId) {
+        Pet pet = getPetById(petId);
+        if (!pet.getOwnerId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+        }
+        if (pet.getPhotoUrl() == null) {
+            return;
+        }
+        storageService.deletePetPhoto(petId);
+        pet.setPhotoUrl(null);
+        petRepository.save(pet);
+    }
+
+    @Transactional
     public void softDeletePet(UUID petId, UUID ownerId) {
         Pet pet = getPetById(petId);
         if (!pet.getOwnerId().equals(ownerId)) {
