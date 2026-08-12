@@ -87,6 +87,43 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         RateLimitProperties.EndpointRule rule = ruleByPath.get(path);
 
+<<<<<<< HEAD
+        boolean isAuthPath = "/api/auth/login".equals(path) || "/api/auth/register".equals(path) ||
+                             "/auth/login".equals(path) || "/auth/register".equals(path);
+        boolean isAiChatPath = "/api/ai/chat".equals(path) || "/ai/chat".equals(path);
+
+        if (isAuthPath || isAiChatPath) {
+
+            String clientIp = getClientIp(request);
+            long currentTime = System.currentTimeMillis();
+            int maxAllowed = isAiChatPath ? 10 : MAX_REQUESTS_PER_MINUTE;
+            String trackerKey = isAiChatPath ? "AI:" + clientIp : "AUTH:" + clientIp;
+
+            RequestTracker tracker = requestTrackers.asMap().compute(trackerKey, (key, existingTracker) -> {
+                if (existingTracker == null || (currentTime - existingTracker.windowStart) > ONE_MINUTE_IN_MILLIS) {
+                    return new RequestTracker(currentTime);
+                } else {
+                    existingTracker.requestCount.incrementAndGet();
+                    return existingTracker;
+                }
+            });
+
+            if (tracker != null && tracker.requestCount.get() > maxAllowed) {
+                long elapsedSeconds = (currentTime - tracker.windowStart) / 1000L;
+                long remainingSeconds = Math.max(1L, 60L - elapsedSeconds);
+                response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+                response.setHeader("Retry-After", String.valueOf(remainingSeconds));
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("""
+                    {
+                        "status": 429,
+                        "error": "TOO_MANY_REQUESTS",
+                        "message": "Çok fazla istek gönderildi. Lütfen 1 dakika sonra tekrar deneyiniz."
+                    }
+                    """);
+                return;
+=======
         if (rule == null) {
             filterChain.doFilter(request, response);
             return;
@@ -103,6 +140,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             } else {
                 existingTracker.requestCount.incrementAndGet();
                 return existingTracker;
+>>>>>>> e9bf8e1456931a4c321546075031930d414e80f9
             }
         });
 

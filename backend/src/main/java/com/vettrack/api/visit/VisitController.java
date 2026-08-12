@@ -1,11 +1,14 @@
 package com.vettrack.api.visit;
 
+import com.vettrack.api.owner.Owner;
+import com.vettrack.api.owner.OwnerService;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetService;
 import com.vettrack.api.vetstaff.VetStaff;
 import com.vettrack.api.vetstaff.VetStaffService;
-import com.vettrack.api.owner.Owner;
-import com.vettrack.api.owner.OwnerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,11 +19,13 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/visits")
+@RequestMapping({"/visits", "/api/visits"})
 @RequiredArgsConstructor
+@Tag(name = "Ziyaret Yönetimi API", description = "Veteriner muayene ve ziyaret yönetimi uç noktaları")
 public class VisitController {
 
     private final VisitService visitService;
@@ -30,13 +35,18 @@ public class VisitController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Yeni Muayene Ziyareti Başlat", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Visit> createVisit(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody VisitCreateRequest request
     ) {
-        VetStaff vetStaff = vetStaffService.getOrCreateByUserId(UUID.fromString(jwt.getSubject()), jwt);
-        Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getId());
-        return new ResponseEntity<>(visit, HttpStatus.CREATED);
+        if (request.getPetId() != null) {
+            VetStaff vetStaff = vetStaffService.getOrCreateByUserId(UUID.fromString(jwt.getSubject()), jwt);
+            Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getId());
+            return new ResponseEntity<>(visit, HttpStatus.CREATED);
+        }
+        Visit created = visitService.createVisit(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}/close")
@@ -64,9 +74,21 @@ public class VisitController {
         ));
     }
 
-    @GetMapping("/pet/{petId}")
+    @GetMapping({"/pet/{petId}", "/pets/{petId}/visits"})
     @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Pet'in Geçmiş Ziyaretlerini Listele", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<List<Visit>> getVisitsByPetId(@PathVariable UUID petId) {
         return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
+    }
+
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Ziyaret Durumunu Güncelle (ör. ongoing -> completed)", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<Visit> updateVisitStatus(
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> statusMap
+    ) {
+        String newStatus = statusMap.getOrDefault("status", "completed");
+        Visit updated = visitService.updateVisitStatus(id, newStatus);
+        return ResponseEntity.ok(updated);
     }
 }
