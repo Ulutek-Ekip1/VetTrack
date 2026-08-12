@@ -1,0 +1,9 @@
+# Local configuration must be supplied as Docker build arguments, never copied
+# into the image build context.
+.env
+.env.*
+
+# Build artefacts and local tooling are not needed in the container build.
+build/
+.dart_tool/
+.git/
