@@ -1,6 +1,5 @@
 package com.vettrack.api.visit;
 
-import com.vettrack.api.auth.AccessControlService;
 import com.vettrack.api.owner.OwnerService;
 import com.vettrack.api.pet.PetService;
 import com.vettrack.api.vetstaff.VetStaff;
@@ -21,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,19 +30,15 @@ class VisitControllerTest {
     @Mock private PetService petService;
     @Mock private VetStaffService vetStaffService;
     @Mock private OwnerService ownerService;
-    @Mock private AccessControlService accessControlService;
 
     @InjectMocks private VisitController visitController;
 
     @Test
     void ownerCannotCreateVisitOrTriggerVetStaffProvisioning() {
         UUID userId = UUID.randomUUID();
-        Jwt ownerJwt = jwt(userId, "owner");
-        doThrow(new AccessDeniedException("Bu işlem yalnızca veteriner personel tarafından yapılabilir"))
-                .when(accessControlService).requireVetOrAdmin(ownerJwt);
 
         assertThatThrownBy(() -> visitController.createVisit(
-                ownerJwt, createRequest()
+                jwt(userId, "owner"), createRequest()
         )).isInstanceOf(AccessDeniedException.class);
 
         verify(vetStaffService, never()).getOrCreateByUserId(any(), any());
@@ -65,10 +59,8 @@ class VisitControllerTest {
 
         VisitCreateRequest request = new VisitCreateRequest();
         request.setPetId(petId);
-        Jwt vetJwt = jwt(userId, "vet_staff");
-        visitController.createVisit(vetJwt, request);
+        visitController.createVisit(jwt(userId, "vet_staff"), request);
 
-        verify(accessControlService).requireVetOrAdmin(vetJwt);
         verify(vetStaffService).getOrCreateByUserId(eq(userId), any(Jwt.class));
         verify(visitService).createVisit(petId, vetStaffId);
     }
