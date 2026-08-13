@@ -46,11 +46,11 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
       return AiChatResponse.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (CancelToken.isCancel(e)) {
-        throw ServerException('İstek iptal edildi.');
+        throw const ServerException('İstek iptal edildi.');
       }
       throw _handleDioError(e);
     } catch (e) {
-      throw ServerException('Mesaj gönderilirken beklenmeyen bir hata oluştu.');
+      throw const ServerException('Mesaj gönderilirken beklenmeyen bir hata oluştu.');
     }
   }
 
@@ -74,6 +74,8 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } catch (e) {
+      throw const ServerException('Sohbet geçmişi alınırken hata oluştu.');
     }
   }
 
@@ -98,6 +100,8 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } catch (e) {
+      throw const ServerException('Pet sohbet geçmişi alınırken hata oluştu.');
     }
   }
 
@@ -107,6 +111,8 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
       await dio.delete('/api/ai/chat/history/conversation/$conversationId');
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } catch (e) {
+      throw const ServerException('Sohbet silinirken hata oluştu.');
     }
   }
 
@@ -116,10 +122,12 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
       await dio.delete('/api/ai/chat/history');
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } catch (e) {
+      throw const ServerException('Tüm sohbet geçmişi silinirken hata oluştu.');
     }
   }
 
-  Exception _handleDioError(DioException e) {
+  ServerException _handleDioError(DioException e) {
     if (e.response != null) {
       final statusCode = e.response!.statusCode;
       final data = e.response!.data;
@@ -133,7 +141,7 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
           return ServerException(
               message.isNotEmpty ? message : 'Geçersiz sohbet isteği (400).');
         case 401:
-          return ServerException('Oturum süreniz doldu, lütfen tekrar giriş yapın (401).');
+          return const ServerException('Oturum süreniz doldu, lütfen tekrar giriş yapın (401).');
         case 403:
           return ServerException(
               message.isNotEmpty ? message : 'Bu işleme erişim yetkiniz bulunmuyor (403).');
@@ -141,10 +149,10 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
           return ServerException(
               message.isNotEmpty ? message : 'Idempotency çakışması: Aynı mesaj kimliği tekrar kullanılamaz (409).');
         case 429:
-          return ServerException(
+          return const ServerException(
               'Çok fazla istek gönderdiniz. Lütfen biraz bekleyip tekrar deneyin (429).');
         case 503:
-          return ServerException(
+          return const ServerException(
               'Yapay zeka servisi şu anda geçici olarak hizmet veremiyor (503).');
         default:
           return ServerException(
@@ -156,7 +164,7 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
         e.type == DioExceptionType.sendTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.connectionError) {
-      return ServerException('Bağlantı hatası: İnternet bağlantınızı kontrol ediniz.');
+      return const ServerException('Bağlantı hatası: İnternet bağlantınızı kontrol ediniz.');
     }
 
     return ServerException(e.message ?? 'Ağ hatası oluştu.');
