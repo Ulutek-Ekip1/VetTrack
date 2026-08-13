@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +29,13 @@ import java.util.UUID;
 public class PetController {
 
     private final PetService petService;
+
+    private boolean isVetOrAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_VET_STAFF") || a.getAuthority().equals("ROLE_ADMIN"));
+    }
 
     @PostMapping
     @Operation(summary = "Yeni Pet Ekle", security = @SecurityRequirement(name = "bearerAuth"))
@@ -73,13 +82,9 @@ public class PetController {
             @PathVariable UUID id
     ) {
         Pet pet = petService.getPetById(id);
-        if (jwt != null) {
-            String role = jwt.getClaimAsString("role");
-            boolean isVetOrAdmin = "vet".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(role);
-            UUID ownerId = UUID.fromString(jwt.getSubject());
-            if (!isVetOrAdmin && !pet.getOwnerId().equals(ownerId)) {
-                throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
-            }
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        if (!isVetOrAdmin() && !pet.getOwnerId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
         }
         return ResponseEntity.ok(pet);
     }
