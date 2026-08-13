@@ -83,19 +83,30 @@ public class AiChatService {
                 }
                 log.info("Idempotent request hit for clientMessageId: {}. Fetching cached AI assistant response.", request.getClientMessageId());
 
-                Optional<ChatMessage> assistantMsgOpt = chatMessageRepository.findFirstByConversationIdAndRoleAndCreatedAtGreaterThanEqualOrderByCreatedAtAsc(msg.getConversationId(), "model", msg.getCreatedAt());
-                ChatMessage respMsg = assistantMsgOpt.orElse(msg);
+                // 1) Prefer model message explicitly linked to this clientMessageId (replyToClientMessageId)
+                Optional<ChatMessage> assistantMsgOpt = chatMessageRepository.findFirstByOwnerIdAndReplyToClientMessageIdAndRoleOrderByCreatedAtAsc(ownerId, msg.getClientMessageId(), "model");
 
-                return AiChatResponse.builder()
-                        .messageId(respMsg.getId())
-                        .conversationId(msg.getConversationId())
-                        .emergency(Boolean.TRUE.equals(respMsg.getEmergency()))
-                        .reply(respMsg.getContent())
-                        .disclaimer(STANDARD_DISCLAIMER)
-                        .model(respMsg.getModel())
-                        .promptVersion(respMsg.getPromptVersion())
-                        .createdAt(respMsg.getCreatedAt())
-                        .build();
+                // 2) Fallback: first model message in same conversation created after the user message
+                if (assistantMsgOpt.isEmpty() && msg.getConversationId() != null) {
+                    assistantMsgOpt = chatMessageRepository.findFirstByConversationIdAndRoleAndCreatedAtGreaterThanEqualOrderByCreatedAtAsc(msg.getConversationId(), "model", msg.getCreatedAt());
+                }
+
+                if (assistantMsgOpt.isPresent()) {
+                    ChatMessage respMsg = assistantMsgOpt.get();
+                    return AiChatResponse.builder()
+                            .messageId(respMsg.getId())
+                            .conversationId(respMsg.getConversationId())
+                            .emergency(Boolean.TRUE.equals(respMsg.getEmergency()))
+                            .reply(respMsg.getContent())
+                            .disclaimer(STANDARD_DISCLAIMER)
+                            .model(respMsg.getModel())
+                            .promptVersion(respMsg.getPromptVersion())
+                            .createdAt(respMsg.getCreatedAt())
+                            .build();
+                }
+
+                // If we reach here, the original assistant response cannot be located — treat as idempotency failure
+                throw new IdempotencyKeyReusedException("İdempotent isteğin daha önce işlendiği görünse de ilgili model yanıtı bulunamadı; lütfen yeniden deneyin.");
             }
         }
 
@@ -103,7 +114,7 @@ public class AiChatService {
 
         // 4. Save user message to database (User messages use clientMessageId)
         if (ownerId != null) {
-            saveChatMessage(conversationId, request.getClientMessageId(), ownerId, request.getPetId(), "user", sanitizedMessage, false);
+            saveChatMessage(conversationId, request.getClientMessageId(), ownerId, request.getPetId(), "user", sanitizedMessage, false, null);
         }
 
         // 5. Deterministik Acil Durum Kontrolü (Gemini API bypass)
@@ -115,7 +126,7 @@ public class AiChatService {
 
             if (ownerId != null) {
                 // Assistant messages ALWAYS pass clientMessageId = NULL
-                ChatMessage savedModelMsg = saveChatMessage(conversationId, null, ownerId, request.getPetId(), "model", resp.getReply(), true);
+                ChatMessage savedModelMsg = saveChatMessage(conversationId, null, ownerId, request.getPetId(), "model", resp.getReply(), true, request.getClientMessageId());
                 if (savedModelMsg != null) {
                     resp.setMessageId(savedModelMsg.getId());
                     resp.setCreatedAt(savedModelMsg.getCreatedAt());
@@ -149,7 +160,7 @@ public class AiChatService {
         // 9. Save AI reply to database (Assistant messages ALWAYS pass clientMessageId = NULL)
         ChatMessage savedModelMsg = null;
         if (ownerId != null) {
-            savedModelMsg = saveChatMessage(conversationId, null, ownerId, request.getPetId(), "model", aiReply, false);
+            savedModelMsg = saveChatMessage(conversationId, null, ownerId, request.getPetId(), "model", aiReply, false, request.getClientMessageId());
         }
 
         long duration = System.currentTimeMillis() - startTime;
@@ -200,7 +211,7 @@ public class AiChatService {
         return lowerRole.contains("vet_staff") || lowerRole.contains("admin");
     }
 
-    private ChatMessage saveChatMessage(UUID conversationId, String clientMessageId, UUID ownerId, UUID petId, String role, String content, boolean emergency) {
+    private ChatMessage saveChatMessage(UUID conversationId, String clientMessageId, UUID ownerId, UUID petId, String role, String content, boolean emergency, String replyToClientMessageId) {
         try {
             ChatMessage msg = ChatMessage.builder()
                     .conversationId(conversationId)
@@ -212,6 +223,7 @@ public class AiChatService {
                     .emergency(emergency)
                     .model(modelName)
                     .promptVersion(PROMPT_VERSION)
+                    .replyToClientMessageId(replyToClientMessageId)
                     .build();
             return chatMessageRepository.save(msg);
         } catch (DataIntegrityViolationException dive) {

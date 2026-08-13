@@ -22,6 +22,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
 
     Optional<ChatMessage> findFirstByConversationIdAndRoleAndCreatedAtGreaterThanEqualOrderByCreatedAtAsc(UUID conversationId, String role, OffsetDateTime createdAt);
 
+    Optional<ChatMessage> findFirstByOwnerIdAndReplyToClientMessageIdAndRoleOrderByCreatedAtAsc(UUID ownerId, String replyToClientMessageId, String role);
+
     List<ChatMessage> findByOwnerIdAndConversationIdOrderByCreatedAtAsc(UUID ownerId, UUID conversationId);
 
     Page<ChatMessage> findByOwnerIdAndPetIdOrderByCreatedAtAsc(UUID ownerId, UUID petId, Pageable pageable);

@@ -47,6 +47,9 @@ public class ChatMessage {
     @Column(name = "prompt_version", length = 20)
     private String promptVersion;
 
+    @Column(name = "reply_to_client_message_id", length = 100)
+    private String replyToClientMessageId;
+
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 
