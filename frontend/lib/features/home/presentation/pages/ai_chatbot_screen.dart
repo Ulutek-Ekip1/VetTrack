@@ -117,6 +117,132 @@ class _AIChatbotViewState extends State<AIChatbotView> {
     }
   }
 
+  Future<void> _confirmAndDeleteConversation(
+      BuildContext context, String conversationId) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final cubit = context.read<AiChatCubit>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.redAccent),
+              SizedBox(width: 8),
+              Text('Sohbeti Sil'),
+            ],
+          ),
+          content: const Text(
+            'Bu sohbet oturumunu ve tüm mesajlarını silmek istediğinize emin misiniz? Bu işlem geri alınamaz (KVKK).',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Vazgeç'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Sohbeti Sil'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      final success = await cubit.deleteConversation(conversationId);
+      if (success) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Sohbet oturumu başarıyla silindi.'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              cubit.state.errorMessage ??
+                  'Sohbet silinirken bir hata oluştu.',
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmAndDeleteAllHistory(
+      BuildContext context, BuildContext bottomSheetContext) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(bottomSheetContext);
+    final cubit = context.read<AiChatCubit>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+              SizedBox(width: 8),
+              Text('Tüm Geçmişi Sil'),
+            ],
+          ),
+          content: const Text(
+            'Tüm AI sohbet geçmişinizi kalıcı olarak silmek istediğinize emin misiniz? Tüm konuşmalarınız temizlenecek ve bu işlem geri alınamayacaktır (KVKK Unutulma Hakkı).',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Vazgeç'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade800,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Tüm Geçmişi Kalıcı Olarak Sil'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      final success = await cubit.deleteAllHistory();
+      if (success) {
+        if (navigator.canPop()) {
+          navigator.pop();
+        }
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Tüm AI sohbet geçmişiniz kalıcı olarak silindi.'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              cubit.state.errorMessage ??
+                  'Geçmiş silinirken bir hata oluştu.',
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
+  }
+
   void _showHistoryBottomSheet(BuildContext parentContext) {
     showModalBottomSheet(
       context: parentContext,
@@ -254,95 +380,147 @@ class _AIChatbotViewState extends State<AIChatbotView> {
       );
     }
 
-    return ListView.separated(
-      controller: scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: state.conversations.length + (state.hasMoreHistory ? 1 : 0),
-      separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
-      itemBuilder: (context, index) {
-        if (index == state.conversations.length) {
-          // Daha fazla yükle butonu
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: state.isLoadingMoreHistory
-                  ? const CircularProgressIndicator()
-                  : OutlinedButton.icon(
-                      onPressed: () {
-                        context
-                            .read<AiChatCubit>()
-                            .fetchHistory(isLoadMore: true);
-                      },
-                      icon: const Icon(Icons.expand_more),
-                      label: const Text('Daha Fazla Geçmiş Yükle'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF004AC6),
-                        side: const BorderSide(color: Color(0xFF004AC6)),
-                      ),
-                    ),
-            ),
-          );
-        }
-
-        final conv = state.conversations[index];
-        final isSelected = state.activeConversationId == conv.conversationId;
-
-        return ListTile(
-          selected: isSelected,
-          selectedTileColor: const Color(0xFFEFF6FF),
-          leading: CircleAvatar(
-            backgroundColor: isSelected
-                ? const Color(0xFF004AC6)
-                : Colors.grey.shade100,
-            child: Icon(
-              conv.petId != null ? Icons.pets : Icons.chat_bubble_outline,
-              color: isSelected ? Colors.white : const Color(0xFF004AC6),
-              size: 20,
-            ),
-          ),
-          title: Text(
-            conv.lastMessagePreview,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-              fontSize: 14,
-              color: const Color(0xFF131B2E),
-            ),
-          ),
-          subtitle: Row(
-            children: [
-              Text(
-                _formatTime(conv.lastMessageTime.toIso8601String()),
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
-              ),
-              if (conv.petId != null) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDBEAFE),
-                    borderRadius: BorderRadius.circular(6),
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.separated(
+            controller: scrollController,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount:
+                state.conversations.length + (state.hasMoreHistory ? 1 : 0),
+            separatorBuilder: (_, __) =>
+                const Divider(height: 1, indent: 16, endIndent: 16),
+            itemBuilder: (context, index) {
+              if (index == state.conversations.length) {
+                // Daha fazla yükle butonu
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Center(
+                    child: state.isLoadingMoreHistory
+                        ? const CircularProgressIndicator()
+                        : OutlinedButton.icon(
+                            onPressed: () {
+                              context
+                                  .read<AiChatCubit>()
+                                  .fetchHistory(isLoadMore: true);
+                            },
+                            icon: const Icon(Icons.expand_more),
+                            label: const Text('Daha Fazla Geçmiş Yükle'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF004AC6),
+                              side: const BorderSide(color: Color(0xFF004AC6)),
+                            ),
+                          ),
                   ),
-                  child: const Text(
-                    'Pet Bağlamı',
-                    style: TextStyle(
-                      color: Color(0xFF1E3A8A),
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold,
-                    ),
+                );
+              }
+
+              final conv = state.conversations[index];
+              final isSelected =
+                  state.activeConversationId == conv.conversationId;
+
+              return ListTile(
+                selected: isSelected,
+                selectedTileColor: const Color(0xFFEFF6FF),
+                leading: CircleAvatar(
+                  backgroundColor: isSelected
+                      ? const Color(0xFF004AC6)
+                      : Colors.grey.shade100,
+                  child: Icon(
+                    conv.petId != null
+                        ? Icons.pets
+                        : Icons.chat_bubble_outline,
+                    color: isSelected ? Colors.white : const Color(0xFF004AC6),
+                    size: 20,
                   ),
                 ),
-              ],
-            ],
+                title: Text(
+                  conv.lastMessagePreview,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    fontSize: 14,
+                    color: const Color(0xFF131B2E),
+                  ),
+                ),
+                subtitle: Row(
+                  children: [
+                    Text(
+                      _formatTime(conv.lastMessageTime.toIso8601String()),
+                      style:
+                          TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                    ),
+                    if (conv.petId != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDBEAFE),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'Pet Bağlamı',
+                          style: TextStyle(
+                            color: Color(0xFF1E3A8A),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline,
+                          size: 20, color: Colors.redAccent),
+                      tooltip: 'Sohbeti sil',
+                      onPressed: () {
+                        _confirmAndDeleteConversation(
+                            context, conv.conversationId);
+                      },
+                    ),
+                    const Icon(Icons.chevron_right,
+                        size: 18, color: Colors.grey),
+                  ],
+                ),
+                onTap: () {
+                  context.read<AiChatCubit>().selectConversation(conv);
+                  Navigator.pop(bottomSheetContext);
+                },
+              );
+            },
           ),
-          trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
-          onTap: () {
-            context.read<AiChatCubit>().selectConversation(conv);
-            Navigator.pop(bottomSheetContext);
-          },
-        );
-      },
+        ),
+
+        // Tüm Geçmişi Sil Butonu (KVKK Unutulma Hakkı)
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFF1F2),
+            border: Border(top: BorderSide(color: Color(0xFFFECDD3))),
+          ),
+          child: TextButton.icon(
+            onPressed: () =>
+                _confirmAndDeleteAllHistory(context, bottomSheetContext),
+            icon: const Icon(Icons.delete_forever,
+                color: Color(0xFFE11D48), size: 20),
+            label: const Text(
+              'Tüm AI Sohbet Geçmişini Sil (KVKK)',
+              style: TextStyle(
+                color: Color(0xFFBE123C),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

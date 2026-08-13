@@ -176,6 +176,61 @@ class AiChatCubit extends Cubit<AiChatState> {
     ));
   }
 
+  Future<bool> deleteConversation(String conversationId) async {
+    try {
+      await aiRepository.deleteConversation(conversationId);
+
+      final updatedConversations = state.conversations
+          .where((c) => c.conversationId != conversationId)
+          .toList();
+
+      final updatedRaw = state.rawHistoryMessages
+          .where((m) => m.conversationId != conversationId)
+          .toList();
+
+      final isCurrentActiveDeleted =
+          state.activeConversationId == conversationId;
+
+      emit(state.copyWith(
+        conversations: updatedConversations,
+        rawHistoryMessages: updatedRaw,
+        messages: isCurrentActiveDeleted ? const [] : state.messages,
+        clearConversationId: isCurrentActiveDeleted,
+        clearErrorMessage: true,
+      ));
+      return true;
+    } catch (e) {
+      String errorMsg = 'Konuşma silinirken bir hata oluştu.';
+      if (e is ServerException && e.message != null && e.message!.isNotEmpty) {
+        errorMsg = e.message!;
+      }
+      emit(state.copyWith(errorMessage: errorMsg));
+      return false;
+    }
+  }
+
+  Future<bool> deleteAllHistory() async {
+    try {
+      await aiRepository.deleteAllHistory();
+
+      emit(state.copyWith(
+        conversations: const [],
+        rawHistoryMessages: const [],
+        messages: const [],
+        clearConversationId: true,
+        clearErrorMessage: true,
+      ));
+      return true;
+    } catch (e) {
+      String errorMsg = 'Tüm geçmiş silinirken bir hata oluştu.';
+      if (e is ServerException && e.message != null && e.message!.isNotEmpty) {
+        errorMsg = e.message!;
+      }
+      emit(state.copyWith(errorMessage: errorMsg));
+      return false;
+    }
+  }
+
   Future<void> sendMessage(String text) async {
     final trimmedText = text.trim();
     if (trimmedText.isEmpty || state.isSending) return;
