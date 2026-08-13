@@ -22,7 +22,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VetStaffService {
 
-    private static final String DEFAULT_STAFF_ROLE = "vet";
+    // Gerçek Supabase şemasında clinic_staff_staff_role_check sadece 'doctor'/'staff'
+    // kabul ediyor — 'vet' bu constraint'i ihlal edip her JIT provisioning'i 500'e düşürüyordu.
+    private static final String DEFAULT_STAFF_ROLE = "doctor";
 
     private final VetStaffRepository vetStaffRepository;
 

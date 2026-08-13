@@ -50,8 +50,11 @@ public class VisitController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody VisitCreateRequest request
     ) {
+        // visits.vet_staff_id -> profiles(id) FK'li ve check_visit_vet_staff_role() trigger'ı
+        // bunun bir profiles satırına (JWT subject) ait olmasını doğruluyor — clinic_staff.id
+        // (vetStaff.getId()) değil, vetStaff.getUserId() kullanılmalı.
         VetStaff vetStaff = vetStaffService.getOrCreateByUserId(UUID.fromString(jwt.getSubject()), jwt);
-        Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getId());
+        Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getUserId());
         return new ResponseEntity<>(visit, HttpStatus.CREATED);
     }
 
