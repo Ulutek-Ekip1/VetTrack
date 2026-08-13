@@ -1,6 +1,8 @@
 package com.vettrack.api.auth;
 
+import com.vettrack.api.common.exception.ApiException;
 import com.vettrack.api.common.exception.ConflictException;
+import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
@@ -76,11 +78,11 @@ public class AuthService {
                 responseBody.contains("already_exists") || 
                 responseBody.contains("already registered") ||
                 responseBody.contains("user_already_exists")) {
-                throw new ConflictException("EMAIL_ALREADY_EXISTS");
+                throw new ConflictException(ErrorCode.EMAIL_ALREADY_EXISTS, "Bu e-posta adresi zaten kayıtlı.");
             } else if (status.value() == HttpStatus.BAD_REQUEST.value()) {
                 throw new ConflictException("Invalid registration request");
             } else if (status.value() == HttpStatus.TOO_MANY_REQUESTS.value()) {
-                throw new IllegalArgumentException("Supabase e-posta gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.");
+                throw new ApiException(ErrorCode.TOO_MANY_REQUESTS, "Supabase e-posta gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.");
             } else {
                 throw new RuntimeException("Registration failed: [" + status + "] " + responseBody, ex);
             }
@@ -112,9 +114,9 @@ public class AuthService {
             if (status.value() == HttpStatus.UNAUTHORIZED.value() || status.value() == HttpStatus.BAD_REQUEST.value()) {
                 String responseBody = ex.getResponseBodyAsString();
                 if (responseBody.contains("Email not confirmed") || responseBody.contains("email_not_confirmed")) {
-                    throw new UnauthorizedException("E-posta adresi doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.");
+                    throw new UnauthorizedException(ErrorCode.EMAIL_NOT_VERIFIED, "E-posta adresi doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.");
                 }
-                throw new UnauthorizedException("E-posta veya şifre hatalı: " + responseBody);
+                throw new UnauthorizedException(ErrorCode.INVALID_CREDENTIALS, "E-posta veya şifre hatalı.");
             } else {
                 throw new RuntimeException("Login failed");
             }

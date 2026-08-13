@@ -1,6 +1,7 @@
 package com.vettrack.api.visit;
 
 import com.vettrack.api.common.exception.ConflictException;
+import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetService;
@@ -27,7 +28,7 @@ public class VisitService {
 
         boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(pet.getId(), "ongoing").isPresent();
         if (hasActiveVisit) {
-            throw new ConflictException("Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_OPEN, "Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
         }
 
         Visit visit = Visit.builder()
@@ -43,7 +44,7 @@ public class VisitService {
     public Visit createVisit(VisitCreateRequest request) {
         boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(request.getPetId(), "ongoing").isPresent();
         if (hasActiveVisit) {
-            throw new ConflictException("Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_OPEN, "Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
         }
         Visit visit = Visit.builder()
                 .petId(request.getPetId())
@@ -62,7 +63,7 @@ public class VisitService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı ID: " + visitId));
 
         if (!"ongoing".equalsIgnoreCase(visit.getStatus())) {
-            throw new ConflictException("Bu ziyaret zaten kapatılmış veya tamamlanmış.");
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_CLOSED, "Bu ziyaret zaten kapatılmış veya tamamlanmış.");
         }
 
         visit.setStatus("completed");

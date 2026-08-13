@@ -3,6 +3,7 @@ package com.vettrack.api.treatment;
 import com.vettrack.api.audit.AuditLog;
 import com.vettrack.api.audit.AuditLogRepository;
 import com.vettrack.api.common.exception.EditWindowExpiredException;
+import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.visit.Visit;
@@ -33,7 +34,7 @@ public class TreatmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
 
         if (!"ongoing".equals(visit.getStatus())) {
-            throw new ConflictException("Kapalı ziyarete tedavi girişi yapılamaz");
+            throw new ConflictException(ErrorCode.VISIT_CLOSED, "Kapalı ziyarete tedavi girişi yapılamaz");
         }
 
         TreatmentEntry entry = TreatmentEntry.builder()

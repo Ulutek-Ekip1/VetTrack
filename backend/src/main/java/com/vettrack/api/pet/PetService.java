@@ -4,6 +4,7 @@ import com.vettrack.api.storage.StorageService;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 
+import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class PetService {
         }
         String cleanedCode = uniqueCode.trim().toUpperCase();
         return petRepository.findByUniqueCodeIgnoreCaseAndDeletedAtIsNull(cleanedCode)
-                .orElseThrow(() -> new ResourceNotFoundException("Bu koda sahip evcil hayvan bulunamadı: " + cleanedCode));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PET_NOT_FOUND, "Bu koda sahip evcil hayvan bulunamadı: " + cleanedCode));
     }
 
     @Transactional(readOnly = true)
