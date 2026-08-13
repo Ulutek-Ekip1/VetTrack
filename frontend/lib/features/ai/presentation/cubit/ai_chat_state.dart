@@ -20,6 +20,7 @@ class AiChatState extends Equatable {
   final String? activePetId;
   final String? errorMessage;
   final int? statusCode;
+  final int rateLimitRemainingSeconds;
 
   const AiChatState({
     this.messages = const [],
@@ -38,6 +39,7 @@ class AiChatState extends Equatable {
     this.activePetId,
     this.errorMessage,
     this.statusCode,
+    this.rateLimitRemainingSeconds = 0,
   });
 
   AiChatState copyWith({
@@ -62,6 +64,7 @@ class AiChatState extends Equatable {
     bool clearErrorMessage = false,
     int? statusCode,
     bool clearStatusCode = false,
+    int? rateLimitRemainingSeconds,
   }) {
     return AiChatState(
       messages: messages ?? this.messages,
@@ -87,6 +90,8 @@ class AiChatState extends Equatable {
           : (errorMessage ?? this.errorMessage),
       statusCode:
           clearStatusCode ? null : (statusCode ?? this.statusCode),
+      rateLimitRemainingSeconds:
+          rateLimitRemainingSeconds ?? this.rateLimitRemainingSeconds,
     );
   }
 
@@ -108,5 +113,6 @@ class AiChatState extends Equatable {
         activePetId,
         errorMessage,
         statusCode,
+        rateLimitRemainingSeconds,
       ];
 }

@@ -130,6 +130,8 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
   ServerException _handleDioError(DioException e) {
     if (e.response != null) {
       final statusCode = e.response!.statusCode;
+      final retryAfterSeconds =
+          int.tryParse(e.response!.headers.value('retry-after') ?? '');
       final data = e.response!.data;
       String message = '';
       if (data is Map<String, dynamic> && data.containsKey('message')) {
@@ -139,24 +141,28 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
       switch (statusCode) {
         case 400:
           return ServerException(
-              message.isNotEmpty ? message : 'Geçersiz sohbet isteği (400).');
+              message.isNotEmpty ? message : 'Geçersiz sohbet isteği.', statusCode);
         case 401:
-          return const ServerException('Oturum süreniz doldu, lütfen tekrar giriş yapın (401).');
+          return ServerException(
+              'Oturum süreniz doldu, lütfen tekrar giriş yapın.', statusCode);
         case 403:
           return ServerException(
-              message.isNotEmpty ? message : 'Bu işleme erişim yetkiniz bulunmuyor (403).');
+              message.isNotEmpty ? message : 'Bu işleme erişim yetkiniz bulunmuyor.', statusCode);
         case 409:
           return ServerException(
-              message.isNotEmpty ? message : 'Idempotency çakışması: Aynı mesaj kimliği tekrar kullanılamaz (409).');
+              message.isNotEmpty ? message : 'Idempotency çakışması: Aynı mesaj kimliği tekrar kullanılamaz.', statusCode);
         case 429:
-          return const ServerException(
-              'Çok fazla istek gönderdiniz. Lütfen biraz bekleyip tekrar deneyin (429).');
+          return ServerException(
+            'Çok fazla istek gönderdiniz. Lütfen biraz bekleyip tekrar deneyin.',
+            statusCode,
+            retryAfterSeconds,
+          );
         case 503:
-          return const ServerException(
-              'Yapay zeka servisi şu anda geçici olarak hizmet veremiyor (503).');
+          return ServerException(
+              'Yapay zeka servisi şu anda geçici olarak hizmet veremiyor.', statusCode);
         default:
           return ServerException(
-              message.isNotEmpty ? message : 'Sunucu hatası ($statusCode).');
+              message.isNotEmpty ? message : 'Sunucu hatası ($statusCode).', statusCode);
       }
     }
 

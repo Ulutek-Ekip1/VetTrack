@@ -631,7 +631,10 @@ class _AIChatbotViewState extends State<AIChatbotView> {
         builder: (context, state) {
           final messages = state.messages;
           final isSending = state.isSending;
-          final canSend = _inputText.trim().isNotEmpty && !isSending;
+          final rateLimitRemaining = state.rateLimitRemainingSeconds;
+          final canSend = _inputText.trim().isNotEmpty &&
+              !isSending &&
+              rateLimitRemaining == 0;
 
           return Column(
             children: [
@@ -837,6 +840,21 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               ),
 
               // Mesaj Giriş Alanı
+              if (rateLimitRemaining > 0)
+                Container(
+                  width: double.infinity,
+                  color: const Color(0xFFFFF7ED),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    'Çok fazla istek gönderildi. $rateLimitRemaining sn sonra tekrar deneyebilirsiniz.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFF9A3412),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
               Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16.0, vertical: 12.0),
@@ -852,7 +870,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                       Expanded(
                         child: TextField(
                           controller: _messageController,
-                          enabled: !isSending, // İstek sürerken devre dışı
+                          enabled: !isSending && rateLimitRemaining == 0,
                           textInputAction: TextInputAction.send,
                           onSubmitted: (_) {
                             if (canSend) _onSendPressed();

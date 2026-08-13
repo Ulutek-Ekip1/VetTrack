@@ -131,7 +131,7 @@ void main() {
     test('3. Retry işleminde aynı clientMessageId kullanılmalıdır', () async {
       mockRepository.shouldFailSendMessage = true;
       mockRepository.sendMessageException =
-          const ServerException('Ağ Hatası (503)');
+          const ServerException('Ağ Hatası', 503);
 
       await cubit.sendMessage('Hatalı Mesaj');
       final failedUserMsg =
@@ -183,37 +183,38 @@ void main() {
       // 400 Testi
       mockRepository.shouldFailSendMessage = true;
       mockRepository.sendMessageException =
-          const ServerException('Bad Request (400)');
+          const ServerException('Bad Request', 400);
       await cubit.sendMessage('Gecersiz mesaj testi');
       expect(cubit.state.errorMessage, contains('Geçersiz veya boş mesaj'));
 
       // 401 Testi
       mockRepository.sendMessageException =
-          const ServerException('Unauthorized (401)');
+          const ServerException('Unauthorized', 401);
       await cubit.sendMessage('Test 401');
       expect(cubit.state.isAuthError, isTrue);
 
       // 403 Testi
       mockRepository.sendMessageException =
-          const ServerException('Forbidden (403)');
+          const ServerException('Forbidden', 403);
       await cubit.sendMessage('Test 403');
       expect(cubit.state.errorMessage, contains('erişim yetkiniz'));
 
       // 409 Testi
       mockRepository.sendMessageException =
-          const ServerException('Conflict (409)');
+          const ServerException('Conflict', 409);
       await cubit.sendMessage('Test 409');
+      expect(cubit.state.statusCode, equals(409));
       expect(cubit.state.errorMessage, contains('Mesaj kimlik çakışması'));
 
       // 429 Testi
       mockRepository.sendMessageException =
-          const ServerException('Too Many Requests (429)');
+          const ServerException('Too Many Requests', 429, 0);
       await cubit.sendMessage('Test 429');
       expect(cubit.state.errorMessage, contains('Hız Limiti'));
 
       // 503 Testi
       mockRepository.sendMessageException =
-          const ServerException('Service Unavailable (503)');
+          const ServerException('Service Unavailable', 503);
       await cubit.sendMessage('Test 503');
       expect(
           cubit.state.errorMessage, contains('servisi geçici olarak kullanılamıyor'));

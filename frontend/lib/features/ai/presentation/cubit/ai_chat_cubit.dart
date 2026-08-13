@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/exceptions.dart';
@@ -12,6 +14,7 @@ import 'ui_chat_message.dart';
 class AiChatCubit extends Cubit<AiChatState> {
   final AiRepository aiRepository;
   CancelToken? _cancelToken;
+  Timer? _rateLimitTimer;
 
   AiChatCubit({required this.aiRepository}) : super(const AiChatState());
 
@@ -57,10 +60,7 @@ class AiChatCubit extends Cubit<AiChatState> {
       String errorMsg = 'Sohbet geçmişi yüklenirken hata oluştu.';
       if (e is ServerException && e.message != null && e.message!.isNotEmpty) {
         errorMsg = e.message!;
-        final match = RegExp(r'\((\d{3})\)').firstMatch(e.message!);
-        if (match != null) {
-          statusCode = int.tryParse(match.group(1)!);
-        }
+        statusCode = e.statusCode;
       }
 
       final isPetError = (targetPetId != null && targetPetId.isNotEmpty) &&
@@ -96,6 +96,21 @@ class AiChatCubit extends Cubit<AiChatState> {
 
     final allRaw = existingMap.values.toList();
 
+    final conversationGroups = _buildConversationGroups(allRaw);
+
+    emit(state.copyWith(
+      rawHistoryMessages: allRaw,
+      conversations: conversationGroups,
+      isLoadingHistory: false,
+      isLoadingMoreHistory: false,
+      isHistoryError: false,
+      historyPage: fetchedPage,
+      hasMoreHistory: fetched.length >= 50,
+    ));
+  }
+
+  List<ConversationGroup> _buildConversationGroups(
+      List<ChatMessage> allRaw) {
     // Group by conversationId
     final Map<String, List<ChatMessage>> grouped = {};
     for (final m in allRaw) {
@@ -148,15 +163,7 @@ class AiChatCubit extends Cubit<AiChatState> {
     // Sort conversations descending by lastMessageTime (newest first)
     conversationGroups.sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
 
-    emit(state.copyWith(
-      rawHistoryMessages: allRaw,
-      conversations: conversationGroups,
-      isLoadingHistory: false,
-      isLoadingMoreHistory: false,
-      isHistoryError: false,
-      historyPage: fetchedPage,
-      hasMoreHistory: fetched.length >= 50,
-    ));
+    return conversationGroups;
   }
 
   void selectConversation(ConversationGroup group) {
@@ -233,7 +240,7 @@ class AiChatCubit extends Cubit<AiChatState> {
 
   Future<void> sendMessage(String text) async {
     final trimmedText = text.trim();
-    if (trimmedText.isEmpty || state.isSending) return;
+    if (trimmedText.isEmpty || state.isSending || state.rateLimitRemainingSeconds > 0) return;
 
     final clientMessageId = UuidGenerator.generateV4();
 
@@ -265,7 +272,7 @@ class AiChatCubit extends Cubit<AiChatState> {
   }
 
   Future<void> retryMessage(UiChatMessage failedUserMessage) async {
-    if (state.isSending) return;
+    if (state.isSending || state.rateLimitRemainingSeconds > 0) return;
 
     final clientMessageId =
         failedUserMessage.clientMessageId ?? UuidGenerator.generateV4();
@@ -297,7 +304,7 @@ class AiChatCubit extends Cubit<AiChatState> {
 
   Future<void> retryWithNewClientMessageId(
       UiChatMessage failedUserMessage) async {
-    if (state.isSending) return;
+    if (state.isSending || state.rateLimitRemainingSeconds > 0) return;
 
     final newClientMessageId = UuidGenerator.generateV4();
 
@@ -393,10 +400,42 @@ class AiChatCubit extends Cubit<AiChatState> {
       );
 
       updatedMessages.add(aiMessage);
+      final sentUserMessage = updatedMessages
+          .firstWhere((message) => message.id == existingUserMessageId);
+      final historyById = <String, ChatMessage>{
+        for (final message in state.rawHistoryMessages) message.id: message,
+        sentUserMessage.id: ChatMessage(
+          id: sentUserMessage.id,
+          conversationId: response.conversationId,
+          clientMessageId: clientMessageId,
+          ownerId: '',
+          petId: state.activePetId,
+          role: 'user',
+          content: sentUserMessage.content,
+          emergency: false,
+          createdAt: sentUserMessage.createdAt,
+        ),
+        aiMessage.id: ChatMessage(
+          id: aiMessage.id,
+          conversationId: response.conversationId,
+          replyToClientMessageId: clientMessageId,
+          ownerId: '',
+          petId: state.activePetId,
+          role: 'model',
+          content: aiMessage.content,
+          emergency: aiMessage.emergency,
+          model: response.model,
+          promptVersion: response.promptVersion,
+          createdAt: aiMessage.createdAt,
+        ),
+      };
+      final updatedHistory = historyById.values.toList();
 
       emit(state.copyWith(
         messages: updatedMessages,
         activeConversationId: response.conversationId,
+        rawHistoryMessages: updatedHistory,
+        conversations: _buildConversationGroups(updatedHistory),
         isSending: false,
       ));
     } catch (e) {
@@ -407,14 +446,13 @@ class AiChatCubit extends Cubit<AiChatState> {
       }
 
       int? statusCode;
+      int? retryAfterSeconds;
       String rawErrorMsg = e.toString();
 
       if (e is ServerException && e.message != null && e.message!.isNotEmpty) {
         rawErrorMsg = e.message!;
-        final match = RegExp(r'\((\d{3})\)').firstMatch(e.message!);
-        if (match != null) {
-          statusCode = int.tryParse(match.group(1)!);
-        }
+        statusCode = e.statusCode;
+        retryAfterSeconds = e.retryAfterSeconds;
       }
 
       final userFriendlyErrorMsg =
@@ -440,14 +478,34 @@ class AiChatCubit extends Cubit<AiChatState> {
         errorMessage: userFriendlyErrorMsg,
         statusCode: statusCode,
       ));
+
+      if (statusCode == 429 && (retryAfterSeconds ?? 60) > 0) {
+        _startRateLimitCountdown(retryAfterSeconds ?? 60);
+      }
     } finally {
       _cancelToken = null;
     }
   }
 
+  void _startRateLimitCountdown(int seconds) {
+    _rateLimitTimer?.cancel();
+    final clampedSeconds = seconds.clamp(1, 3600);
+    emit(state.copyWith(rateLimitRemainingSeconds: clampedSeconds));
+    _rateLimitTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final remaining = state.rateLimitRemainingSeconds - 1;
+      if (remaining <= 0) {
+        timer.cancel();
+        emit(state.copyWith(rateLimitRemainingSeconds: 0));
+      } else {
+        emit(state.copyWith(rateLimitRemainingSeconds: remaining));
+      }
+    });
+  }
+
   @override
   Future<void> close() {
     _cancelToken?.cancel('Screen disposed');
+    _rateLimitTimer?.cancel();
     return super.close();
   }
 }

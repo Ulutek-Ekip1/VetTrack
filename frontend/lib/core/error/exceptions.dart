@@ -1,6 +1,13 @@
 class ServerException implements Exception {
   final String? message;
-  const ServerException([this.message]);
+  final int? statusCode;
+  final int? retryAfterSeconds;
+
+  const ServerException([
+    this.message,
+    this.statusCode,
+    this.retryAfterSeconds,
+  ]);
 }
 
 class AuthException implements Exception {
