@@ -9,6 +9,9 @@ import '../../../visit/presentation/cubit/visit_cubit.dart';
 import '../../../visit/presentation/cubit/visit_state.dart';
 import '../../../treatment/presentation/cubit/treatment_cubit.dart';
 import '../../../treatment/presentation/cubit/treatment_state.dart';
+import '../../../recommendation/presentation/cubit/recommendation_cubit.dart';
+import '../../../recommendation/presentation/cubit/recommendation_state.dart';
+import '../../../recommendation/domain/entities/recommendation_entity.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final String petId;
@@ -559,107 +562,119 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   // 4. NOTLAR SEKMESİ
   Widget _buildNotlarTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return BlocBuilder<RecommendationCubit, RecommendationState>(
+      builder: (context, state) {
+        if (state is RecommendationLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is RecommendationError) {
+          return Center(child: Text(state.message));
+        }
+
+        List<RecommendationEntity> recommendations = [];
+        if (state is RecommendationLoaded) {
+          recommendations = state.recommendations;
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Notlar',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Tümü',
+                  const Text('Hekim Önerileri',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('${recommendations.length} Öneri',
                       style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: primaryBlue)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.filter_alt_outlined, size: 18),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildNoteCard(
-              '15.05.2026',
-              'Genel durumu iyi, İştahı normal.\nKilo: 23 kg.',
-              'Dr. Ahmet Yılmaz',
-              true),
-          _buildNoteCard(
-              '20.04.2026',
-              'Bugün tüy dökümü biraz fazlaydı.\nŞampuan değiştirdim.',
-              null,
-              false),
-          _buildNoteCard(
-              '10.03.2026',
-              'Kulak temizliği yapıldı.\nAntibiyotik damla reçete edildi.',
-              'Dr. Ayşe Demir',
-              true),
-          _buildNoteCard(
-              '05.02.2026',
-              'İlaçlarını düzenli kullandı.\nHerhangi bir yan etkisi olmadı.',
-              null,
-              false),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoteCard(
-      String date, String content, String? doctor, bool isVetNote) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(date,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isVetNote
-                      ? const Color(0xFFFEF3C7)
-                      : const Color(0xFFDBEAFE),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  isVetNote ? 'Veteriner Notu' : 'Sahip Notu',
-                  style: TextStyle(
-                    color: isVetNote ? const Color(0xFFD97706) : primaryBlue,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(height: 16),
+              if (recommendations.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Center(
+                    child: Text(
+                      'Hayvana ait kaydedilmiş hekim önerisi bulunmuyor.',
+                      style: TextStyle(color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                ),
-              ),
+                )
+              else
+                ...recommendations.map((rec) {
+                  final DateTime dateVal = rec.createdAt;
+                  final dateStr =
+                      '${dateVal.day.toString().padLeft(2, '0')}.${dateVal.month.toString().padLeft(2, '0')}.${dateVal.year}';
+
+                  String recTitle = 'Genel Öneri';
+                  Color labelColor = primaryBlue;
+                  Color labelBgColor = const Color(0xFFDBEAFE);
+                  if (rec.type == 'food') {
+                    recTitle = 'Beslenme Önerisi';
+                    labelColor = Colors.orange.shade800;
+                    labelBgColor = const Color(0xFFFFECE5);
+                  } else if (rec.type == 'litter') {
+                    recTitle = 'Kum & Hijyen Önerisi';
+                    labelColor = Colors.blue.shade800;
+                    labelBgColor = const Color(0xFFE0F2FE);
+                  }
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(dateStr,
+                                style: TextStyle(
+                                    color: Colors.grey.shade500, fontSize: 12)),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: labelBgColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                recTitle,
+                                style: TextStyle(
+                                  color: labelColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(rec.description,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF131B2E),
+                                height: 1.4)),
+                      ],
+                    ),
+                  );
+                }),
+              const SizedBox(height: 40),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(content,
-              style: const TextStyle(
-                  fontSize: 14, color: Color(0xFF131B2E), height: 1.4)),
-          if (doctor != null) ...[
-            const SizedBox(height: 12),
-            Text(doctor,
-                style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500)),
-          ]
-        ],
-      ),
+        );
+      },
     );
   }
 }

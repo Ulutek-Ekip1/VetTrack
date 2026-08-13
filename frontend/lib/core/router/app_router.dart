@@ -236,6 +236,9 @@ class AppRouter {
                             BlocProvider<TreatmentCubit>(
                               create: (context) => sl<TreatmentCubit>()..loadPetTreatments(petId),
                             ),
+                            BlocProvider<RecommendationCubit>(
+                              create: (context) => sl<RecommendationCubit>()..loadRecommendations(petId),
+                            ),
                           ],
                           child: PetDetailScreen(petId: petId),
                         );
