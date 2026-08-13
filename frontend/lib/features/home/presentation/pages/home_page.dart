@@ -183,6 +183,15 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         _buildQuickActionCard(
                           context,
+                          title: 'AI Asistan',
+                          subtitle: 'Sağlık & bakım danışmanı',
+                          icon: Icons.auto_awesome,
+                          color: const Color(0xFFFFECE5),
+                          iconColor: const Color(0xFFD9531E),
+                          onTap: () => context.push('/chatbot'),
+                        ),
+                        _buildQuickActionCard(
+                          context,
                           title: 'Dost Ekle',
                           subtitle: 'Yeni evcil hayvan kaydet',
                           icon: Icons.add_circle_outline,
@@ -214,15 +223,6 @@ class _HomePageState extends State<HomePage> {
                           color: const Color(0xFFFDF2F8),
                           iconColor: const Color(0xFFDB2777),
                           onTap: () => context.push('/owner/visits'),
-                        ),
-                        _buildQuickActionCard(
-                          context,
-                          title: 'Kişisel Bilgiler',
-                          subtitle: 'Profilinizi görüntüleyin',
-                          icon: Icons.person_outline,
-                          color: const Color(0xFFEFF6FF),
-                          iconColor: theme.colorScheme.primary,
-                          onTap: () => context.push('/owner/profile'),
                         ),
                       ],
                     ),
