@@ -82,7 +82,7 @@ class RecommendationControllerIntegrationTest {
                 .build();
 
         mockMvc.perform(post("/visits/{visitId}/recommendations", testVisit.getId())
-                .with(jwt().authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_VETERINARIAN")).jwt(j -> j.subject(vetStaffId.toString())))
+                .with(jwt().authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_VET_STAFF")).jwt(j -> j.subject(vetStaffId.toString())))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())

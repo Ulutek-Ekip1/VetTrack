@@ -13,6 +13,7 @@ import com.vettrack.api.common.exception.GlobalExceptionHandler;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
 import com.vettrack.api.recommendation.Recommendation;
+import com.vettrack.api.recommendation.RecommendationResponse;
 import com.vettrack.api.recommendation.RecommendationCreateRequest;
 import com.vettrack.api.recommendation.RecommendationRepository;
 import com.vettrack.api.recommendation.RecommendationService;
@@ -162,11 +163,10 @@ class Phase2IntegrationTest {
         when(recommendationRepository.save(any(Recommendation.class))).thenReturn(saved);
         when(recommendationRepository.findByVisitId(visitId)).thenReturn(List.of(saved));
 
-        Recommendation created = recommendationService.createRecommendation(ownerId, request);
+        RecommendationResponse created = recommendationService.createRecommendation(visitId, request, ownerId);
         assertNotNull(created);
         assertEquals("mama", created.getType());
 
-        List<Recommendation> list = recommendationService.getRecommendationsByVisitId(visitId);
-        assertEquals(1, list.size());
+        // removed getRecommendationsByVisitId verification as it is now deleted
     }
 }

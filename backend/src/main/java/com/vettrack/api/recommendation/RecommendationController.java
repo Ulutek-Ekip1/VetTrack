@@ -24,7 +24,7 @@ public class RecommendationController {
     private final RecommendationService recommendationService;
 
     @PostMapping("/visits/{visitId}/recommendations")
-    @PreAuthorize("hasRole('VETERINARIAN')")
+    @PreAuthorize("hasRole('VET_STAFF')")
     @Operation(summary = "Ziyarete Yeni Tavsiye/Bakim Onerisi Ekle", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<RecommendationResponse> createRecommendation(
             @AuthenticationPrincipal Jwt jwt,
