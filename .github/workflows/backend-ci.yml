@@ -25,4 +25,4 @@ jobs:
         cache: maven
 
     - name: Maven ile Build
-      run: mvn clean install -DskipTests
+      run: mvn clean install
