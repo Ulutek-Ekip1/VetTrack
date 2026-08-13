@@ -15,6 +15,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.vettrack.api.auth.JwtAuthenticationFilter;
 import com.vettrack.api.auth.CustomJwtAuthenticationConverter; // <-- 2. Eklendi
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -41,6 +42,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
             RateLimitingFilter rateLimitingFilter
     ) throws Exception {
         http
@@ -63,7 +65,8 @@ public class SecurityConfig {
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> 
                 jwt.jwtAuthenticationConverter(new CustomJwtAuthenticationConverter()) // <-- 4. Eklendi: Converter bağlandı
             ))
-            .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(jwtAuthenticationFilter, BearerTokenAuthenticationFilter.class);
 
         return http.build();
     }
