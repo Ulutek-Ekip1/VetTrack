@@ -64,4 +64,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<UserEntity> signInWithGoogle() async {
     return await remoteDataSource.signInWithGoogle();
   }
+
+  @override
+  Future<void> deleteAccount(String password) async {
+    await remoteDataSource.deleteAccount(password);
+  }
 }

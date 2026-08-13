@@ -19,6 +19,7 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> signInWithGoogle();
   Future<void> reSendVerificationEmail(String email);
   Future<void> forgotPassword(String email);
+  Future<void> deleteAccount(String password);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -317,6 +318,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw Exception('İnternet bağlantınızı kontrol edin.');
     } catch (e) {
       throw Exception('Şifre sıfırlama isteği gönderilemedi: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteAccount(String password) async {
+    try {
+      final response = await dio.delete(
+        '/auth/account',
+        data: {'password': password},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        await Supabase.instance.client.auth.signOut();
+        await localDataSource.deleteToken();
+      } else {
+        throw Exception("Hesap silinemedi: ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      throw Exception(
+          "Hesap silme hatası: ${e.response?.data['message'] ?? e.message}");
     }
   }
 }

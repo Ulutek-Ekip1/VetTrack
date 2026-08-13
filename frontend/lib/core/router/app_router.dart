@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vettrack_frontend/features/auth/presentation/screens/delete_account/delete_account_screen.dart';
+import 'package:vettrack_frontend/features/auth/presentation/screens/delete_account/delete_account_verify_screen.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/cubit/auth_state.dart';
@@ -13,6 +15,7 @@ import '../../features/auth/presentation/screens/owner_profile_screen.dart';
 import '../../features/auth/presentation/screens/edit_profile_screen.dart';
 import '../../features/auth/presentation/screens/vet_profile_screen.dart';
 import '../../features/auth/presentation/cubit/profile_cubit.dart';
+import '../../features/auth/presentation/cubit/delete_account_cubit.dart';
 import '../di/injection_container.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/pet/presentation/screens/pet_detail_screen.dart';
@@ -96,6 +99,9 @@ abstract class AppRoutes {
 
   // AI Chatbot Rotası
   static const String chatbot = '/chatbot';
+
+  static const String deleteAccount = '/delete-account';
+  static const String deleteAccountVerify = '/delete-account/verify';
 }
 
 class AppRouter {
@@ -388,6 +394,22 @@ class AppRouter {
           path: AppRoutes.chatbot,
           name: 'chatbot',
           builder: (context, state) => const AIChatbotScreen(),
+        ),
+
+        /// Delete Account
+        GoRoute(
+          path: AppRoutes.deleteAccount,
+          name: 'deleteAccount',
+          builder: (context, state) => BlocProvider<DeleteAccountCubit>(
+            create: (context) => sl<DeleteAccountCubit>(),
+            child: const DeleteAccountScreen(),
+          ),
+        ),
+
+        GoRoute(
+          path: AppRoutes.deleteAccountVerify,
+          name: 'deleteAccountVerify',
+          builder: (context, state) => const DeleteAccountVerifyScreen(),
         ),
       ],
     );

@@ -42,6 +42,7 @@ import '../../features/auth/domain/usecases/update_owner_profile_usecase.dart';
 import '../../features/auth/presentation/cubit/profile_cubit.dart';
 import 'package:vettrack_frontend/features/auth/domain/usecases/forgot_password_usecase.dart';
 import 'package:vettrack_frontend/features/auth/domain/usecases/resend_verification_email_usecase.dart';
+import 'package:vettrack_frontend/features/auth/presentation/cubit/delete_account_cubit.dart';
 
 // Treatment Imports
 import 'package:vettrack_frontend/features/treatment/domain/usecases/add_treatment_usecase.dart';
@@ -134,6 +135,12 @@ Future<void> init() async {
     () => ProfileCubit(
       getOwnerProfile: sl(),
       updateOwnerProfile: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => DeleteAccountCubit(
+      authRepository: sl(),
     ),
   );
 
