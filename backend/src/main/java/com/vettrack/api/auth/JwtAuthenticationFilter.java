@@ -1,6 +1,7 @@
 package com.vettrack.api.auth;
 
 import java.io.IOException;
+import java.util.List;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,8 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.dao.DataAccessException;
@@ -21,46 +20,34 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtDecoder jwtDecoder;
     private final JdbcTemplate jdbcTemplate;
 
-    public JwtAuthenticationFilter(JwtDecoder jwtDecoder, JdbcTemplate jdbcTemplate) {
-        this.jwtDecoder = jwtDecoder;
+    public JwtAuthenticationFilter(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String authorization = request.getHeader("Authorization");
 
-        if (authorization != null && authorization.startsWith("Bearer ")
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
-            String token = authorization.substring(7);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication instanceof JwtAuthenticationToken jwtAuthToken) {
+            Jwt jwt = jwtAuthToken.getToken();
+            String userId = jwt.getSubject();
             try {
-                Jwt jwt = jwtDecoder.decode(token);
-                
-                String userId = jwt.getSubject();
-                try {
-                    Boolean isActive = jdbcTemplate.queryForObject(
-                        "SELECT is_active FROM profiles WHERE id = ?::uuid", 
-                        Boolean.class, userId);
+                List<Boolean> statusList = jdbcTemplate.queryForList(
+                    "SELECT is_active FROM profiles WHERE id = ?::uuid",
+                    Boolean.class, userId);
 
-                    if (Boolean.FALSE.equals(isActive)) {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.getWriter().write("User account is inactive or deleted.");
-                        return;
-                    }
-                } catch (DataAccessException e) {
+                if (!statusList.isEmpty() && Boolean.FALSE.equals(statusList.get(0))) {
+                    SecurityContextHolder.clearContext();
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("User account is inactive or deleted.");
                     return;
                 }
-
-                Authentication authentication = new JwtAuthenticationToken(jwt);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (JwtException ex) {
-                // Token geçersizse isteði kesmek yerine anonymous (anonim) olarak devam etmesine izin veriyoruz.
-                // Yetkilendirme (authorization) katmaný korunan endpoint'leri zaten engelleyecektir.
+            } catch (DataAccessException e) {
+                // DB error
             }
         }
 
