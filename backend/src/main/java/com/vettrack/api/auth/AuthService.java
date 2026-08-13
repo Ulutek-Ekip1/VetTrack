@@ -200,10 +200,8 @@ public class AuthService {
                 return;
             }
             log.error("Supabase password recovery failed with status {}: {}", status.value(), ex.getResponseBodyAsString());
-            throw new RuntimeException("Password recovery failed: " + ex.getMessage(), ex);
         } catch (Exception ex) {
             log.error("Supabase password recovery failed: {}", ex.getMessage());
-            throw new RuntimeException("Password recovery failed: " + ex.getMessage(), ex);
         }
     }
 

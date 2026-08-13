@@ -1,7 +1,5 @@
 package com.vettrack.api.pet;
 
-import com.vettrack.api.visit.Visit;
-import com.vettrack.api.visit.VisitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -34,8 +32,7 @@ import java.util.UUID;
 public class PetController {
 
     private final PetService petService;
-    private final VisitService visitService;
-
+    
     @PostMapping
     @Operation(summary = "Yeni Pet Ekle", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
@@ -82,7 +79,7 @@ public class PetController {
     ) {
         Pet pet = petService.getPetById(id);
         if (jwt != null) {
-            boolean isStaffOrAdmin = isVetOrAdmin(jwt);
+            boolean isStaffOrAdmin = isVetOrAdmin();
             UUID ownerId = UUID.fromString(jwt.getSubject());
             if (!isStaffOrAdmin && !pet.getOwnerId().equals(ownerId)) {
                 throw new AccessDeniedException("Bu hayvan size ait değil");
@@ -91,29 +88,7 @@ public class PetController {
         return ResponseEntity.ok(pet);
     }
 
-    @GetMapping("/{id}/visits")
-    @Operation(summary = "Pet'in Ziyaret Geçmişini Sayfalamalı Listele", description = "Belirtilen pet'e ait ziyaret geçmişini sayfalamalı olarak döndürür. Sahiplik ve yetki kontrolü yapılır.", security = @SecurityRequirement(name = "bearerAuth"))
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Sayfalandırılmış ziyaret geçmişi başarıyla getirildi"),
-        @ApiResponse(responseCode = "403", description = "Bu hayvanın ziyaret geçmişine erişim yetkiniz yok"),
-        @ApiResponse(responseCode = "404", description = "Pet bulunamadı")
-    })
-    public ResponseEntity<Page<Visit>> getPetVisitsPaginated(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID id,
-            @ParameterObject Pageable pageable
-    ) {
-        Pet pet = petService.getPetById(id);
-        if (jwt != null) {
-            boolean isStaffOrAdmin = isVetOrAdmin(jwt);
-            UUID ownerId = UUID.fromString(jwt.getSubject());
-            if (!isStaffOrAdmin && !pet.getOwnerId().equals(ownerId)) {
-                throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
-            }
-        }
-        Page<Visit> visits = visitService.getVisitsByPetIdPaginated(id, pageable);
-        return ResponseEntity.ok(visits);
-    }
+    
 
     @GetMapping("/code/{uniqueCode}")
     @Operation(summary = "Benzersiz Kod ile Pet Bul", security = @SecurityRequirement(name = "bearerAuth"))
@@ -186,38 +161,7 @@ public class PetController {
         return ResponseEntity.noContent().build();
     }
 
-    private static final java.util.Set<String> ALLOWED_STAFF_ROLES = java.util.Set.of(
-            "vet", "vet_staff", "admin", "doctor", "receptionist", "veterinarian"
-    );
-
-    @SuppressWarnings("unchecked")
-    private boolean isVetOrAdmin(Jwt jwt) {
-        if (jwt != null) {
-            String role = jwt.getClaimAsString("role");
-            Object userMetadata = jwt.getClaim("user_metadata");
-            if (userMetadata instanceof Map) {
-                Object roleClaim = ((Map<String, Object>) userMetadata).get("role");
-                if (roleClaim instanceof String s && !s.isBlank()) {
-                    role = s;
-                }
-            }
-            if (role != null) {
-                String normalized = role.trim().toLowerCase();
-                if (ALLOWED_STAFF_ROLES.contains(normalized)) {
-                    return true;
-                }
-            }
-        }
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getAuthorities() != null) {
-            return auth.getAuthorities().stream().anyMatch(a -> {
-                String authority = a.getAuthority();
-                return "ROLE_VET_STAFF".equals(authority) || "ROLE_ADMIN".equals(authority) || "ROLE_VET".equals(authority) || "ROLE_DOCTOR".equals(authority);
-            });
-        }
-        return false;
-    }
+    
 
     private boolean isVetOrAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

@@ -7,6 +7,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
+import java.util.HashMap;
+import java.time.LocalDateTime;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +23,20 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private void writeErrorResponse(HttpServletResponse response, int status, String errorCode, String message) throws java.io.IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("timestamp", LocalDateTime.now().toString());
+        errorDetails.put("status", status);
+        errorDetails.put("error", errorCode);
+        errorDetails.put("message", message);
+        response.getWriter().write(objectMapper.writeValueAsString(errorDetails));
+    }
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -42,14 +60,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (!statusList.isEmpty() && Boolean.FALSE.equals(statusList.get(0))) {
                     SecurityContextHolder.clearContext();
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("User account is inactive or deleted.");
+                    writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "ACCOUNT_INACTIVE", "User account is inactive or deleted.");
                     return;
                 }
             } catch (DataAccessException e) {
                 SecurityContextHolder.clearContext();
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                response.getWriter().write("Database error during authentication.");
+                writeErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "Database error during authentication.");
                 return;
             }
         }
