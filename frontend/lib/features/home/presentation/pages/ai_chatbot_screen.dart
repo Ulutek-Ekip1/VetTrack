@@ -1,79 +1,93 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../core/di/injection_container.dart';
+import '../../../pet/domain/entities/pet_entity.dart';
+import 'package:vettrack_frontend/features/ai/presentation/cubit/ai_chat_cubit.dart';
+import 'package:vettrack_frontend/features/ai/presentation/cubit/ai_chat_state.dart';
+import 'package:vettrack_frontend/features/ai/presentation/cubit/ui_chat_message.dart';
 
-class AIChatbotScreen extends StatefulWidget {
-  const AIChatbotScreen({super.key});
+class AIChatbotScreen extends StatelessWidget {
+  final String? petId;
+  final PetEntity? pet;
+
+  const AIChatbotScreen({
+    super.key,
+    this.petId,
+    this.pet,
+  });
 
   @override
-  State<AIChatbotScreen> createState() => _AIChatbotScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider<AiChatCubit>(
+      create: (context) => sl<AiChatCubit>()..setPetContext(petId),
+      child: AIChatbotView(petId: petId, pet: pet),
+    );
+  }
 }
 
-class _AIChatbotScreenState extends State<AIChatbotScreen> {
+class AIChatbotView extends StatefulWidget {
+  final String? petId;
+  final PetEntity? pet;
+
+  const AIChatbotView({
+    super.key,
+    this.petId,
+    this.pet,
+  });
+
+  @override
+  State<AIChatbotView> createState() => _AIChatbotViewState();
+}
+
+class _AIChatbotViewState extends State<AIChatbotView> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'isUser': false,
-      'text': 'Merhaba! Ben VetTrack Yapay Zeka Sağlık Asistanıyım. Evcil hayvanınızın sağlığı, beslenmesi veya aşıları hakkında bana her şeyi sorabilirsiniz. 🐾',
-      'time': 'Şimdi',
-    }
-  ];
-  bool _isTyping = false;
+  String _inputText = '';
 
-  final Map<String, String> _mockReplies = {
-    'merhaba': 'Merhaba! Evcil dostunuz hakkında size nasıl yardımcı olabilirim?',
-    'aşı': 'Evcil hayvanların aşı takvimi yaş ve türüne göre değişiklik gösterir. Genellikle yavrular için 6-8. haftalarda iç-dış parazit ve karma aşılarla başlanır. Güncel aşı takviminizi "Tedaviler & Aşı Takvimi" sekmesinden takip edebilirsiniz.',
-    'mama': 'Dostunuzun yaşına, kilosuna ve kısırlaştırma durumuna uygun mamalar seçmelisiniz. Örneğin, yetişkin kısırlaştırılmış kediler için düşük tahıllı veya tahılsız kısırlaştırılmış kedi mamaları önerilir. Günlük porsiyona dikkat etmeniz obeziteyi engelleyecektir.',
-    'kusma': 'Evcil hayvanlarda kusma; basit bir tüy yumağından, gıda zehirlenmesine veya ciddi enfeksiyonlara kadar pek çok nedenden kaynaklanabilir. Kusma sıklığı fazlaysa ve halsizlik eşlik ediyorsa acilen veteriner hekiminize başvurmanızı öneririm.',
-    'tüy': 'Mevsim geçişlerinde tüy dökülmesi oldukça normaldir. Düzenli olarak haftada 2-3 kez tüy taraması yapmak dökülmeyi büyük oranda azaltır. Ayrıca somon yağlı mamalar da deri sağlığını destekler.',
-    'nasılsın': 'Harikayım! VetTrack sisteminde dostlarınızın sağlığını takip etmek için her zaman buradayım. Siz nasılsınız?',
-  };
+  String? _activePetId;
+  PetEntity? _activePet;
 
-  void _sendMessage() {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+  @override
+  void initState() {
+    super.initState();
+    _activePetId = widget.petId;
+    _activePet = widget.pet;
 
-    _messageController.clear();
-    setState(() {
-      _messages.add({
-        'isUser': true,
-        'text': text,
-        'time': 'Şimdi',
-      });
-      _isTyping = true;
-    });
-
-    _scrollToBottom();
-
-    // AI Cevap Simülasyonu (1.5 saniye sonra)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
-
-      String reply = 'Anlıyorum. Evcil dostunuzun sağlığı bizim için çok önemli. Ancak bu spesifik soru için doğrudan veteriner hekiminize danışmanız veya muayene kaydı oluşturmanız en doğrusu olacaktır. 🩺';
-      final lowerText = text.toLowerCase();
-
-      for (var key in _mockReplies.keys) {
-        if (lowerText.contains(key)) {
-          reply = _mockReplies[key]!;
-          break;
-        }
-      }
-
-      setState(() {
-        _isTyping = false;
-        _messages.add({
-          'isUser': false,
-          'text': reply,
-          'time': 'Şimdi',
+    _messageController.addListener(() {
+      if (mounted) {
+        setState(() {
+          _inputText = _messageController.text;
         });
-      });
-
-      _scrollToBottom();
+      }
     });
   }
 
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onSendPressed() {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+
+    final cubit = context.read<AiChatCubit>();
+    if (cubit.state.isSending) return;
+
+    _messageController.clear();
+    setState(() {
+      _inputText = '';
+    });
+
+    cubit.sendMessage(text);
+    _scrollToBottom();
+  }
+
   void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 100), () {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -82,6 +96,16 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
         );
       }
     });
+  }
+
+  String _formatTime(String rawDate) {
+    if (rawDate.isEmpty) return 'Şimdi';
+    try {
+      final dt = DateTime.parse(rawDate).toLocal();
+      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return 'Şimdi';
+    }
   }
 
   @override
@@ -143,160 +167,458 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          // Sohbet Geçmişi
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(AppDimensions.containerMargin),
-              physics: const BouncingScrollPhysics(),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final isUser = msg['isUser'] as bool;
+      body: BlocConsumer<AiChatCubit, AiChatState>(
+        listener: (context, state) {
+          if (state.messages.isNotEmpty) {
+            _scrollToBottom();
+          }
+        },
+        builder: (context, state) {
+          final messages = state.messages;
+          final isSending = state.isSending;
+          final canSend = _inputText.trim().isNotEmpty && !isSending;
 
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12.0),
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.75,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isUser ? primaryBlue : Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(16),
-                        topRight: const Radius.circular(16),
-                        bottomLeft: Radius.circular(isUser ? 16 : 4),
-                        bottomRight: Radius.circular(isUser ? 4 : 16),
+          return Column(
+            children: [
+              // Aktif Pet Bağlamı Kartı
+              if (_activePetId != null)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: const Color(0xFFDBEAFE),
+                        backgroundImage: _activePet?.photoUrl != null &&
+                                _activePet!.photoUrl!.isNotEmpty
+                            ? NetworkImage(_activePet!.photoUrl!)
+                            : null,
+                        child: _activePet?.photoUrl == null ||
+                                _activePet!.photoUrl!.isEmpty
+                            ? const Icon(Icons.pets, size: 18, color: primaryBlue)
+                            : null,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Aktif Bağlam: ${_activePet?.name ?? 'Evcil Hayvan'}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Color(0xFF1E3A8A),
+                              ),
+                            ),
+                            Text(
+                              'Sorular ${_activePet?.name ?? 'bu pet'} özelinde yanıtlanır',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Tooltip(
+                        message: 'Genel sohbete dön',
+                        child: InkWell(
+                          onTap: () {
+                            context.read<AiChatCubit>().clearPetContext();
+                            setState(() {
+                              _activePetId = null;
+                              _activePet = null;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFF93C5FD)),
+                            ),
+                            child: const Icon(Icons.close,
+                                size: 16, color: Color(0xFF1E3A8A)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Sohbet Mesajları Listesi
+              Expanded(
+                child: messages.isEmpty
+                    ? SingleChildScrollView(
+                        padding: const EdgeInsets.all(AppDimensions.containerMargin),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 20),
+                            _buildWelcomeBubble(primaryBlue),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(AppDimensions.containerMargin),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final msg = messages[index];
+                          return _buildMessageBubble(msg, primaryBlue);
+                        },
+                      ),
+              ),
+
+              // Yanıt Beklerken Loading Durumu
+              if (isSending)
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: AppDimensions.containerMargin, bottom: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'AI Asistan yanıt hazırlıyor',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(width: 6),
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.8,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.teal.shade600),
+                          ),
                         ),
                       ],
                     ),
-                    child: Text(
-                      msg['text'] as String,
-                      style: TextStyle(
-                        color: isUser ? Colors.white : const Color(0xFF1E293B),
-                        fontSize: 14.0,
-                        height: 1.4,
+                  ),
+                ),
+
+              // Öneri Soru Şablonları (Sadece mesaj yoksa gösterilir)
+              if (messages.isEmpty)
+                Container(
+                  height: 45,
+                  margin: const EdgeInsets.only(bottom: 8.0),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.containerMargin),
+                    children: [
+                      'Kedi aşı takvimi',
+                      'Mama seçimi nasıl olmalı?',
+                      'Kusma neden olur?',
+                      'Tüy dökülmesi normal mi?',
+                    ].map((tag) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ActionChip(
+                          label: Text(tag),
+                          onPressed: isSending
+                              ? null
+                              : () {
+                                  _messageController.text = tag;
+                                  _onSendPressed();
+                                },
+                          backgroundColor: Colors.white,
+                          labelStyle: const TextStyle(
+                              color: primaryBlue,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold),
+                          side: BorderSide(
+                              color: primaryBlue.withValues(alpha: 0.2)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+
+              // Mesaj Giriş Alanı
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 12.0),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFF1F5F9), width: 1.5),
+                  ),
+                ),
+                child: SafeArea(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          enabled: !isSending, // İstek sürerken devre dışı
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) {
+                            if (canSend) _onSendPressed();
+                          },
+                          decoration: InputDecoration(
+                            hintText: isSending
+                                ? 'Yanıt bekleniyor...'
+                                : 'Mesajınızı yazın...',
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            fillColor: Colors.grey.shade50,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: canSend ? _onSendPressed : null,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: canSend ? primaryBlue : Colors.grey.shade300,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.send,
+                            color: canSend ? Colors.white : Colors.grey.shade500,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildWelcomeBubble(Color primaryBlue) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.82,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+            bottomLeft: Radius.circular(4),
+            bottomRight: Radius.circular(16),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Text(
+          'Merhaba! Ben VetTrack Yapay Zeka Sağlık Asistanıyım. Evcil hayvanınızın sağlığı, beslenmesi veya aşıları hakkında bana her şeyi sorabilirsiniz. 🐾',
+          style: TextStyle(
+            color: Color(0xFF1E293B),
+            fontSize: 14.0,
+            height: 1.4,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageBubble(UiChatMessage msg, Color primaryBlue) {
+    final isUser = msg.role == 'user';
+    final isEmergency = msg.emergency;
+
+    if (isUser) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.78,
+          ),
+          decoration: BoxDecoration(
+            color: primaryBlue,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+              bottomLeft: Radius.circular(16),
+              bottomRight: Radius.circular(4),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                msg.content,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14.0,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (msg.sendStatus == MessageSendStatus.sending)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 4.0),
+                      child: SizedBox(
+                        width: 10,
+                        height: 10,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Yazıyor İndikatörü
-          if (_isTyping)
-            Padding(
-              padding: const EdgeInsets.only(left: AppDimensions.containerMargin, bottom: 8.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  children: [
-                    Text(
-                      'AI Asistan yazıyor',
-                      style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey.shade500),
+                  Text(
+                    _formatTime(msg.createdAt),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 10,
                     ),
-                    const SizedBox(width: 4),
-                    SizedBox(
-                      width: 12,
-                      height: 12,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade400),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // AI (Model) Yanıtı
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12.0),
+        padding: const EdgeInsets.all(14.0),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.85,
+        ),
+        decoration: BoxDecoration(
+          color: isEmergency ? const Color(0xFFFEF2F2) : Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+            bottomLeft: Radius.circular(4),
+            bottomRight: Radius.circular(16),
+          ),
+          border: isEmergency
+              ? Border.all(color: const Color(0xFFEF4444), width: 1.5)
+              : Border.all(color: Colors.grey.shade200, width: 1.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isEmergency) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.warning_amber_rounded,
+                        color: Colors.white, size: 16),
+                    SizedBox(width: 4),
+                    Text(
+                      'ACİL DURUM UYARISI',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-
-          // Öneri Soru Şablonları (Sadece sohbet boşken veya kolaylık için altta gösterilir)
-          if (_messages.length == 1)
-            Container(
-              height: 45,
-              margin: const EdgeInsets.only(bottom: 8.0),
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: AppDimensions.containerMargin),
-                children: [
-                  'Kedi aşı takvimi',
-                  'Mama seçimi nasıl olmalı?',
-                  'Kusma neden olur?',
-                  'Tüy dökülmesi normal mi?',
-                ].map((tag) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: ActionChip(
-                      label: Text(tag),
-                      onPressed: () {
-                        _messageController.text = tag;
-                        _sendMessage();
-                      },
-                      backgroundColor: Colors.white,
-                      labelStyle: const TextStyle(color: primaryBlue, fontSize: 12, fontWeight: FontWeight.bold),
-                      side: BorderSide(color: primaryBlue.withValues(alpha: 0.2)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                  );
-                }).toList(),
+            ],
+            SelectableText(
+              msg.content,
+              style: TextStyle(
+                color: isEmergency ? const Color(0xFF7F1D1D) : const Color(0xFF1E293B),
+                fontSize: 14.0,
+                height: 1.4,
+                fontWeight: isEmergency ? FontWeight.w500 : FontWeight.normal,
               ),
             ),
-
-          // Mesaj Giriş Alanı
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Color(0xFFF1F5F9), width: 1.5),
-              ),
-            ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(),
-                      decoration: InputDecoration(
-                        hintText: 'Mesajınızı yazın...',
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        fillColor: Colors.grey.shade50,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      ),
-                    ),
+            if (msg.disclaimer != null && msg.disclaimer!.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Text(
+                  msg.disclaimer!,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 10.5,
+                    fontStyle: FontStyle.italic,
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _sendMessage,
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: const BoxDecoration(
-                        color: primaryBlue,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.send, color: Colors.white, size: 20),
-                    ),
-                  ),
-                ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                _formatTime(msg.createdAt),
+                style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 10,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
