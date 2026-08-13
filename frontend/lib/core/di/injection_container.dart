@@ -203,6 +203,7 @@ Future<void> init() async {
       addTreatmentUseCase: sl(),
       deleteTreatmentUseCase: sl(),
       getTreatmentUseCase: sl(),
+      repository: sl(),
     ),
   );
 

@@ -252,7 +252,10 @@ class AppRouter {
                           name: 'petTreatments',
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
-                            return PetTreatmentHistoryScreen(petId: petId);
+                            return BlocProvider<TreatmentCubit>(
+                              create: (context) => sl<TreatmentCubit>()..loadPetTreatments(petId),
+                              child: PetTreatmentHistoryScreen(petId: petId),
+                            );
                           },
                         ),
                         GoRoute(
@@ -261,8 +264,7 @@ class AppRouter {
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
                             return BlocProvider<RecommendationCubit>(
-                              create: (context) => sl<RecommendationCubit>()
-                                ..loadRecommendations(petId),
+                              create: (context) => sl<RecommendationCubit>()..loadRecommendations(petId),
                               child: PetRecommendationScreen(petId: petId),
                             );
                           },

@@ -1,25 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:vettrack_frontend/core/di/injection_container.dart';
-import 'package:vettrack_frontend/features/treatment/domain/entities/treatment_entity.dart';
-import 'package:vettrack_frontend/features/treatment/domain/repositories/treatment_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/features/treatment/presentation/cubit/treatment_cubit.dart';
+import 'package:vettrack_frontend/features/treatment/presentation/cubit/treatment_state.dart';
 
-class PetTreatmentHistoryScreen extends StatefulWidget {
+class PetTreatmentHistoryScreen extends StatelessWidget {
   final String petId;
-  const PetTreatmentHistoryScreen({super.key, required this.petId});
-  @override State<PetTreatmentHistoryScreen> createState() => _PetTreatmentHistoryScreenState();
-}
 
-class _PetTreatmentHistoryScreenState extends State<PetTreatmentHistoryScreen> {
-  late Future<List<TreatmentEntity>> _treatments;
-  @override void initState() { super.initState(); _treatments = sl<TreatmentRepository>().getPetTreatments(widget.petId); }
-  @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Tedaviler & Reçeteler'), backgroundColor: Colors.teal, foregroundColor: Colors.white),
-    body: FutureBuilder<List<TreatmentEntity>>(future: _treatments, builder: (context, snapshot) {
-      if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
-      if (snapshot.hasError) return const Center(child: Text('Tedavi geçmişi yüklenemedi.'));
-      final treatments = snapshot.data ?? const [];
-      if (treatments.isEmpty) return const Center(child: Text('Henüz tedavi kaydı yok.'));
-      return ListView.builder(padding: const EdgeInsets.all(16), itemCount: treatments.length, itemBuilder: (context, index) { final treatment = treatments[index]; return Card(child: ListTile(leading: const CircleAvatar(child: Icon(Icons.medication)), title: Text(treatment.title), subtitle: Text('${treatment.type}\n${treatment.description ?? ''}'), isThreeLine: treatment.description != null)); });
-    }),
-  );
+  const PetTreatmentHistoryScreen({
+    super.key,
+    required this.petId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tedaviler & Reçeteler'),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+      ),
+      body: BlocBuilder<TreatmentCubit, TreatmentState>(
+        builder: (context, state) {
+          if (state is TreatmentLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is TreatmentError) {
+            return Center(child: Text(state.message));
+          }
+          if (state is TreatmentLoaded) {
+            final treatments = state.treatments;
+            if (treatments.isEmpty) {
+              return const Center(child: Text('Henüz tedavi kaydı yok.'));
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: treatments.length,
+              itemBuilder: (context, index) {
+                final treatment = treatments[index];
+                return Card(
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.medication),
+                    ),
+                    title: Text(treatment.title),
+                    subtitle: Text(
+                      '${treatment.type}\n${treatment.description ?? ''}',
+                    ),
+                    isThreeLine: treatment.description != null &&
+                        treatment.description!.isNotEmpty,
+                  ),
+                );
+              },
+            );
+          }
+          return const SizedBox();
+        },
+      ),
+    );
+  }
 }
