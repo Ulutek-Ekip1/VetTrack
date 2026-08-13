@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping
+@RequestMapping({"", "/api"})
 @RequiredArgsConstructor
 @Tag(name = "Recommendation API", description = "Veteriner hekim tavsiye ve bakim onerileri API'leri")
 public class RecommendationController {
@@ -44,4 +44,14 @@ public class RecommendationController {
     ) {
         return ResponseEntity.ok(recommendationService.getRecommendationsByPetId(petId, jwt));
     }
+
+    @GetMapping("/visits/{visitId}/recommendations")
+    @Operation(summary = "Ziyarete Ait Tavsiyeleri Listele", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<List<RecommendationResponse>> getRecommendationsByVisit(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("visitId") UUID visitId
+    ) {
+        return ResponseEntity.ok(recommendationService.getRecommendationsByVisitId(visitId, jwt));
+    }
+
 }

@@ -10,6 +10,8 @@ import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,11 +53,7 @@ public class RecommendationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pet bulunamadi ID: " + petId));
 
         if (jwt != null) {
-            boolean isStaff = jwt.getClaimAsStringList("authorities") != null && 
-                             (jwt.getClaimAsStringList("authorities").contains("ROLE_VET_STAFF") || 
-                              jwt.getClaimAsStringList("authorities").contains("ROLE_CLINIC_ADMIN"));
-                              
-            if (!isStaff) {
+            if (!isVetOrAdmin()) {
                 UUID currentUserId = UUID.fromString(jwt.getSubject());
                 if (!pet.getOwnerId().equals(currentUserId)) {
                     throw new AccessDeniedException("Sadece yetkililer veya pet sahibi bu tavsiyeleri gorebilir.");
@@ -66,4 +64,24 @@ public class RecommendationService {
         List<Recommendation> recommendations = recommendationRepository.findByPetId(petId);
         return RecommendationMapper.toResponseList(recommendations);
     }
+
+    @Transactional(readOnly = true)
+    public List<RecommendationResponse> getRecommendationsByVisitId(UUID visitId, Jwt jwt) {
+        Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadi ID: " + visitId));
+        return getRecommendationsByPetId(visit.getPetId(), jwt).stream()
+                .filter(r -> r.getVisitId().equals(visitId))
+                .toList();
+    }
+
+
+    private boolean isVetOrAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_VET_STAFF") || 
+                               a.getAuthority().equals("ROLE_CLINIC_ADMIN") || 
+                               a.getAuthority().equals("ROLE_ADMIN"));
+    }
+
 }
