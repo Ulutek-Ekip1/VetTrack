@@ -54,7 +54,7 @@ class VetStaffServiceJitSyncTest {
         VetStaff result = service.getOrCreateByUserId(userId, jwtWith(null));
 
         assertEquals(userId, result.getUserId());
-        assertEquals("vet", result.getStaffRole());
+        assertEquals("doctor", result.getStaffRole());
         assertTrue(result.getIsActive());
     }
 
