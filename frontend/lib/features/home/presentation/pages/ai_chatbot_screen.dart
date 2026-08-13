@@ -552,7 +552,114 @@ class _AIChatbotViewState extends State<AIChatbotView> {
       );
     }
 
-    // AI (Model) Yanıtı
+    // AI (Model) Yanıtı - Acil Durum Özel Kartı (emergency == true)
+    if (isEmergency) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 14.0),
+          padding: const EdgeInsets.all(16.0),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.88,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFEF2F2),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFDC2626), width: 2.0),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.18),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Acil Durum Başlığı
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDC2626),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.warning_amber_rounded,
+                        color: Colors.white, size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      '🚨 ACİL DURUM UYARISI',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Veteriner Yönlendirme Vurgusu
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFCA5A5)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.local_hospital,
+                        color: Color(0xFFB91C1C), size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Vakit kaybetmeden en yakın veteriner kliniğine başvurunuz!',
+                        style: TextStyle(
+                          color: Color(0xFF991B1B),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Backend Reply Metni (Aynen gösterilir)
+              SelectableText(
+                msg.content,
+                style: const TextStyle(
+                  color: Color(0xFF7F1D1D),
+                  fontSize: 14.0,
+                  height: 1.45,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  _formatTime(msg.createdAt),
+                  style: const TextStyle(
+                    color: Color(0xFFB91C1C),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // AI (Model) Yanıtı - Normal Standart Balon
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
@@ -562,16 +669,14 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           maxWidth: MediaQuery.of(context).size.width * 0.85,
         ),
         decoration: BoxDecoration(
-          color: isEmergency ? const Color(0xFFFEF2F2) : Colors.white,
+          color: Colors.white,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
             bottomLeft: Radius.circular(4),
             bottomRight: Radius.circular(16),
           ),
-          border: isEmergency
-              ? Border.all(color: const Color(0xFFEF4444), width: 1.5)
-              : Border.all(color: Colors.grey.shade200, width: 1.0),
+          border: Border.all(color: Colors.grey.shade200, width: 1.0),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -583,39 +688,12 @@ class _AIChatbotViewState extends State<AIChatbotView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (isEmergency) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.warning_amber_rounded,
-                        color: Colors.white, size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      'ACİL DURUM UYARISI',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
             SelectableText(
               msg.content,
-              style: TextStyle(
-                color: isEmergency ? const Color(0xFF7F1D1D) : const Color(0xFF1E293B),
+              style: const TextStyle(
+                color: Color(0xFF1E293B),
                 fontSize: 14.0,
                 height: 1.4,
-                fontWeight: isEmergency ? FontWeight.w500 : FontWeight.normal,
               ),
             ),
             const SizedBox(height: 6),
