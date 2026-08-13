@@ -26,7 +26,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
       return PatientSearchResultModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        throw ServerException('Kod bulunamadı. Lütfen erişim kodunu kontrol edin.');
+        throw const ServerException('Kod bulunamadı. Lütfen erişim kodunu kontrol edin.');
       }
       final data = e.response?.data;
       final message = data is Map<String, dynamic> ? data['message'] as String? : null;

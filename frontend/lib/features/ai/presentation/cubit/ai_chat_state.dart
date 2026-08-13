@@ -1,0 +1,118 @@
+import 'package:equatable/equatable.dart';
+import '../../domain/entities/chat_message.dart';
+import 'conversation_group.dart';
+import 'ui_chat_message.dart';
+
+class AiChatState extends Equatable {
+  final List<UiChatMessage> messages;
+  final bool isSending;
+  final bool isLoadingHistory;
+  final bool isHistoryError;
+  final bool isPetAccessError;
+  final bool isAuthError;
+  final String? historyErrorMessage;
+  final int historyPage;
+  final bool hasMoreHistory;
+  final bool isLoadingMoreHistory;
+  final List<ConversationGroup> conversations;
+  final List<ChatMessage> rawHistoryMessages;
+  final String? activeConversationId;
+  final String? activePetId;
+  final String? errorMessage;
+  final int? statusCode;
+  final int rateLimitRemainingSeconds;
+
+  const AiChatState({
+    this.messages = const [],
+    this.isSending = false,
+    this.isLoadingHistory = false,
+    this.isHistoryError = false,
+    this.isPetAccessError = false,
+    this.isAuthError = false,
+    this.historyErrorMessage,
+    this.historyPage = 0,
+    this.hasMoreHistory = true,
+    this.isLoadingMoreHistory = false,
+    this.conversations = const [],
+    this.rawHistoryMessages = const [],
+    this.activeConversationId,
+    this.activePetId,
+    this.errorMessage,
+    this.statusCode,
+    this.rateLimitRemainingSeconds = 0,
+  });
+
+  AiChatState copyWith({
+    List<UiChatMessage>? messages,
+    bool? isSending,
+    bool? isLoadingHistory,
+    bool? isHistoryError,
+    bool? isPetAccessError,
+    bool? isAuthError,
+    String? historyErrorMessage,
+    bool clearHistoryErrorMessage = false,
+    int? historyPage,
+    bool? hasMoreHistory,
+    bool? isLoadingMoreHistory,
+    List<ConversationGroup>? conversations,
+    List<ChatMessage>? rawHistoryMessages,
+    String? activeConversationId,
+    bool clearConversationId = false,
+    String? activePetId,
+    bool clearPetId = false,
+    String? errorMessage,
+    bool clearErrorMessage = false,
+    int? statusCode,
+    bool clearStatusCode = false,
+    int? rateLimitRemainingSeconds,
+  }) {
+    return AiChatState(
+      messages: messages ?? this.messages,
+      isSending: isSending ?? this.isSending,
+      isLoadingHistory: isLoadingHistory ?? this.isLoadingHistory,
+      isHistoryError: isHistoryError ?? this.isHistoryError,
+      isPetAccessError: isPetAccessError ?? this.isPetAccessError,
+      isAuthError: isAuthError ?? this.isAuthError,
+      historyErrorMessage: clearHistoryErrorMessage
+          ? null
+          : (historyErrorMessage ?? this.historyErrorMessage),
+      historyPage: historyPage ?? this.historyPage,
+      hasMoreHistory: hasMoreHistory ?? this.hasMoreHistory,
+      isLoadingMoreHistory: isLoadingMoreHistory ?? this.isLoadingMoreHistory,
+      conversations: conversations ?? this.conversations,
+      rawHistoryMessages: rawHistoryMessages ?? this.rawHistoryMessages,
+      activeConversationId: clearConversationId
+          ? null
+          : (activeConversationId ?? this.activeConversationId),
+      activePetId: clearPetId ? null : (activePetId ?? this.activePetId),
+      errorMessage: clearErrorMessage
+          ? null
+          : (errorMessage ?? this.errorMessage),
+      statusCode:
+          clearStatusCode ? null : (statusCode ?? this.statusCode),
+      rateLimitRemainingSeconds:
+          rateLimitRemainingSeconds ?? this.rateLimitRemainingSeconds,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        messages,
+        isSending,
+        isLoadingHistory,
+        isHistoryError,
+        isPetAccessError,
+        isAuthError,
+        historyErrorMessage,
+        historyPage,
+        hasMoreHistory,
+        isLoadingMoreHistory,
+        conversations,
+        rawHistoryMessages,
+        activeConversationId,
+        activePetId,
+        errorMessage,
+        statusCode,
+        rateLimitRemainingSeconds,
+      ];
+}
