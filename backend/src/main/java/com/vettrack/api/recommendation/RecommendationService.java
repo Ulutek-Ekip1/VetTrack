@@ -8,30 +8,49 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class RecommendationService {
+
     private final RecommendationRepository recommendationRepository;
     private final VisitRepository visitRepository;
 
     @Transactional
     public Recommendation create(UUID visitId, RecommendationCreateRequest request, UUID createdBy) {
-        Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
-        if (!"ongoing".equalsIgnoreCase(visit.getStatus())) {
-            throw new ConflictException("Kapalı ziyarete öneri eklenemez");
+        request.setVisitId(visitId);
+        return createRecommendation(createdBy, request);
+    }
+
+    @Transactional
+    public Recommendation createRecommendation(UUID createdBy, RecommendationCreateRequest request) {
+        if (request.getVisitId() == null) {
+            throw new IllegalArgumentException("Ziyaret (visitId) zorunludur.");
         }
-        return recommendationRepository.save(Recommendation.builder()
-                .visitId(visitId).type(request.getType()).description(request.getDescription())
-                .createdBy(createdBy).build());
+        Visit visit = visitRepository.findById(request.getVisitId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı ID: " + request.getVisitId()));
+        if (!"ongoing".equalsIgnoreCase(visit.getStatus())) {
+            throw new ConflictException("Kapalı veya tamamlanmış ziyarete öneri eklenemez.");
+        }
+
+        Recommendation rec = Recommendation.builder()
+                .visitId(request.getVisitId())
+                .type(request.getType())
+                .description(request.getDescription())
+                .createdBy(createdBy)
+                .build();
+        return recommendationRepository.save(rec);
     }
 
     @Transactional(readOnly = true)
     public List<Recommendation> getByVisit(UUID visitId) {
-        visitRepository.findById(visitId).orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
+        return getRecommendationsByVisitId(visitId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Recommendation> getRecommendationsByVisitId(UUID visitId) {
         return recommendationRepository.findByVisitId(visitId);
     }
 }

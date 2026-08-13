@@ -51,6 +51,10 @@ public class TreatmentEntry {
     @Builder.Default
     private Boolean isEditable = true;
 
+    @Column(name = "notification_sent")
+    @Builder.Default
+    private Boolean notificationSent = false;
+
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 

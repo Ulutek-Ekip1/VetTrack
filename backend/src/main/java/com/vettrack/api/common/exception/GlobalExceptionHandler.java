@@ -1,8 +1,9 @@
 package com.vettrack.api.common.exception;
 
+import com.vettrack.api.ai.exception.GeminiApiException;
+import com.vettrack.api.ai.exception.IdempotencyKeyReusedException;
 import com.vettrack.api.storage.FileTooLargeException;
 import com.vettrack.api.storage.UnsupportedFileTypeException;
-
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,18 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(GeminiApiException.class)
+    public ResponseEntity<Map<String, Object>> handleGeminiApiException(GeminiApiException ex) {
+        HttpStatus status = ex.getStatusCode() == 429 ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.SERVICE_UNAVAILABLE;
+        return buildResponse(status, ex.getStatusCode() == 429 ? "TOO_MANY_REQUESTS" : "SERVICE_UNAVAILABLE",
+                "Şu an yapay zeka servisimiz yoğun, lütfen birkaç saniye sonra tekrar deneyiniz.");
+    }
+
+    @ExceptionHandler(IdempotencyKeyReusedException.class)
+    public ResponseEntity<Map<String, Object>> handleIdempotencyConflict(IdempotencyKeyReusedException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "IDEMPOTENCY_KEY_REUSED", ex.getMessage());
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {

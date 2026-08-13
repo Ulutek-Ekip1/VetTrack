@@ -25,7 +25,6 @@ public class VisitService {
     public Visit createVisit(UUID petId, UUID vetStaffId) {
         Pet pet = petService.getPetById(petId);
 
-        // Eşzamanlı Ziyaret Kilidi (EC-02): Repository'deki findByPetIdAndStatus metodunu kullanıyoruz
         boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(pet.getId(), "ongoing").isPresent();
         if (hasActiveVisit) {
             throw new ConflictException("Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
@@ -37,7 +36,23 @@ public class VisitService {
                 .status("ongoing")
                 .startedAt(OffsetDateTime.now())
                 .build();
+        return visitRepository.save(visit);
+    }
 
+    @Transactional
+    public Visit createVisit(VisitCreateRequest request) {
+        boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(request.getPetId(), "ongoing").isPresent();
+        if (hasActiveVisit) {
+            throw new ConflictException("Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
+        }
+        Visit visit = Visit.builder()
+                .petId(request.getPetId())
+                .vetStaffId(request.getVetStaffId())
+                .clinicId(request.getClinicId())
+                .chiefComplaint(request.getChiefComplaint())
+                .status("ongoing")
+                .startedAt(OffsetDateTime.now())
+                .build();
         return visitRepository.save(visit);
     }
 
@@ -67,7 +82,6 @@ public class VisitService {
 
     @Transactional(readOnly = true)
     public List<Visit> getVisitsByPetId(UUID petId) {
-        petService.getPetById(petId);
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId);
     }
 
@@ -75,5 +89,31 @@ public class VisitService {
     public Visit getVisit(UUID visitId) {
         return visitRepository.findById(visitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
+    }
+
+    @Transactional(readOnly = true)
+    public Visit getVisitById(UUID id) {
+        return visitRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ziyaret kaydı bulunamadı: " + id));
+    }
+
+    @Transactional
+    public Visit updateVisitStatus(UUID id, String status) {
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("Ziyaret durumu boş olamaz.");
+        }
+        String normalized = status.toLowerCase().trim();
+
+        if ("completed".equals(normalized) || "ended".equals(normalized)) {
+            return closeVisit(id);
+        }
+
+        if (!List.of("ongoing", "completed", "cancelled").contains(normalized)) {
+            throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status + ". İzin verilen durumlar: ongoing, completed, cancelled.");
+        }
+
+        Visit visit = getVisitById(id);
+        visit.setStatus(normalized);
+        return visitRepository.save(visit);
     }
 }
