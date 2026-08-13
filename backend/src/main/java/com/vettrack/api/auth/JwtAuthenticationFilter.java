@@ -47,7 +47,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
             } catch (DataAccessException e) {
-                // DB error
+                SecurityContextHolder.clearContext();
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.getWriter().write("Database error during authentication.");
+                return;
             }
         }
 

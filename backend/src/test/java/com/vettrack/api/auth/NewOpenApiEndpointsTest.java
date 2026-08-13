@@ -42,7 +42,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 @Transactional
-class NewOpenApiEndpointsTest {
+public class NewOpenApiEndpointsTest {
+
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private org.springframework.web.client.RestTemplate restTemplate;
 
     @Autowired
     private MockMvc mockMvc;
