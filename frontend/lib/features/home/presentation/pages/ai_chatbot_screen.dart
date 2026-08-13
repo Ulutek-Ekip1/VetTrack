@@ -599,7 +599,17 @@ class _AIChatbotViewState extends State<AIChatbotView> {
       ),
       body: BlocConsumer<AiChatCubit, AiChatState>(
         listener: (context, state) {
-          if (state.isPetAccessError) {
+          if (state.isAuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Oturum süreniz doldu. Lütfen yeniden giriş yapınız.',
+                ),
+                backgroundColor: Colors.red.shade700,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else if (state.isPetAccessError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -931,66 +941,178 @@ class _AIChatbotViewState extends State<AIChatbotView> {
     final isEmergency = msg.emergency;
 
     if (isUser) {
+      final isFailed = msg.sendStatus == MessageSendStatus.error;
+
       return Align(
         alignment: Alignment.centerRight,
         child: Container(
           margin: const EdgeInsets.only(bottom: 12.0),
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.78,
-          ),
-          decoration: BoxDecoration(
-            color: primaryBlue,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-              bottomLeft: Radius.circular(16),
-              bottomRight: Radius.circular(4),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            maxWidth: MediaQuery.of(context).size.width * 0.80,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                msg.content,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14.0,
-                  height: 1.4,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  color: isFailed ? const Color(0xFFDC2626) : primaryBlue,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(4),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (msg.sendStatus == MessageSendStatus.sending)
-                    const Padding(
-                      padding: EdgeInsets.only(right: 4.0),
-                      child: SizedBox(
-                        width: 10,
-                        height: 10,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
-                        ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      msg.content,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.0,
+                        height: 1.4,
                       ),
                     ),
-                  Text(
-                    _formatTime(msg.createdAt),
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 10,
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (msg.sendStatus == MessageSendStatus.sending)
+                          const Padding(
+                            padding: EdgeInsets.only(right: 4.0),
+                            child: SizedBox(
+                              width: 10,
+                              height: 10,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1.2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white70),
+                              ),
+                            ),
+                          ),
+                        Text(
+                          _formatTime(msg.createdAt),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+
+              // Hata Kutusu ve Retry Aksiyonu
+              if (isFailed) ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFCA5A5)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.error_outline,
+                              size: 14, color: Color(0xFFDC2626)),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              msg.errorMessage ??
+                                  'Mesaj gönderilemedi. Lütfen tekrar deneyiniz.',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF991B1B),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      if (msg.errorCode == 409)
+                        InkWell(
+                          onTap: () {
+                            context
+                                .read<AiChatCubit>()
+                                .retryWithNewClientMessageId(msg);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDC2626),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.refresh,
+                                    size: 12, color: Colors.white),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Yeni ID ile Tekrar Gönder',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        InkWell(
+                          onTap: () {
+                            context.read<AiChatCubit>().retryMessage(msg);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDC2626),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.refresh,
+                                    size: 12, color: Colors.white),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Tekrar Dene',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),

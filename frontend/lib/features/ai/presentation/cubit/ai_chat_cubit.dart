@@ -267,13 +267,15 @@ class AiChatCubit extends Cubit<AiChatState> {
   Future<void> retryMessage(UiChatMessage failedUserMessage) async {
     if (state.isSending) return;
 
-    final clientMessageId = failedUserMessage.clientMessageId ?? UuidGenerator.generateV4();
+    final clientMessageId =
+        failedUserMessage.clientMessageId ?? UuidGenerator.generateV4();
 
     final updatedMessages = state.messages.map((m) {
       if (m.id == failedUserMessage.id) {
         return m.copyWith(
           sendStatus: MessageSendStatus.sending,
           clearErrorMessage: true,
+          clearErrorCode: true,
         );
       }
       return m;
@@ -293,6 +295,62 @@ class AiChatCubit extends Cubit<AiChatState> {
     );
   }
 
+  Future<void> retryWithNewClientMessageId(
+      UiChatMessage failedUserMessage) async {
+    if (state.isSending) return;
+
+    final newClientMessageId = UuidGenerator.generateV4();
+
+    final updatedMessages = state.messages.map((m) {
+      if (m.id == failedUserMessage.id) {
+        return m.copyWith(
+          id: newClientMessageId,
+          clientMessageId: newClientMessageId,
+          sendStatus: MessageSendStatus.sending,
+          clearErrorMessage: true,
+          clearErrorCode: true,
+        );
+      }
+      return m;
+    }).toList();
+
+    emit(state.copyWith(
+      messages: updatedMessages,
+      isSending: true,
+      clearErrorMessage: true,
+      clearStatusCode: true,
+    ));
+
+    await _executeSendRequest(
+      clientMessageId: newClientMessageId,
+      messageText: failedUserMessage.content,
+      existingUserMessageId: newClientMessageId,
+    );
+  }
+
+  String _mapErrorCodeToUserMessage(int? statusCode, String rawExceptionMsg) {
+    if (statusCode == 400) {
+      return 'Geçersiz veya boş mesaj. Lütfen mesajınızı kontrol edip tekrar deneyiniz.';
+    } else if (statusCode == 401) {
+      return 'Oturum süreniz doldu. Lütfen tekrar giriş yapınız.';
+    } else if (statusCode == 403) {
+      return 'Bu evcil hayvana veya sohbete erişim yetkiniz bulunmuyor.';
+    } else if (statusCode == 409) {
+      return 'Mesaj kimlik çakışması (409). Yeni mesaj kimliği üreterek tekrar gönderebilirsiniz.';
+    } else if (statusCode == 429) {
+      return 'Çok fazla mesaj gönderdiniz (429 Hız Limiti). Lütfen kısa bir süre bekledikten sonra tekrar deneyiniz.';
+    } else if (statusCode == 503) {
+      return 'Yapay zeka servisi geçici olarak kullanılamıyor (503). Lütfen tekrar deneyiniz.';
+    }
+
+    if (rawExceptionMsg.contains('timeout') ||
+        rawExceptionMsg.contains('SocketException')) {
+      return 'Ağ bağlantı hatası veya zaman aşımı. İnternet bağlantınızı kontrol edip tekrar deneyiniz.';
+    }
+
+    return 'Mesaj iletilirken bir sorun oluştu. Lütfen tekrar deneyiniz.';
+  }
+
   Future<void> _executeSendRequest({
     required String clientMessageId,
     required String messageText,
@@ -308,13 +366,16 @@ class AiChatCubit extends Cubit<AiChatState> {
     );
 
     try {
-      final response = await aiRepository.sendMessage(request, cancelToken: _cancelToken);
+      final response =
+          await aiRepository.sendMessage(request, cancelToken: _cancelToken);
 
       final updatedMessages = state.messages.map((m) {
         if (m.id == existingUserMessageId) {
           return m.copyWith(
             conversationId: response.conversationId,
             sendStatus: MessageSendStatus.sent,
+            clearErrorMessage: true,
+            clearErrorCode: true,
           );
         }
         return m;
@@ -346,30 +407,37 @@ class AiChatCubit extends Cubit<AiChatState> {
       }
 
       int? statusCode;
-      String errorMsg = 'Mesaj gönderilirken ağ hatası oluştu.';
+      String rawErrorMsg = e.toString();
 
       if (e is ServerException && e.message != null && e.message!.isNotEmpty) {
-        errorMsg = e.message!;
+        rawErrorMsg = e.message!;
         final match = RegExp(r'\((\d{3})\)').firstMatch(e.message!);
         if (match != null) {
           statusCode = int.tryParse(match.group(1)!);
         }
       }
 
+      final userFriendlyErrorMsg =
+          _mapErrorCodeToUserMessage(statusCode, rawErrorMsg);
+
       final updatedMessages = state.messages.map((m) {
         if (m.id == existingUserMessageId) {
           return m.copyWith(
             sendStatus: MessageSendStatus.error,
-            errorMessage: errorMsg,
+            errorMessage: userFriendlyErrorMsg,
+            errorCode: statusCode,
           );
         }
         return m;
       }).toList();
 
+      final isAuthError = statusCode == 401;
+
       emit(state.copyWith(
         messages: updatedMessages,
         isSending: false,
-        errorMessage: errorMsg,
+        isAuthError: isAuthError,
+        errorMessage: userFriendlyErrorMsg,
         statusCode: statusCode,
       ));
     } finally {
