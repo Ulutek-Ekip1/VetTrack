@@ -288,6 +288,31 @@ BEGIN
 END;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.generate_unique_pet_code()
+ RETURNS character varying
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    chars TEXT := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    result VARCHAR(6) := '';
+    i INT;
+    is_unique BOOLEAN := false;
+BEGIN
+    WHILE NOT is_unique LOOP
+        result := '';
+        FOR i IN 1..6 LOOP
+            result := result || substr(chars, floor(random() * length(chars) + 1)::int, 1);
+        END LOOP;
+
+        SELECT NOT EXISTS (
+            SELECT 1 FROM public.pets WHERE unique_code = result
+        ) INTO is_unique;
+    END LOOP;
+
+    RETURN result;
+END;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.set_unique_pet_code()
  RETURNS trigger
  LANGUAGE plpgsql
