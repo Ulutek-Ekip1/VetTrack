@@ -1,16 +1,21 @@
 package com.vettrack.api.pet;
 
+import com.vettrack.api.visit.Visit;
+import com.vettrack.api.visit.VisitService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,17 +30,11 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/pets")
 @RequiredArgsConstructor
-@Tag(name = "Pet Yönetimi", description = "Evcil hayvan kayıt, güncelleme, listeleme ve benzersiz kod ile arama API'leri")
+@Tag(name = "Pet Yönetimi", description = "Evcil hayvan kayıt, güncelleme, listeleme, ziyaret geçmişi ve benzersiz kod ile arama API'leri")
 public class PetController {
 
     private final PetService petService;
-
-    private boolean isVetOrAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) return false;
-        return auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_VET_STAFF") || a.getAuthority().equals("ROLE_ADMIN"));
-    }
+    private final VisitService visitService;
 
     @PostMapping
     @Operation(summary = "Yeni Pet Ekle", security = @SecurityRequirement(name = "bearerAuth"))
@@ -82,11 +81,38 @@ public class PetController {
             @PathVariable UUID id
     ) {
         Pet pet = petService.getPetById(id);
-        UUID ownerId = UUID.fromString(jwt.getSubject());
-        if (!isVetOrAdmin() && !pet.getOwnerId().equals(ownerId)) {
-            throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+        if (jwt != null) {
+            boolean isStaffOrAdmin = isVetOrAdmin(jwt);
+            UUID ownerId = UUID.fromString(jwt.getSubject());
+            if (!isStaffOrAdmin && !pet.getOwnerId().equals(ownerId)) {
+                throw new AccessDeniedException("Bu hayvan size ait değil");
+            }
         }
         return ResponseEntity.ok(pet);
+    }
+
+    @GetMapping("/{id}/visits")
+    @Operation(summary = "Pet'in Ziyaret Geçmişini Sayfalamalı Listele", description = "Belirtilen pet'e ait ziyaret geçmişini sayfalamalı olarak döndürür. Sahiplik ve yetki kontrolü yapılır.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sayfalandırılmış ziyaret geçmişi başarıyla getirildi"),
+        @ApiResponse(responseCode = "403", description = "Bu hayvanın ziyaret geçmişine erişim yetkiniz yok"),
+        @ApiResponse(responseCode = "404", description = "Pet bulunamadı")
+    })
+    public ResponseEntity<Page<Visit>> getPetVisitsPaginated(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id,
+            @ParameterObject Pageable pageable
+    ) {
+        Pet pet = petService.getPetById(id);
+        if (jwt != null) {
+            boolean isStaffOrAdmin = isVetOrAdmin(jwt);
+            UUID ownerId = UUID.fromString(jwt.getSubject());
+            if (!isStaffOrAdmin && !pet.getOwnerId().equals(ownerId)) {
+                throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
+            }
+        }
+        Page<Visit> visits = visitService.getVisitsByPetIdPaginated(id, pageable);
+        return ResponseEntity.ok(visits);
     }
 
     @GetMapping("/code/{uniqueCode}")
@@ -111,7 +137,7 @@ public class PetController {
         if (jwt != null) {
             UUID ownerId = UUID.fromString(jwt.getSubject());
             if (!pet.getOwnerId().equals(ownerId)) {
-                throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+                throw new AccessDeniedException("Bu hayvan size ait değil");
             }
         }
         return ResponseEntity.ok(petService.updatePet(id, request));
@@ -127,7 +153,7 @@ public class PetController {
         Pet pet = petService.getPetById(id);
         UUID ownerId = UUID.fromString(jwt.getSubject());
         if (!pet.getOwnerId().equals(ownerId)) {
-            throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+            throw new AccessDeniedException("Bu hayvan size ait değil");
         }
         String photoUrl = petService.uploadPhoto(id, file);
         return ResponseEntity.ok(Map.of("photoUrl", photoUrl));
@@ -158,5 +184,43 @@ public class PetController {
         UUID ownerId = UUID.fromString(jwt.getSubject());
         petService.softDeletePet(id, ownerId);
         return ResponseEntity.noContent().build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean isVetOrAdmin(Jwt jwt) {
+        if (jwt != null) {
+            String role = jwt.getClaimAsString("role");
+            Object userMetadata = jwt.getClaim("user_metadata");
+            if (userMetadata instanceof Map) {
+                Object roleClaim = ((Map<String, Object>) userMetadata).get("role");
+                if (roleClaim instanceof String s && !s.isBlank()) {
+                    role = s;
+                }
+            }
+            if (role != null) {
+                String lower = role.toLowerCase();
+                if (lower.contains("vet") || lower.contains("admin") || lower.contains("doctor") || lower.contains("staff")) {
+                    return true;
+                }
+            }
+        }
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getAuthorities() != null) {
+            return auth.getAuthorities().stream().anyMatch(a -> {
+                String authority = a.getAuthority();
+                return "ROLE_VET_STAFF".equals(authority) || "ROLE_ADMIN".equals(authority) || "ROLE_VET".equals(authority);
+            });
+        }
+        return false;
+    }
+
+    private boolean isVetOrAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getAuthorities() == null) return false;
+        return auth.getAuthorities().stream().anyMatch(a -> {
+            String authority = a.getAuthority();
+            return "ROLE_VET_STAFF".equals(authority) || "ROLE_ADMIN".equals(authority) || "ROLE_VET".equals(authority);
+        });
     }
 }

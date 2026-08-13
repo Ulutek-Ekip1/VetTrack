@@ -3,21 +3,25 @@ package com.vettrack.api.auth;
 import com.vettrack.api.common.exception.ApiException;
 import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.common.exception.ErrorCode;
+import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
+import com.vettrack.api.vetstaff.VetStaff;
+import com.vettrack.api.vetstaff.VetStaffRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +33,7 @@ public class AuthService {
     private final String supabaseUrl;
     private final String supabaseServiceKey;
     private final OwnerRepository ownerRepository;
+    private final VetStaffRepository vetStaffRepository;
     private final RestTemplate restTemplate;
 
     public AuthService(
@@ -37,9 +42,21 @@ public class AuthService {
             OwnerRepository ownerRepository,
             RestTemplate restTemplate
     ) {
+        this(supabaseUrl, supabaseServiceKey, ownerRepository, null, restTemplate);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public AuthService(
+            @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
+            @Value("${supabase.service-key:${SUPABASE_SERVICE_KEY:}}") String supabaseServiceKey,
+            OwnerRepository ownerRepository,
+            VetStaffRepository vetStaffRepository,
+            RestTemplate restTemplate
+    ) {
         this.supabaseUrl = supabaseUrl;
         this.supabaseServiceKey = supabaseServiceKey;
         this.ownerRepository = ownerRepository;
+        this.vetStaffRepository = vetStaffRepository;
         this.restTemplate = restTemplate;
     }
 
@@ -67,8 +84,7 @@ public class AuthService {
                     url, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
             );
 
-            AuthResponse authResponse = mapToAuthResponse(resp.getBody());
-            return authResponse;
+            return mapToAuthResponse(resp.getBody());
         } catch (HttpClientErrorException ex) {
             HttpStatusCode status = ex.getStatusCode();
             String responseBody = ex.getResponseBodyAsString();
@@ -78,11 +94,11 @@ public class AuthService {
                 responseBody.contains("already_exists") || 
                 responseBody.contains("already registered") ||
                 responseBody.contains("user_already_exists")) {
-                throw new ConflictException(ErrorCode.EMAIL_ALREADY_EXISTS, "Bu e-posta adresi zaten kayıtlı.");
+                throw new ConflictException("EMAIL_ALREADY_EXISTS");
             } else if (status.value() == HttpStatus.BAD_REQUEST.value()) {
                 throw new ConflictException("Invalid registration request");
             } else if (status.value() == HttpStatus.TOO_MANY_REQUESTS.value()) {
-                throw new ApiException(ErrorCode.TOO_MANY_REQUESTS, "Supabase e-posta gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.");
+                throw new IllegalArgumentException("Supabase e-posta gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.");
             } else {
                 throw new RuntimeException("Registration failed: [" + status + "] " + responseBody, ex);
             }
@@ -90,8 +106,6 @@ public class AuthService {
             throw new RuntimeException("Registration failed: " + ex.getMessage(), ex);
         }
     }
-
-
 
     public AuthResponse login(LoginRequest request) {
         String url = supabaseUrl + "/auth/v1/token?grant_type=password";
@@ -114,9 +128,9 @@ public class AuthService {
             if (status.value() == HttpStatus.UNAUTHORIZED.value() || status.value() == HttpStatus.BAD_REQUEST.value()) {
                 String responseBody = ex.getResponseBodyAsString();
                 if (responseBody.contains("Email not confirmed") || responseBody.contains("email_not_confirmed")) {
-                    throw new UnauthorizedException(ErrorCode.EMAIL_NOT_VERIFIED, "E-posta adresi doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.");
+                    throw new UnauthorizedException("E-posta adresi doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.");
                 }
-                throw new UnauthorizedException(ErrorCode.INVALID_CREDENTIALS, "E-posta veya şifre hatalı.");
+                throw new UnauthorizedException("E-posta veya şifre hatalı: " + responseBody);
             } else {
                 throw new RuntimeException("Login failed");
             }
@@ -125,15 +139,6 @@ public class AuthService {
         }
     }
 
-    /**
-     * Triggers Supabase to resend the signup confirmation email.
-     * <p>
-     * To prevent user enumeration, this method never throws for "user not found" or
-     * "already confirmed" states — the controller returns 200 OK regardless. Real
-     * infrastructure errors (5xx, network) still propagate as RuntimeException.
-     * <p>
-     * Rate limiting is enforced upstream by RateLimitingFilter (3 requests / hour / IP).
-     */
     public void resendVerification(String email) {
         String url = supabaseUrl + "/auth/v1/resend";
 
@@ -153,8 +158,6 @@ public class AuthService {
             HttpStatusCode status = ex.getStatusCode();
             String responseBody = ex.getResponseBodyAsString();
 
-            // Silently swallow client errors to prevent user enumeration.
-            // Supabase returns 400/422 for "user not found" or "already confirmed" — both are treated as success.
             if (status.is4xxClientError()) {
                 log.info("Supabase resend returned {} for email hash={} — treating as success (enumeration guard)",
                         status.value(), Integer.toHexString(email.hashCode()));
@@ -166,6 +169,82 @@ public class AuthService {
         } catch (Exception ex) {
             log.error("Supabase resend failed: {}", ex.getMessage());
             throw new RuntimeException("Verification email resend failed: " + ex.getMessage(), ex);
+        }
+    }
+
+    public void forgotPassword(String email) {
+        String url = supabaseUrl + "/auth/v1/recover";
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("email", email);
+
+        HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        try {
+            restTemplate.exchange(
+                    url, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+            log.info("Password reset link requested for email hash={}", Integer.toHexString(email.hashCode()));
+        } catch (HttpClientErrorException ex) {
+            HttpStatusCode status = ex.getStatusCode();
+            if (status.is4xxClientError()) {
+                log.info("Supabase password recovery returned {} for email hash={} - treating as success (enumeration guard)",
+                        status.value(), Integer.toHexString(email.hashCode()));
+                return;
+            }
+            log.error("Supabase password recovery failed with status {}: {}", status.value(), ex.getResponseBodyAsString());
+        } catch (Exception ex) {
+            log.error("Supabase password recovery failed: {}", ex.getMessage());
+        }
+    }
+
+    @Transactional
+    public void softDeleteUserAccount(UUID userId) {
+        boolean found = false;
+
+        Optional<Owner> ownerOpt = ownerRepository.findById(userId);
+        if (ownerOpt.isPresent()) {
+            Owner owner = ownerOpt.get();
+            owner.setIsActive(false);
+            owner.setUpdatedAt(OffsetDateTime.now());
+            ownerRepository.save(owner);
+            found = true;
+            log.info("Soft-deleted owner profile in database for userId={}", userId);
+        }
+
+        if (vetStaffRepository != null) {
+            Optional<VetStaff> vetStaffOpt = vetStaffRepository.findByUserId(userId);
+            if (vetStaffOpt.isPresent()) {
+                VetStaff vetStaff = vetStaffOpt.get();
+                vetStaff.setIsActive(false);
+                vetStaff.setUpdatedAt(OffsetDateTime.now());
+                vetStaffRepository.save(vetStaff);
+                found = true;
+                log.info("Soft-deleted vet_staff profile in database for userId={}", userId);
+            }
+        }
+
+        if (!found) {
+            throw new ResourceNotFoundException("Kullanıcı profili bulunamadı: " + userId);
+        }
+
+        if (StringUtils.hasText(supabaseUrl) && StringUtils.hasText(supabaseServiceKey)) {
+            String adminUrl = supabaseUrl + "/auth/v1/admin/users/" + userId;
+            Map<String, Object> userMetadata = new HashMap<>();
+            userMetadata.put("is_active", false);
+            Map<String, Object> body = new HashMap<>();
+            body.put("user_metadata", userMetadata);
+
+            HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            try {
+                restTemplate.exchange(adminUrl, HttpMethod.PUT, entity, Map.class);
+                log.info("Marked Supabase user as inactive for userId={}", userId);
+            } catch (Exception e) {
+                log.warn("Supabase Admin API user inactivation call failed for userId={}: {}", userId, e.getMessage());
+            }
         }
     }
 

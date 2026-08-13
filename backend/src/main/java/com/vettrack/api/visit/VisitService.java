@@ -7,6 +7,8 @@ import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetService;
 import com.vettrack.api.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,6 +86,11 @@ public class VisitService {
     @Transactional(readOnly = true)
     public List<Visit> getVisitsByPetId(UUID petId) {
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Visit> getVisitsByPetIdPaginated(UUID petId, Pageable pageable) {
+        return visitRepository.findByPetIdOrderByStartedAtDesc(petId, pageable);
     }
 
     @Transactional(readOnly = true)
