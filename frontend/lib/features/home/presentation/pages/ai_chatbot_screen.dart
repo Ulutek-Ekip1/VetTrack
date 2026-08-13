@@ -350,6 +350,37 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   ),
                 ),
 
+              // Sabit Yasal Bilgilendirme (Disclaimer) Banner'ı
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFFBEB),
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFFDE68A), width: 1),
+                  ),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline,
+                        size: 15, color: Color(0xFFB45309)),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'YASAL UYARI: Yapay zeka yanıtları yalnızca genel bilgilendirme amaçlıdır. Teşhis veya reçeteli tedavi yerine geçmez.',
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          color: Color(0xFF92400E),
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // Mesaj Giriş Alanı
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -587,26 +618,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                 fontWeight: isEmergency ? FontWeight.w500 : FontWeight.normal,
               ),
             ),
-            if (msg.disclaimer != null && msg.disclaimer!.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Text(
-                  msg.disclaimer!,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 10.5,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Align(
               alignment: Alignment.centerRight,
               child: Text(
