@@ -64,21 +64,18 @@ public class AuthController {
     }
 
     @DeleteMapping("/me")
-    @Operation(summary = "Kullanıcı Hesabını Sil (Soft Delete)", description = "Oturum açmış kullanıcının hesabını pasife alır (soft-delete), ilişkisel verileri korur ve aktif oturumunu geçersiz kılar.", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Kullanıcı Hesabını Sil (Soft Delete)", description = "Oturum açmış kullanıcının hesabını ve pet'lerini pasife alır (soft-delete), ilişkisel verileri korur ve aktif oturumunu geçersiz kılar.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Hesap başarıyla pasife alındı ve oturum kapatıldı"),
+        @ApiResponse(responseCode = "204", description = "Hesap ve bağlı tüm pet'ler başarıyla pasife alındı"),
         @ApiResponse(responseCode = "401", description = "Yetkisiz erişim")
     })
-    public ResponseEntity<Map<String, String>> deleteMyAccount(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<Void> deleteMyAccount(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         UUID userId = UUID.fromString(jwt.getSubject());
         authService.softDeleteUserAccount(userId);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Hesabınız başarıyla kapatılmıştır.");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/register")

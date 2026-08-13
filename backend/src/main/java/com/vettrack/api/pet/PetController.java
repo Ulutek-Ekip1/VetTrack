@@ -186,6 +186,10 @@ public class PetController {
         return ResponseEntity.noContent().build();
     }
 
+    private static final java.util.Set<String> ALLOWED_STAFF_ROLES = java.util.Set.of(
+            "vet", "vet_staff", "admin", "doctor", "receptionist", "veterinarian"
+    );
+
     @SuppressWarnings("unchecked")
     private boolean isVetOrAdmin(Jwt jwt) {
         if (jwt != null) {
@@ -198,8 +202,8 @@ public class PetController {
                 }
             }
             if (role != null) {
-                String lower = role.toLowerCase();
-                if (lower.contains("vet") || lower.contains("admin") || lower.contains("doctor") || lower.contains("staff")) {
+                String normalized = role.trim().toLowerCase();
+                if (ALLOWED_STAFF_ROLES.contains(normalized)) {
                     return true;
                 }
             }
@@ -209,7 +213,7 @@ public class PetController {
         if (auth != null && auth.getAuthorities() != null) {
             return auth.getAuthorities().stream().anyMatch(a -> {
                 String authority = a.getAuthority();
-                return "ROLE_VET_STAFF".equals(authority) || "ROLE_ADMIN".equals(authority) || "ROLE_VET".equals(authority);
+                return "ROLE_VET_STAFF".equals(authority) || "ROLE_ADMIN".equals(authority) || "ROLE_VET".equals(authority) || "ROLE_DOCTOR".equals(authority);
             });
         }
         return false;

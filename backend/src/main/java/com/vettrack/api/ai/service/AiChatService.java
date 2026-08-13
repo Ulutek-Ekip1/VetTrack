@@ -208,7 +208,7 @@ public class AiChatService {
     private boolean isStaffRole(String role) {
         if (role == null) return false;
         String lowerRole = role.toLowerCase();
-        return lowerRole.contains("vet_staff") || lowerRole.contains("admin");
+        return lowerRole.equals("vet_staff") || lowerRole.equals("admin");
     }
 
     private ChatMessage saveChatMessage(UUID conversationId, String clientMessageId, UUID ownerId, UUID petId, String role, String content, boolean emergency, String replyToClientMessageId) {
@@ -259,3 +259,4 @@ public class AiChatService {
                 .collect(Collectors.toList());
     }
 }
+

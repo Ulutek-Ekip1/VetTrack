@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,9 +22,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtDecoder jwtDecoder;
+    private final JdbcTemplate jdbcTemplate;
 
-    public JwtAuthenticationFilter(JwtDecoder jwtDecoder) {
+    public JwtAuthenticationFilter(JwtDecoder jwtDecoder, JdbcTemplate jdbcTemplate) {
         this.jwtDecoder = jwtDecoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -35,11 +39,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authorization.substring(7);
             try {
                 Jwt jwt = jwtDecoder.decode(token);
+                
+                String userId = jwt.getSubject();
+                try {
+                    Boolean isActive = jdbcTemplate.queryForObject(
+                        "SELECT is_active FROM profiles WHERE id = ?::uuid", 
+                        Boolean.class, userId);
+
+                    if (Boolean.FALSE.equals(isActive)) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getWriter().write("User account is inactive or deleted.");
+                        return;
+                    }
+                } catch (DataAccessException e) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
+
                 Authentication authentication = new JwtAuthenticationToken(jwt);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JwtException ex) {
-                // Token geÃ§ersizse isteÄŸi kesmek yerine anonymous (anonim) olarak devam etmesine izin veriyoruz.
-                // Yetkilendirme (authorization) katmanÄ± korunan endpoint'leri zaten engelleyecektir.
+                // Token geçersizse isteði kesmek yerine anonymous (anonim) olarak devam etmesine izin veriyoruz.
+                // Yetkilendirme (authorization) katmaný korunan endpoint'leri zaten engelleyecektir.
             }
         }
 

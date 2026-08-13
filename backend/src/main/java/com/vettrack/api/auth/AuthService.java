@@ -7,6 +7,8 @@ import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
+import com.vettrack.api.pet.Pet;
+import com.vettrack.api.pet.PetRepository;
 import com.vettrack.api.vetstaff.VetStaff;
 import com.vettrack.api.vetstaff.VetStaffRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,6 +37,7 @@ public class AuthService {
     private final String supabaseServiceKey;
     private final OwnerRepository ownerRepository;
     private final VetStaffRepository vetStaffRepository;
+    private final PetRepository petRepository;
     private final RestTemplate restTemplate;
 
     public AuthService(
@@ -42,7 +46,7 @@ public class AuthService {
             OwnerRepository ownerRepository,
             RestTemplate restTemplate
     ) {
-        this(supabaseUrl, supabaseServiceKey, ownerRepository, null, restTemplate);
+        this(supabaseUrl, supabaseServiceKey, ownerRepository, null, null, restTemplate);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -51,12 +55,14 @@ public class AuthService {
             @Value("${supabase.service-key:${SUPABASE_SERVICE_KEY:}}") String supabaseServiceKey,
             OwnerRepository ownerRepository,
             VetStaffRepository vetStaffRepository,
+            PetRepository petRepository,
             RestTemplate restTemplate
     ) {
         this.supabaseUrl = supabaseUrl;
         this.supabaseServiceKey = supabaseServiceKey;
         this.ownerRepository = ownerRepository;
         this.vetStaffRepository = vetStaffRepository;
+        this.petRepository = petRepository;
         this.restTemplate = restTemplate;
     }
 
@@ -199,6 +205,9 @@ public class AuthService {
         }
     }
 
+    /**
+     * Soft-deletes user profiles and all owned pets, while enforcing Supabase account ban (876600h).
+     */
     @Transactional
     public void softDeleteUserAccount(UUID userId) {
         boolean found = false;
@@ -229,11 +238,24 @@ public class AuthService {
             throw new ResourceNotFoundException("Kullanıcı profili bulunamadı: " + userId);
         }
 
+        // Soft-delete all pets owned by the user according to API contract specification
+        if (petRepository != null) {
+            List<Pet> pets = petRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId);
+            for (Pet pet : pets) {
+                pet.setIsActive(false);
+                pet.setDeletedAt(OffsetDateTime.now());
+                petRepository.save(pet);
+            }
+            log.info("Soft-deleted {} pets owned by userId={}", pets.size(), userId);
+        }
+
+        // Enforce account ban in Supabase Admin API so user cannot log back in or generate new tokens
         if (StringUtils.hasText(supabaseUrl) && StringUtils.hasText(supabaseServiceKey)) {
             String adminUrl = supabaseUrl + "/auth/v1/admin/users/" + userId;
+            Map<String, Object> body = new HashMap<>();
+            body.put("ban_duration", "876600h"); // Ban user for 100 years
             Map<String, Object> userMetadata = new HashMap<>();
             userMetadata.put("is_active", false);
-            Map<String, Object> body = new HashMap<>();
             body.put("user_metadata", userMetadata);
 
             HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
@@ -241,9 +263,9 @@ public class AuthService {
 
             try {
                 restTemplate.exchange(adminUrl, HttpMethod.PUT, entity, Map.class);
-                log.info("Marked Supabase user as inactive for userId={}", userId);
+                log.info("Banned user in Supabase Auth and marked inactive for userId={}", userId);
             } catch (Exception e) {
-                log.warn("Supabase Admin API user inactivation call failed for userId={}: {}", userId, e.getMessage());
+                log.warn("Supabase Admin API user ban call failed for userId={}: {}", userId, e.getMessage());
             }
         }
     }

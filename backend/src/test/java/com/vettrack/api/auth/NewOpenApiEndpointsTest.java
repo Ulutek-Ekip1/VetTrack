@@ -2,6 +2,7 @@ package com.vettrack.api.auth;
 
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
+import com.vettrack.api.pet.Gender;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -52,7 +54,7 @@ class NewOpenApiEndpointsTest {
     private PetRepository petRepository;
 
     @Test
-    void testDeleteMyAccount_SoftDelete() throws Exception {
+    void testDeleteMyAccount_SoftDelete_204_And_Pets_SoftDeleted() throws Exception {
         UUID ownerId = UUID.randomUUID();
         Owner owner = Owner.builder()
                 .id(ownerId)
@@ -63,16 +65,30 @@ class NewOpenApiEndpointsTest {
                 .build();
         ownerRepository.save(owner);
 
+        Pet pet = Pet.builder()
+                .ownerId(ownerId)
+                .name("Pamuk")
+                .species("kedi")
+                .breed("Van Kedisi")
+                .gender(Gender.female)
+                .uniqueCode("PMK123")
+                .isActive(true)
+                .build();
+        Pet savedPet = petRepository.save(pet);
+
         mockMvc.perform(delete("/auth/me").with(jwt().jwt(builder -> builder
                 .subject(ownerId.toString())
                 .claim("email", owner.getEmail())
                 .claim("user_metadata", Map.of("role", "owner", "name", owner.getFullName()))
         )))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Hesabınız başarıyla kapatılmıştır."));
+                .andExpect(status().isNoContent());
 
-        Owner updated = ownerRepository.findById(ownerId).orElseThrow();
-        assertFalse(updated.getIsActive());
+        Owner updatedOwner = ownerRepository.findById(ownerId).orElseThrow();
+        assertFalse(updatedOwner.getIsActive());
+
+        Pet updatedPet = petRepository.findById(savedPet.getId()).orElseThrow();
+        assertFalse(updatedPet.getIsActive());
+        assertNotNull(updatedPet.getDeletedAt());
     }
 
     @Test
@@ -98,6 +114,7 @@ class NewOpenApiEndpointsTest {
                 .name("Boncuk")
                 .species("kedi")
                 .breed("tekir")
+                .gender(Gender.female)
                 .uniqueCode("BCK123")
                 .build();
         Pet savedPet = petRepository.save(pet);
@@ -111,4 +128,49 @@ class NewOpenApiEndpointsTest {
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.totalElements").value(0));
     }
+
+    @Test
+    void testGetPetVisitsPaginated_SubstringRoleAttack_Returns403() throws Exception {
+        UUID realOwnerId = UUID.randomUUID();
+        UUID attackerUserId = UUID.randomUUID();
+
+        Pet pet = Pet.builder()
+                .ownerId(realOwnerId)
+                .name("Karabaş")
+                .species("köpek")
+                .gender(Gender.male)
+                .uniqueCode("KRB999")
+                .build();
+        Pet savedPet = petRepository.save(pet);
+
+        // Attacker presents a claim containing 'vet' substring like 'not-a-vet'
+        mockMvc.perform(get("/pets/" + savedPet.getId() + "/visits?page=0&size=10").with(jwt().jwt(builder -> builder
+                .subject(attackerUserId.toString())
+                .claim("email", "attacker@evil.local")
+                .claim("user_metadata", Map.of("role", "not-a-vet"))
+        )))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testInactiveUser_Returns401() throws Exception {
+        UUID ownerId = UUID.randomUUID();
+        Owner owner = Owner.builder()
+                .id(ownerId)
+                .email("test-inactive-" + ownerId + "@vettrack.local")
+                .fullName("Inactive Owner")
+                .role("owner")
+                .isActive(false) // Inactive user
+                .build();
+        ownerRepository.save(owner);
+
+        // Attempt to access a protected endpoint
+        mockMvc.perform(get("/auth/me").with(jwt().jwt(builder -> builder
+                .subject(ownerId.toString())
+                .claim("email", owner.getEmail())
+                .claim("user_metadata", Map.of("role", "owner", "name", owner.getFullName()))
+        )))
+                .andExpect(status().isUnauthorized());
+    }
 }
+
