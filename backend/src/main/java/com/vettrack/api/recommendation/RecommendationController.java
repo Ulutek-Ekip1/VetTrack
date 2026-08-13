@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping
+@RequestMapping({"", "/api"})
 @RequiredArgsConstructor
 @Tag(name = "Bakım ve Öneri API", description = "Veteriner hekim tavsiye ve bakım önerileri API'leri")
 public class RecommendationController {
@@ -43,3 +43,4 @@ public class RecommendationController {
         return ResponseEntity.ok(recommendationService.getRecommendationsByVisitId(visitId));
     }
 }
+
