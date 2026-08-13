@@ -9,8 +9,8 @@ import '../cubit/auth_cubit.dart';
 import '../../../../core/router/app_router.dart';
 
 class EmailVerificationScreen extends StatelessWidget {
-  const EmailVerificationScreen({super.key});
-
+  const EmailVerificationScreen({super.key, required this.email});
+  final String email;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -214,7 +214,7 @@ class EmailVerificationScreen extends StatelessWidget {
                           : () {
                               context
                                   .read<AuthCubit>()
-                                  .resendVerificationEmail();
+                                  .resendVerificationEmail(email);
                             },
                       icon: isLoading
                           ? const SizedBox(

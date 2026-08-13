@@ -143,7 +143,7 @@ class AppRouter {
         // kontrol derin bağlantılarda ikinci koruma katmanıdır.
         final hasInvalidPlatformRole =
             (AppPlatform.isVetWebExperience && user.role == UserRole.owner) ||
-            (AppPlatform.isMobileExperience && user.role == UserRole.vet);
+                (AppPlatform.isMobileExperience && user.role == UserRole.vet);
         if (hasInvalidPlatformRole) {
           return location == AppRoutes.welcome ? null : AppRoutes.welcome;
         }
@@ -188,7 +188,11 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.ownerEmailVerification,
           name: 'ownerEmailVerification',
-          builder: (context, state) => const EmailVerificationScreen(),
+          builder: (context, state) {
+            // Yönlendirme sırasında gönderilen veriyi (emaili) alıyoruz
+            final passedEmail = state.extra as String? ?? '';
+            return EmailVerificationScreen(email: passedEmail);
+          },
         ),
         GoRoute(
           path: AppRoutes.resetPassword,
@@ -261,7 +265,8 @@ class AppRouter {
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
                             return BlocProvider<RecommendationCubit>(
-                              create: (context) => sl<RecommendationCubit>()..loadRecommendations(petId),
+                              create: (context) => sl<RecommendationCubit>()
+                                ..loadRecommendations(petId),
                               child: PetRecommendationScreen(petId: petId),
                             );
                           },
@@ -397,6 +402,9 @@ class AppRouter {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.passwordRecovery) {
         _router?.go(AppRoutes.resetPassword);
+      } else if (event == AuthChangeEvent.signedIn) {
+        final authCubit = sl<AuthCubit>();
+        authCubit.checkAuthStatus();
       }
     });
   }

@@ -30,9 +30,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> resendVerificationEmail() async {
-    // TODO: Backend bağlandığında remoteDataSource üzerinden e-posta gönderimini tetikle
-    await Future.delayed(const Duration(milliseconds: 500));
+  Future<void> forgotPassword(String email) async {
+    await remoteDataSource.forgotPassword(email);
+  }
+
+  @override
+  Future<void> resendVerificationEmail(String email) async {
+    await remoteDataSource.reSendVerificationEmail(email);
   }
 
   @override

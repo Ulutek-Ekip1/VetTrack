@@ -17,6 +17,8 @@ abstract class AuthRemoteDataSource {
   Future<OwnerModel> getOwnerProfile();
   Future<OwnerModel> updateOwnerProfile(Map<String, dynamic> data);
   Future<UserModel> signInWithGoogle();
+  Future<void> reSendVerificationEmail(String email);
+  Future<void> forgotPassword(String email);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -82,7 +84,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           await localDataSource.cacheToken(token);
         }
 
-        final createdUser = UserModel.fromJson(userData as Map<String, dynamic>);
+        final createdUser =
+            UserModel.fromJson(userData as Map<String, dynamic>);
 
         // Supabase, e-posta doğrulaması açıkken kayıt yanıtındaki user_metadata
         // alanını eksik döndürebilir. Rol kayıt isteğinde zaten kesin olarak
@@ -101,7 +104,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        throw Exception("Bu e-posta ile kayıtlı bir hesap var, lütfen farklı bir e-posta ile deneyin.");
+        throw Exception(
+            "Bu e-posta ile kayıtlı bir hesap var, lütfen farklı bir e-posta ile deneyin.");
       }
       throw Exception(_handleDioError(e));
     } catch (e) {
@@ -164,12 +168,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         // Web'de Google Giriş için Supabase'in kendi OAuth akışını kullanıyoruz.
         // Web ortamı Veteriner Paneli olduğu için yönlendirme sonrası Supabase veya profil tarafında rol okunur.
         final redirectTo = Uri.base.origin;
-        
+
         await Supabase.instance.client.auth.signInWithOAuth(
           OAuthProvider.google,
           redirectTo: redirectTo,
         );
-        
+
         // Yönlendirme yapılacağı için bu metodun return değerine ulaşılmayacaktır.
         return UserModel(
           id: '',
@@ -182,7 +186,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       } else {
         // Mobil için mevcut google_sign_in akışı
         final googleSignIn = GoogleSignIn(
-          serverClientId: AppConstants.googleWebClientId.isEmpty ? null : AppConstants.googleWebClientId,
+          serverClientId: AppConstants.googleWebClientId.isEmpty
+              ? null
+              : AppConstants.googleWebClientId,
           scopes: ['email', 'profile', 'openid'],
         );
         final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
@@ -190,7 +196,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           throw Exception("Google ile giriş iptal edildi.");
         }
 
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
         final idToken = googleAuth.idToken;
         final accessToken = googleAuth.accessToken;
 
@@ -230,9 +237,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           id: user.id,
           authId: user.id,
           email: user.email ?? '',
-          name: (metadata['name'] ?? metadata['full_name'] ?? 'Google Kullanıcısı') as String,
+          name: (metadata['name'] ??
+              metadata['full_name'] ??
+              'Google Kullanıcısı') as String,
           phone: user.phone,
-          role: rawRole == 'vet_staff' || rawRole == 'VET' ? UserRole.vet : UserRole.owner,
+          role: rawRole == 'vet_staff' || rawRole == 'VET'
+              ? UserRole.vet
+              : UserRole.owner,
           createdAt: DateTime.parse(user.createdAt),
         );
       }
@@ -277,5 +288,35 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     return message.isNotEmpty ? message : "Bilinmeyen bağlantı hatası";
+  }
+
+  @override
+  Future<void> reSendVerificationEmail(String email) async {
+    try {
+      await dio.post('/auth/resend-verification', data: {'email': email});
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        throw Exception(
+            e.response?.data['message'] ?? 'Bilinmeyen bir hata oluştu');
+      }
+      throw Exception('İnternet bağlantınızı kontrol edin.');
+    } catch (e) {
+      throw Exception('Doğrulama e-postası gönderilemedi: $e');
+    }
+  }
+
+  @override
+  Future<void> forgotPassword(String email) async {
+    try {
+      await dio.post('/auth/forgot-password', data: {'email': email});
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        throw Exception(
+            e.response?.data['message'] ?? 'Bilinmeyen bir hata oluştu');
+      }
+      throw Exception('İnternet bağlantınızı kontrol edin.');
+    } catch (e) {
+      throw Exception('Şifre sıfırlama isteği gönderilemedi: $e');
+    }
   }
 }

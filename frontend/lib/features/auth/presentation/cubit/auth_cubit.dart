@@ -1,5 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/forgot_password_usecase.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/resend_verification_email_usecase.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/services/firebase_messaging_service.dart';
 import '../../../notification/domain/usecases/register_device_token_usecase.dart';
@@ -20,17 +22,21 @@ class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
   final RegisterDeviceTokenUseCase registerDeviceTokenUseCase;
   final UnregisterDeviceTokenUseCase unregisterDeviceTokenUseCase;
+  final ForgotPasswordUseCase forgotPasswordUseCase;
+  final ResendVerificationEmailUsecase resendVerificationEmailUsecase;
   int _sessionOperation = 0;
 
-  AuthCubit({
-    required this.loginWithEmail,
-    required this.registerUseCase,
-    required this.logoutUseCase,
-    required this.signInWithGoogleUseCase,
-    required this.authRepository,
-    required this.registerDeviceTokenUseCase,
-    required this.unregisterDeviceTokenUseCase,
-  }) : super(AuthInitial());
+  AuthCubit(
+      {required this.loginWithEmail,
+      required this.registerUseCase,
+      required this.logoutUseCase,
+      required this.signInWithGoogleUseCase,
+      required this.authRepository,
+      required this.registerDeviceTokenUseCase,
+      required this.unregisterDeviceTokenUseCase,
+      required this.forgotPasswordUseCase,
+      required this.resendVerificationEmailUsecase})
+      : super(AuthInitial());
 
   Future<void> checkAuthStatus() async {
     final operation = ++_sessionOperation;
@@ -104,7 +110,7 @@ class AuthCubit extends Cubit<AuthState> {
       } catch (fcmError) {
         // Hata yutulur
       }
-      emit(Authenticated(user));
+      emit(const RegistrationSuccess());
     } catch (e) {
       if (operation != _sessionOperation) return;
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
@@ -140,18 +146,17 @@ class AuthCubit extends Cubit<AuthState> {
       if (cleanEmail.isEmpty || !cleanEmail.contains("@")) {
         throw Exception("Lütfen geçerli bir e-posta adresi giriniz.");
       }
-      // Gerçek repository veya mock şifre sıfırlama işlemi
-      await Future.delayed(const Duration(milliseconds: 800));
+      await forgotPasswordUseCase(cleanEmail);
       emit(PasswordResetEmailSent(cleanEmail));
     } catch (e) {
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
-  Future<void> resendVerificationEmail() async {
+  Future<void> resendVerificationEmail(String email) async {
     emit(const AuthLoading());
     try {
-      await authRepository.resendVerificationEmail();
+      await resendVerificationEmailUsecase(email);
       emit(const VerificationEmailSent());
     } catch (e) {
       emit(AuthError(e.toString()));

@@ -47,9 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _phoneController.text.trim().isEmpty
                 ? null
                 : _phoneController.text.trim(),
-            AppPlatform.isVetWebExperience
-                ? UserRole.vet
-                : UserRole.owner,
+            AppPlatform.isVetWebExperience ? UserRole.vet : UserRole.owner,
           );
     }
   }
@@ -173,7 +171,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                       message: error,
                     );
                   }
-                  if (state is Authenticated) {
+                  if (state is RegistrationSuccess) {
                     context.go(AppPlatform.isVetWebExperience
                         ? AppRoutes.vetSearch
                         : AppRoutes.ownerEmailVerification);
@@ -194,7 +192,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF7B4832).withValues(alpha: 0.25),
+                              color: const Color(0xFF7B4832)
+                                  .withValues(alpha: 0.25),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -232,12 +231,13 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
                           side: BorderSide(
-                            color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                            color:
+                                AppColors.outlineVariant.withValues(alpha: 0.5),
                             width: 1,
                           ),
                         ),
-                          color: AppColors.surfaceContainerLowest,
-                          child: Padding(
+                        color: AppColors.surfaceContainerLowest,
+                        child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Form(
                             key: _formKey,
@@ -366,7 +366,9 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 TextFormField(
                                   controller: _phoneController,
                                   keyboardType: TextInputType.phone,
-                                  autofillHints: const [AutofillHints.telephoneNumber],
+                                  autofillHints: const [
+                                    AutofillHints.telephoneNumber
+                                  ],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     labelText: "Telefon (Opsiyonel)",
@@ -401,7 +403,9 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: _obscurePassword,
-                                  autofillHints: const [AutofillHints.newPassword],
+                                  autofillHints: const [
+                                    AutofillHints.newPassword
+                                  ],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     label: const Text.rich(
@@ -485,7 +489,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                               width: 24,
                                               child: Checkbox(
                                                 value: _kvkkApproved,
-                                                activeColor: const Color(0xFF7B4832),
+                                                activeColor:
+                                                    const Color(0xFF7B4832),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(4),
@@ -513,8 +518,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                       style: theme
                                                           .textTheme.bodyMedium
                                                           ?.copyWith(
-                                                        color:
-                                                            const Color(0xFF7B4832),
+                                                        color: const Color(
+                                                            0xFF7B4832),
                                                         fontWeight:
                                                             FontWeight.bold,
                                                       ),
@@ -591,7 +596,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                               width: 24,
                                               child: Checkbox(
                                                 value: _explicitConsentApproved,
-                                                activeColor: const Color(0xFF7B4832),
+                                                activeColor:
+                                                    const Color(0xFF7B4832),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(4),
@@ -620,8 +626,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                       style: theme
                                                           .textTheme.bodyMedium
                                                           ?.copyWith(
-                                                        color:
-                                                            const Color(0xFF7B4832),
+                                                        color: const Color(
+                                                            0xFF7B4832),
                                                         fontWeight:
                                                             FontWeight.bold,
                                                       ),
@@ -707,7 +713,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
-                                                  color: const Color(0xFF131B2E),
+                                                  color:
+                                                      const Color(0xFF131B2E),
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
