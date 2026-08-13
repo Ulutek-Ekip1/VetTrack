@@ -5,6 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../../domain/entities/pet_entity.dart';
+import '../../../visit/presentation/cubit/visit_cubit.dart';
+import '../../../visit/presentation/cubit/visit_state.dart';
+import '../../../treatment/presentation/cubit/treatment_cubit.dart';
+import '../../../treatment/presentation/cubit/treatment_state.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final String petId;
@@ -19,32 +23,6 @@ class _PetDetailScreenState extends State<PetDetailScreen>
   late TabController _tabController;
   final Color primaryBlue = const Color(0xFF004AC6);
   final Color bgGray = const Color(0xFFF8FAFC);
-  final List<Map<String, String>> _healthHistory = [
-    {
-      'date': '15.05.2026',
-      'title': 'Genel Muayene',
-      'clinic': 'Patili Veteriner Kliniği',
-      'type': 'medical_services'
-    },
-    {
-      'date': '10.05.2026',
-      'title': 'Ateş şikayeti ile muayene',
-      'clinic': 'Patili Veteriner Kliniği',
-      'type': 'thermostat'
-    },
-    {
-      'date': '15.02.2026',
-      'title': 'Dış parazit tedavisi',
-      'clinic': 'Patili Veteriner Kliniği',
-      'type': 'healing'
-    },
-    {
-      'date': '20.01.2026',
-      'title': 'Kulak enfeksiyonu tedavisi',
-      'clinic': 'Patili Veteriner Kliniği',
-      'type': 'medication'
-    },
-  ];
 
   @override
   void initState() {
@@ -420,242 +398,132 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   // 2. SAĞLIK SEKMESİ
   Widget _buildSaglikTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Sağlık Geçmişi',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text('Tümü >',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: primaryBlue)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              children: [
-                if (_healthHistory.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24.0),
-                    child: Text('Herhangi bir sağlık geçmişi bulunmuyor.',
-                        style: TextStyle(color: Colors.grey)),
-                  )
-                else
-                  ..._healthHistory.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    IconData icon;
-                    switch (item['type']) {
-                      case 'thermostat':
-                        icon = Icons.thermostat_outlined;
-                        break;
-                      case 'healing':
-                        icon = Icons.healing_outlined;
-                        break;
-                      case 'medication':
-                        icon = Icons.medication_outlined;
-                        break;
-                      default:
-                        icon = Icons.medical_services_outlined;
-                    }
-                    return Column(
-                      children: [
-                        _buildHealthHistoryItem(icon, item['date']!,
-                            item['title']!, item['clinic']!),
-                        if (index < _healthHistory.length - 1)
-                          const Divider(height: 1, indent: 56),
-                      ],
-                    );
-                  }),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showAddHealthRecordBottomSheet(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Yeni Sağlık Kaydı Ekle',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: primaryBlue,
-                      side:
-                          BorderSide(color: primaryBlue.withValues(alpha: 0.5)),
-                      minimumSize: const Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text('Kronik Rahatsızlıklar',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.favorite_border, color: Colors.grey),
-                const SizedBox(width: 12),
-                Expanded(
-                    child: Text(
-                        'Şu anda kaydedilmiş kronik rahatsızlığı bulunmuyor.',
-                        style: TextStyle(
-                            color: Colors.grey.shade600, fontSize: 13))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
+    return BlocBuilder<VisitCubit, VisitState>(
+      builder: (context, visitState) {
+        return BlocBuilder<TreatmentCubit, TreatmentState>(
+          builder: (context, treatmentState) {
+            final List<Map<String, dynamic>> combinedHistory = [];
 
-  void _showAddHealthRecordBottomSheet(BuildContext context) {
-    final titleController = TextEditingController();
-    final clinicController = TextEditingController();
+            if (visitState is VisitHistoryLoaded) {
+              for (var visit in visitState.visits) {
+                combinedHistory.add({
+                  'date': visit.startedAt,
+                  'title':
+                      'Muayene: ${visit.chiefComplaint ?? 'Genel Kontrol'}',
+                  'subtitle': visit.vetStaffName ?? 'Klinik Hekimi',
+                  'icon': Icons.medical_services_outlined,
+                });
+              }
+            }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-            left: 24,
-            right: 24,
-            top: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            if (treatmentState is TreatmentLoaded) {
+              for (var treatment in treatmentState.treatments) {
+                combinedHistory.add({
+                  'date': treatment.createdAt,
+                  'title': 'Tedavi: ${treatment.title}',
+                  'subtitle':
+                      '${treatment.type} ${treatment.description != null ? "• ${treatment.description}" : ""}',
+                  'icon': Icons.healing_outlined,
+                });
+              }
+            }
+
+            // Sort descending (newest first)
+            combinedHistory.sort((a, b) =>
+                (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+
+            final isLoading = visitState is VisitLoading ||
+                treatmentState is TreatmentLoading;
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Yeni Sağlık Kaydı Ekle',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF131B2E),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Sağlık Geçmişi',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text('Tümü >',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: primaryBlue)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      children: [
+                        if (isLoading)
+                          const Padding(
+                            padding: EdgeInsets.all(24.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (combinedHistory.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(24.0),
+                            child: Text(
+                                'Herhangi bir sağlık geçmişi bulunmuyor.',
+                                style: TextStyle(color: Colors.grey)),
+                          )
+                        else
+                          ...combinedHistory.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final item = entry.value;
+                            final DateTime dateVal = item['date'] as DateTime;
+                            final dateStr =
+                                '${dateVal.day.toString().padLeft(2, '0')}.${dateVal.month.toString().padLeft(2, '0')}.${dateVal.year}';
+
+                            return Column(
+                              children: [
+                                _buildHealthHistoryItem(
+                                  item['icon'] as IconData,
+                                  dateStr,
+                                  item['title'] as String,
+                                  item['subtitle'] as String,
+                                ),
+                                if (index < combinedHistory.length - 1)
+                                  const Divider(height: 1, indent: 56),
+                              ],
+                            );
+                          }),
+                      ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.favorite_border, color: Colors.grey),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(
+                                'Şu anda kaydedilmiş kronik rahatsızlığı bulunmuyor.',
+                                style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 13))),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 40),
                 ],
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Rahatsızlık / Muayene Nedeni',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  hintText: 'Örn: Kusma şikayeti, aşı kontrolü',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Klinik / Hekim Adı',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: clinicController,
-                decoration: InputDecoration(
-                  hintText: 'Örn: Patili Veteriner Kliniği',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  if (titleController.text.trim().isEmpty ||
-                      clinicController.text.trim().isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Lütfen tüm alanları doldurun.'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                    return;
-                  }
-
-                  final now = DateTime.now();
-                  final dateStr =
-                      '${now.day.toString().padLeft(2, '0')}.${now.month.toString().padLeft(2, '0')}.${now.year}';
-
-                  setState(() {
-                    _healthHistory.insert(0, {
-                      'date': dateStr,
-                      'title': titleController.text.trim(),
-                      'clinic': clinicController.text.trim(),
-                      'type': 'medical_services',
-                    });
-                  });
-
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Sağlık kaydı başarıyla eklendi.'),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Kaydet',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

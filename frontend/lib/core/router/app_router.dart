@@ -228,7 +228,17 @@ class AppRouter {
                       name: 'petDetail',
                       builder: (context, state) {
                         final petId = state.pathParameters['petId'] ?? '';
-                        return PetDetailScreen(petId: petId);
+                        return MultiBlocProvider(
+                          providers: [
+                            BlocProvider<VisitCubit>(
+                              create: (context) => sl<VisitCubit>()..fetchPetVisitHistory(petId),
+                            ),
+                            BlocProvider<TreatmentCubit>(
+                              create: (context) => sl<TreatmentCubit>()..loadPetTreatments(petId),
+                            ),
+                          ],
+                          child: PetDetailScreen(petId: petId),
+                        );
                       },
                       routes: [
                         GoRoute(

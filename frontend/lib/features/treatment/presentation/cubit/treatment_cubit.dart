@@ -33,7 +33,7 @@ class TreatmentCubit extends Cubit<TreatmentState> {
     emit(TreatmentLoading());
 
     try {
-      final treatments = await getTreatmentUseCase(petId);
+      final treatments = await repository.getPetTreatments(petId);
       emit(TreatmentLoaded(treatments));
     } catch (e) {
       emit(TreatmentError(e.toString()));
