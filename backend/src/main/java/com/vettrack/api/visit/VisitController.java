@@ -13,8 +13,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,8 +36,15 @@ public class VisitController {
     private final VetStaffService vetStaffService;
     private final OwnerService ownerService;
 
+    private boolean isVetOrAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_VET_STAFF") || a.getAuthority().equals("ROLE_ADMIN"));
+    }
+
     @PostMapping
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN') or isAuthenticated()")
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     @Operation(summary = "Yeni Muayene Ziyareti Başlat", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Visit> createVisit(
             @AuthenticationPrincipal Jwt jwt,
@@ -46,13 +56,13 @@ public class VisitController {
     }
 
     @PutMapping("/{id}/close")
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN') or isAuthenticated()")
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     public ResponseEntity<Visit> closeVisit(@PathVariable UUID id) {
         return ResponseEntity.ok(visitService.closeVisit(id));
     }
 
     @GetMapping("/code/{code}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     public ResponseEntity<PatientSearchResponse> getPatientByCode(@PathVariable String code) {
         Pet pet = petService.getPetByUniqueCode(code);
         List<Visit> visits = visitService.getVisitsByUniqueCode(code);
@@ -61,9 +71,19 @@ public class VisitController {
 
     @GetMapping("/{visitId}/context")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ActiveVisitContextResponse> getActiveVisitContext(@PathVariable UUID visitId) {
+    public ResponseEntity<ActiveVisitContextResponse> getActiveVisitContext(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID visitId
+    ) {
         Visit visit = visitService.getVisit(visitId);
         Pet pet = petService.getPetById(visit.getPetId());
+
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+
+        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu ziyaret detayına erişim yetkiniz yok");
+        }
+
         Owner owner = ownerService.getOwnerById(pet.getOwnerId());
         return ResponseEntity.ok(new ActiveVisitContextResponse(
                 visit, pet, owner, visitService.getVisitsByPetId(pet.getId())
@@ -73,7 +93,17 @@ public class VisitController {
     @GetMapping({"/pet/{petId}", "/pets/{petId}/visits"})
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Pet'in Geçmiş Ziyaretlerini Listele", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<List<Visit>> getVisitsByPetId(@PathVariable UUID petId) {
+    public ResponseEntity<List<Visit>> getVisitsByPetId(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID petId
+    ) {
+        Pet pet = petService.getPetById(petId);
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+
+        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu pet'in ziyaret geçmişine erişim yetkiniz yok");
+        }
+
         return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
     }
 

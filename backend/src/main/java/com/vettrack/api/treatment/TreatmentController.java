@@ -1,5 +1,9 @@
 package com.vettrack.api.treatment;
 
+import com.vettrack.api.pet.Pet;
+import com.vettrack.api.pet.PetService;
+import com.vettrack.api.visit.Visit;
+import com.vettrack.api.visit.VisitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -10,7 +14,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +31,15 @@ import java.util.UUID;
 public class TreatmentController {
 
     private final TreatmentService treatmentService;
+    private final VisitService visitService;
+    private final PetService petService;
+
+    private boolean isVetOrAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_VET_STAFF") || a.getAuthority().equals("ROLE_ADMIN"));
+    }
 
     @PostMapping("/visits/{visitId}/treatments")
     @Operation(
@@ -34,9 +51,11 @@ public class TreatmentController {
         @ApiResponse(responseCode = "201", description = "Tedavi kaydı başarıyla oluşturuldu"),
         @ApiResponse(responseCode = "400", description = "Geçersiz istek parametreleri"),
         @ApiResponse(responseCode = "401", description = "Yetkisiz erişim"),
+        @ApiResponse(responseCode = "403", description = "Yetkiniz yok"),
         @ApiResponse(responseCode = "404", description = "Ziyaret bulunamadı"),
         @ApiResponse(responseCode = "409", description = "Ziyaret kapalı (VISIT_CLOSED)")
     })
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     public ResponseEntity<TreatmentEntry> createTreatment(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "Ziyaret UUID") @PathVariable UUID visitId,
@@ -57,18 +76,41 @@ public class TreatmentController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Tedavi listesi başarıyla getirildi"),
         @ApiResponse(responseCode = "401", description = "Yetkisiz erişim"),
+        @ApiResponse(responseCode = "403", description = "Erişim engellendi"),
         @ApiResponse(responseCode = "404", description = "Ziyaret bulunamadı")
     })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<TreatmentEntry>> getTreatments(
+            @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "Ziyaret UUID") @PathVariable UUID visitId,
             @Parameter(description = "Durum filtresi: PLANNED, IN_PROGRESS, COMPLETED, CANCELLED")
             @RequestParam(required = false) TreatmentStatus status
     ) {
+        Visit visit = visitService.getVisit(visitId);
+        Pet pet = petService.getPetById(visit.getPetId());
+
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+
+        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu ziyaretin tedavi geçmişine erişim yetkiniz yok");
+        }
+
         return ResponseEntity.ok(treatmentService.getTreatmentsByVisit(visitId, status));
     }
 
     @GetMapping("/pets/{petId}/treatments")
-    public ResponseEntity<List<TreatmentEntry>> getPetTreatments(@PathVariable UUID petId) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<TreatmentEntry>> getPetTreatments(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID petId
+    ) {
+        Pet pet = petService.getPetById(petId);
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+
+        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu pet'in tedavi geçmişine erişim yetkiniz yok");
+        }
+
         return ResponseEntity.ok(treatmentService.getTreatmentsByPet(petId));
     }
 
@@ -85,6 +127,7 @@ public class TreatmentController {
         @ApiResponse(responseCode = "403", description = "Düzenleme süresi doldu (EDIT_WINDOW_EXPIRED) veya başkasının kaydı"),
         @ApiResponse(responseCode = "404", description = "Tedavi kaydı bulunamadı")
     })
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     public ResponseEntity<TreatmentEntry> updateTreatment(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "Tedavi UUID") @PathVariable UUID id,
@@ -106,6 +149,7 @@ public class TreatmentController {
         @ApiResponse(responseCode = "403", description = "Düzenleme süresi doldu (EDIT_WINDOW_EXPIRED) veya başkasının kaydı"),
         @ApiResponse(responseCode = "404", description = "Tedavi kaydı bulunamadı")
     })
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     public ResponseEntity<Void> deleteTreatment(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "Tedavi UUID") @PathVariable UUID id
