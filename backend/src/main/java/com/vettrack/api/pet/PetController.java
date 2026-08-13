@@ -1,5 +1,7 @@
 package com.vettrack.api.pet;
 
+import com.vettrack.api.visit.Visit;
+import com.vettrack.api.visit.VisitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -32,7 +34,7 @@ import java.util.UUID;
 public class PetController {
 
     private final PetService petService;
-    
+    private final VisitService visitService;
     @PostMapping
     @Operation(summary = "Yeni Pet Ekle", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
@@ -88,7 +90,25 @@ public class PetController {
         return ResponseEntity.ok(pet);
     }
 
-    
+    @GetMapping("/{id}/visits")
+    @Operation(summary = "Pet'in Ziyaret Geçmişini Sayfalamalı Listele", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sayfalandırılmış ziyaret geçmişi başarıyla getirildi"),
+        @ApiResponse(responseCode = "403", description = "Bu hayvanın ziyaret geçmişine erişim yetkiniz yok"),
+        @ApiResponse(responseCode = "404", description = "Pet bulunamadı")
+    })
+    public ResponseEntity<Page<Visit>> getPetVisitsPaginated(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id,
+            @ParameterObject Pageable pageable
+    ) {
+        Pet pet = petService.getPetById(id);
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        if (!pet.getOwnerId().equals(ownerId)) {
+            throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
+        }
+        return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
+    }
 
     @GetMapping("/code/{uniqueCode}")
     @Operation(summary = "Benzersiz Kod ile Pet Bul", security = @SecurityRequirement(name = "bearerAuth"))
@@ -160,8 +180,6 @@ public class PetController {
         petService.softDeletePet(id, ownerId);
         return ResponseEntity.noContent().build();
     }
-
-    
 
     private boolean isVetOrAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
