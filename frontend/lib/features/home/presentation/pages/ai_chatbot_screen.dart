@@ -421,7 +421,22 @@ class _AIChatbotViewState extends State<AIChatbotView> {
       ),
       body: BlocConsumer<AiChatCubit, AiChatState>(
         listener: (context, state) {
-          if (state.messages.isNotEmpty) {
+          if (state.isPetAccessError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.historyErrorMessage ??
+                      'Seçilen evcil hayvana ait sohbet geçmişine erişilemedi. Pet silinmiş veya erişim yetkiniz bulunmuyor.',
+                ),
+                backgroundColor: Colors.red.shade700,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          } else if (state.messages.isNotEmpty) {
             _scrollToBottom();
           }
         },

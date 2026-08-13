@@ -8,6 +8,7 @@ class AiChatState extends Equatable {
   final bool isSending;
   final bool isLoadingHistory;
   final bool isHistoryError;
+  final bool isPetAccessError;
   final String? historyErrorMessage;
   final int historyPage;
   final bool hasMoreHistory;
@@ -24,6 +25,7 @@ class AiChatState extends Equatable {
     this.isSending = false,
     this.isLoadingHistory = false,
     this.isHistoryError = false,
+    this.isPetAccessError = false,
     this.historyErrorMessage,
     this.historyPage = 0,
     this.hasMoreHistory = true,
@@ -41,6 +43,7 @@ class AiChatState extends Equatable {
     bool? isSending,
     bool? isLoadingHistory,
     bool? isHistoryError,
+    bool? isPetAccessError,
     String? historyErrorMessage,
     bool clearHistoryErrorMessage = false,
     int? historyPage,
@@ -62,6 +65,7 @@ class AiChatState extends Equatable {
       isSending: isSending ?? this.isSending,
       isLoadingHistory: isLoadingHistory ?? this.isLoadingHistory,
       isHistoryError: isHistoryError ?? this.isHistoryError,
+      isPetAccessError: isPetAccessError ?? this.isPetAccessError,
       historyErrorMessage: clearHistoryErrorMessage
           ? null
           : (historyErrorMessage ?? this.historyErrorMessage),
@@ -88,6 +92,7 @@ class AiChatState extends Equatable {
         isSending,
         isLoadingHistory,
         isHistoryError,
+        isPetAccessError,
         historyErrorMessage,
         historyPage,
         hasMoreHistory,

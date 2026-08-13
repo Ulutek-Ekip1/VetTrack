@@ -37,6 +37,7 @@ class AiChatCubit extends Cubit<AiChatState> {
       emit(state.copyWith(
         isLoadingHistory: true,
         isHistoryError: false,
+        isPetAccessError: false,
         clearHistoryErrorMessage: true,
         historyPage: 0,
       ));
@@ -52,17 +53,30 @@ class AiChatCubit extends Cubit<AiChatState> {
 
       _processFetchedHistory(fetched, isLoadMore: isLoadMore, fetchedPage: pageToFetch);
     } catch (e) {
+      int? statusCode;
       String errorMsg = 'Sohbet geçmişi yüklenirken hata oluştu.';
       if (e is ServerException && e.message != null && e.message!.isNotEmpty) {
         errorMsg = e.message!;
+        final match = RegExp(r'\((\d{3})\)').firstMatch(e.message!);
+        if (match != null) {
+          statusCode = int.tryParse(match.group(1)!);
+        }
       }
+
+      final isPetError = (targetPetId != null && targetPetId.isNotEmpty) &&
+          (statusCode == 403 || statusCode == 404);
+
       if (isLoadMore) {
         emit(state.copyWith(isLoadingMoreHistory: false));
       } else {
         emit(state.copyWith(
           isLoadingHistory: false,
           isHistoryError: true,
-          historyErrorMessage: errorMsg,
+          isPetAccessError: isPetError,
+          historyErrorMessage: isPetError
+              ? 'Seçilen evcil hayvana ait sohbet geçmişine erişilemedi. Pet silinmiş veya erişim yetkiniz bulunmuyor.'
+              : errorMsg,
+          statusCode: statusCode,
         ));
       }
     }
