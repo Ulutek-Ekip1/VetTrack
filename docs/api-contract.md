@@ -418,6 +418,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
       "id": "...",
       "vetStaffName": "Dr. Mehmet Yılmaz",
       "status": "completed",
+      "chiefComplaint": "Akut kusma ve iştahsızlık",
       "startedAt": "...",
       "endedAt": "...",
       "treatments": [...],
@@ -481,6 +482,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "petId": "...",
   "vetStaffId": "...",
   "status": "ongoing",
+  "chiefComplaint": "Akut kusma ve iştahsızlık",
   "startedAt": "2026-07-29T14:32:11Z",
   "endedAt": null
 }
@@ -494,6 +496,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "vetStaffId": "...",
   "vetStaffName": "Dr. Mehmet Yılmaz",
   "status": "completed",
+  "chiefComplaint": "Akut kusma ve iştahsızlık",
   "startedAt": "...",
   "endedAt": "...",
   "treatments": [...],
@@ -513,7 +516,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 | Alan | Tip | Zorunlu | Açıklama |
 |---|---|---|---|
-| `type` | Enum | Evet | `medication`, `xray`, `lab_result`, `note` |
+| `type` | Enum | Evet | `medication`, `xray`, `lab_result`, `note`, `vaccine`, `surgery` |
 | `title` | String (1-200) | Evet | Kısa başlık |
 | `description` | String | Hayır | Detaylı açıklama |
 | `attachmentUrl` | String (URI) | Hayır | Supabase Storage URL'si |
