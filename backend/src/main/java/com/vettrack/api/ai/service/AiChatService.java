@@ -83,7 +83,7 @@ public class AiChatService {
                 }
                 log.info("Idempotent request hit for clientMessageId: {}. Fetching cached AI assistant response.", request.getClientMessageId());
 
-                Optional<ChatMessage> assistantMsgOpt = chatMessageRepository.findFirstByConversationIdAndRoleOrderByCreatedAtDesc(msg.getConversationId(), "model");
+                Optional<ChatMessage> assistantMsgOpt = chatMessageRepository.findFirstByConversationIdAndRoleAndCreatedAtGreaterThanEqualOrderByCreatedAtAsc(msg.getConversationId(), "model", msg.getCreatedAt());
                 ChatMessage respMsg = assistantMsgOpt.orElse(msg);
 
                 return AiChatResponse.builder()

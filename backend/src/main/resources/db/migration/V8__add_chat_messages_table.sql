@@ -16,3 +16,10 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 CREATE INDEX IF NOT EXISTS idx_chat_messages_owner_pet ON chat_messages(owner_id, pet_id);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation ON chat_messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_idempotency ON chat_messages(owner_id, client_message_id);
+
+-- Update visits status CHECK constraint to allow 'cancelled'
+ALTER TABLE visits DROP CONSTRAINT IF EXISTS visits_status_check;
+ALTER TABLE visits ADD CONSTRAINT visits_status_check CHECK (status IN ('ongoing', 'completed', 'cancelled'));
+
+-- Persistent notification sent flag for treatment entries
+ALTER TABLE treatment_entries ADD COLUMN IF NOT EXISTS notification_sent BOOLEAN DEFAULT FALSE;

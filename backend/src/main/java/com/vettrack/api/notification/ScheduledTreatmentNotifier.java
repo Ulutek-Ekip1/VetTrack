@@ -11,13 +11,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -29,14 +27,14 @@ public class ScheduledTreatmentNotifier {
     private final PetRepository petRepository;
     private final NotificationService notificationService;
 
-    // Tekrarlayan push bildirim gönderimini önlemek için bildirim atılan tedavi ID'lerini saklar
-    private final Set<UUID> notifiedTreatmentIds = ConcurrentHashMap.newKeySet();
-
     /**
      * Arka planda her 5 dakikada bir çalışarak zamanı yaklaşan tedavileri tarar
      * ve hayvan sahiplerinin cihazlarına otomatik FCM push bildirimi gönderir.
+     * Atomik ve kalıcı DB güncelleyicisi ile çoklu sunucu/instance ve yeniden başlatmada
+     * mükerrer bildirim gönderimini engeller.
      */
     @Scheduled(cron = "0 */5 * * * *")
+    @Transactional
     public void scanAndSendTreatmentReminders() {
         log.info("Zamanlanmış tedavi ve aşı hatırlatıcı taraması başlatıldı...");
 
@@ -48,7 +46,8 @@ public class ScheduledTreatmentNotifier {
 
             int sentCount = 0;
             for (TreatmentEntry entry : allEntries) {
-                if (entry.getId() != null && notifiedTreatmentIds.contains(entry.getId())) {
+                // Daha önce kalıcı olarak bildirimi gönderilmişse atla (DB Atomic Deduplication)
+                if (Boolean.TRUE.equals(entry.getNotificationSent())) {
                     continue;
                 }
 
@@ -71,7 +70,10 @@ public class ScheduledTreatmentNotifier {
                                         body,
                                         entry.getId()
                                 );
-                                notifiedTreatmentIds.add(entry.getId());
+
+                                // DB seviyesinde bildirim atıldı olarak işaretle (Persistent across restarts & multi-pod)
+                                entry.setNotificationSent(true);
+                                treatmentEntryRepository.save(entry);
                                 sentCount++;
                             }
                         }
