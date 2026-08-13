@@ -23,6 +23,19 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Sözleşmeye bağlı tüm uygulama hataları tek yerden. {@link ErrorCode} kendi HTTP status'unu
+     * ve error kodunu (name) taşır — context'e özel kod, throw noktasında ErrorCode ile belirlenir.
+     */
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<Map<String, Object>> handleApiException(ApiException ex) {
+        ErrorCode code = ex.getErrorCode();
+        String message = (ex.getMessage() != null && !ex.getMessage().isBlank())
+                ? ex.getMessage()
+                : "İşlem gerçekleştirilemedi";
+        return buildResponse(code.getStatus(), code.name(), message);
+    }
+
     @ExceptionHandler(GeminiApiException.class)
     public ResponseEntity<Map<String, Object>> handleGeminiApiException(GeminiApiException ex) {
         HttpStatus status = ex.getStatusCode() == 429 ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.SERVICE_UNAVAILABLE;
@@ -35,78 +48,49 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, "IDEMPOTENCY_KEY_REUSED", ex.getMessage());
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
-        String message = (ex.getMessage() != null && !ex.getMessage().isBlank()) 
-                ? ex.getMessage() 
-                : "İstenen kaynak bulunamadığı için işlem gerçekleştirilemedi";
-        return buildResponse(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", message);
-    }
-
-    @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex) {
-        return buildResponse(HttpStatus.CONFLICT, "CONFLICT", ex.getMessage());
-    }
-
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<Map<String, Object>> handleUnauthorized(UnauthorizedException ex) {
-        String message = (ex.getMessage() != null && !ex.getMessage().isBlank()) 
-                ? ex.getMessage() 
-                : "E-posta veya şifre hatalı";
-        return buildResponse(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", message);
-    }
-
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage());
+        return buildResponse(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name(), ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
 
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
+        ex.getBindingResult().getFieldErrors().forEach(error ->
             errors.put(error.getField(), error.getDefaultMessage())
         );
 
-        Map<String, Object> body = createBaseBody(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED");
+        Map<String, Object> body = createBaseBody(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name());
         body.put("validationErrors", errors);
 
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(body, ErrorCode.VALIDATION_ERROR.getStatus());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleMalformedJson(HttpMessageNotReadableException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, "MALFORMED_JSON", "İstek gövdesi (JSON) okunamadı veya format hatalı");
+        return buildResponse(ErrorCode.MALFORMED_JSON.getStatus(), ErrorCode.MALFORMED_JSON.name(),
+                "İstek gövdesi (JSON) okunamadı veya format hatalı");
     }
 
     @ExceptionHandler(FileTooLargeException.class)
     public ResponseEntity<Map<String, Object>> handleFileTooLarge(FileTooLargeException ex) {
-        return buildResponse(HttpStatus.CONTENT_TOO_LARGE, "FILE_TOO_LARGE", ex.getMessage());
+        return buildResponse(ErrorCode.FILE_TOO_LARGE.getStatus(), ErrorCode.FILE_TOO_LARGE.name(), ex.getMessage());
     }
 
     @ExceptionHandler(UnsupportedFileTypeException.class)
     public ResponseEntity<Map<String, Object>> handleUnsupportedFileType(UnsupportedFileTypeException ex) {
-        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_FILE_TYPE", ex.getMessage());
-    }
-    @ExceptionHandler(RoleMismatchException.class)
-    public ResponseEntity<Map<String, Object>> handleRoleMismatch(RoleMismatchException ex) {
-        return buildResponse(HttpStatus.FORBIDDEN, "ROLE_MISMATCH", ex.getMessage());
-    }
-
-    @ExceptionHandler(EditWindowExpiredException.class)
-    public ResponseEntity<Map<String, Object>> handleEditWindowExpired(EditWindowExpiredException ex) {
-        return buildResponse(HttpStatus.FORBIDDEN, "EDIT_WINDOW_EXPIRED", ex.getMessage());
+        return buildResponse(ErrorCode.UNSUPPORTED_FILE_TYPE.getStatus(), ErrorCode.UNSUPPORTED_FILE_TYPE.name(), ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
-        return buildResponse(HttpStatus.FORBIDDEN, "FORBIDDEN", ex.getMessage());
+        return buildResponse(ErrorCode.FORBIDDEN.getStatus(), ErrorCode.FORBIDDEN.name(), ex.getMessage());
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
-        return buildResponse(HttpStatus.CONTENT_TOO_LARGE, "FILE_TOO_LARGE", "Dosya boyutu 15MB'ı aşamaz");
+        return buildResponse(ErrorCode.FILE_TOO_LARGE.getStatus(), ErrorCode.FILE_TOO_LARGE.name(), "Dosya boyutu 15MB'ı aşamaz");
     }
 
     @ExceptionHandler(Exception.class)
