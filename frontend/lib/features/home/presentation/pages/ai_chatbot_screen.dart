@@ -61,6 +61,11 @@ class _AIChatbotViewState extends State<AIChatbotView> {
         });
       }
     });
+
+    // Ekran açıldığında genel sohbet geçmişini yükle
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AiChatCubit>().fetchHistory();
+    });
   }
 
   @override
@@ -102,10 +107,243 @@ class _AIChatbotViewState extends State<AIChatbotView> {
     if (rawDate.isEmpty) return 'Şimdi';
     try {
       final dt = DateTime.parse(rawDate).toLocal();
-      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      final now = DateTime.now();
+      if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
+        return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      }
+      return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return 'Şimdi';
     }
+  }
+
+  void _showHistoryBottomSheet(BuildContext parentContext) {
+    showModalBottomSheet(
+      context: parentContext,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (bottomSheetContext) {
+        return BlocProvider.value(
+          value: parentContext.read<AiChatCubit>(),
+          child: DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.7,
+            minChildSize: 0.4,
+            maxChildSize: 0.9,
+            builder: (sheetContext, scrollController) {
+              return BlocBuilder<AiChatCubit, AiChatState>(
+                builder: (context, state) {
+                  return Column(
+                    children: [
+                      // Header
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.history,
+                                    color: Color(0xFF004AC6), size: 22),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Sohbet Geçmişiniz',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF131B2E),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.pop(bottomSheetContext),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+
+                      // Body - Yükleme / Hata / Liste Durumları
+                      Expanded(
+                        child: _buildHistoryContent(
+                          context,
+                          state,
+                          scrollController,
+                          bottomSheetContext,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHistoryContent(
+    BuildContext context,
+    AiChatState state,
+    ScrollController scrollController,
+    BuildContext bottomSheetContext,
+  ) {
+    if (state.isLoadingHistory) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 12),
+            Text('Sohbet geçmişi yükleniyor...',
+                style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    if (state.isHistoryError) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+              const SizedBox(height: 12),
+              Text(
+                state.historyErrorMessage ?? 'Geçmiş yüklenirken bir hata oluştu.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFF131B2E), fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => context.read<AiChatCubit>().fetchHistory(),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Tekrar Deneyin'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF004AC6),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (state.conversations.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.history_toggle_off, size: 54, color: Colors.grey),
+            SizedBox(height: 12),
+            Text(
+              'Henüz kaydedilmiş sohbet geçmişiniz bulunmuyor.',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      controller: scrollController,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: state.conversations.length + (state.hasMoreHistory ? 1 : 0),
+      separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
+      itemBuilder: (context, index) {
+        if (index == state.conversations.length) {
+          // Daha fazla yükle butonu
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: state.isLoadingMoreHistory
+                  ? const CircularProgressIndicator()
+                  : OutlinedButton.icon(
+                      onPressed: () {
+                        context
+                            .read<AiChatCubit>()
+                            .fetchHistory(isLoadMore: true);
+                      },
+                      icon: const Icon(Icons.expand_more),
+                      label: const Text('Daha Fazla Geçmiş Yükle'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF004AC6),
+                        side: const BorderSide(color: Color(0xFF004AC6)),
+                      ),
+                    ),
+            ),
+          );
+        }
+
+        final conv = state.conversations[index];
+        final isSelected = state.activeConversationId == conv.conversationId;
+
+        return ListTile(
+          selected: isSelected,
+          selectedTileColor: const Color(0xFFEFF6FF),
+          leading: CircleAvatar(
+            backgroundColor: isSelected
+                ? const Color(0xFF004AC6)
+                : Colors.grey.shade100,
+            child: Icon(
+              conv.petId != null ? Icons.pets : Icons.chat_bubble_outline,
+              color: isSelected ? Colors.white : const Color(0xFF004AC6),
+              size: 20,
+            ),
+          ),
+          title: Text(
+            conv.lastMessagePreview,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+              fontSize: 14,
+              color: const Color(0xFF131B2E),
+            ),
+          ),
+          subtitle: Row(
+            children: [
+              Text(
+                _formatTime(conv.lastMessageTime.toIso8601String()),
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+              ),
+              if (conv.petId != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDBEAFE),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'Pet Bağlamı',
+                    style: TextStyle(
+                      color: Color(0xFF1E3A8A),
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+          onTap: () {
+            context.read<AiChatCubit>().selectConversation(conv);
+            Navigator.pop(bottomSheetContext);
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -121,6 +359,20 @@ class _AIChatbotViewState extends State<AIChatbotView> {
         backgroundColor: Colors.white,
         elevation: 1,
         shadowColor: Colors.black12,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_comment_outlined, color: primaryBlue),
+            tooltip: 'Yeni Sohbet',
+            onPressed: () {
+              context.read<AiChatCubit>().startNewConversation();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.history, color: Color(0xFF131B2E)),
+            tooltip: 'Sohbet Geçmişi',
+            onPressed: () => _showHistoryBottomSheet(context),
+          ),
+        ],
         title: Row(
           children: [
             Container(
