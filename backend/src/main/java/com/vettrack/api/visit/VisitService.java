@@ -99,11 +99,21 @@ public class VisitService {
 
     @Transactional
     public Visit updateVisitStatus(UUID id, String status) {
-        Visit visit = getVisitById(id);
-        visit.setStatus(status);
-        if ("completed".equalsIgnoreCase(status) || "ended".equalsIgnoreCase(status)) {
-            visit.setEndedAt(OffsetDateTime.now());
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("Ziyaret durumu boş olamaz.");
         }
+        String normalized = status.toLowerCase().trim();
+
+        if ("completed".equals(normalized) || "ended".equals(normalized)) {
+            return closeVisit(id);
+        }
+
+        if (!List.of("ongoing", "completed", "cancelled").contains(normalized)) {
+            throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status + ". İzin verilen durumlar: ongoing, completed, cancelled.");
+        }
+
+        Visit visit = getVisitById(id);
+        visit.setStatus(normalized);
         return visitRepository.save(visit);
     }
 }

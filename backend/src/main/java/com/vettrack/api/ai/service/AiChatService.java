@@ -81,16 +81,20 @@ public class AiChatService {
                 if (!sanitizedMessage.equals(msg.getContent()) || !Objects.equals(request.getPetId(), msg.getPetId())) {
                     throw new IdempotencyKeyReusedException("Aynı clientMessageId farklı istek içeriği veya petId ile tekrar kullanılamaz.");
                 }
-                log.info("Idempotent request hit for clientMessageId: {}. Returning cached response.", request.getClientMessageId());
+                log.info("Idempotent request hit for clientMessageId: {}. Fetching cached AI assistant response.", request.getClientMessageId());
+
+                Optional<ChatMessage> assistantMsgOpt = chatMessageRepository.findFirstByConversationIdAndRoleOrderByCreatedAtDesc(msg.getConversationId(), "model");
+                ChatMessage respMsg = assistantMsgOpt.orElse(msg);
+
                 return AiChatResponse.builder()
-                        .messageId(msg.getId())
+                        .messageId(respMsg.getId())
                         .conversationId(msg.getConversationId())
-                        .emergency(Boolean.TRUE.equals(msg.getEmergency()))
-                        .reply(msg.getContent())
+                        .emergency(Boolean.TRUE.equals(respMsg.getEmergency()))
+                        .reply(respMsg.getContent())
                         .disclaimer(STANDARD_DISCLAIMER)
-                        .model(msg.getModel())
-                        .promptVersion(msg.getPromptVersion())
-                        .createdAt(msg.getCreatedAt())
+                        .model(respMsg.getModel())
+                        .promptVersion(respMsg.getPromptVersion())
+                        .createdAt(respMsg.getCreatedAt())
                         .build();
             }
         }

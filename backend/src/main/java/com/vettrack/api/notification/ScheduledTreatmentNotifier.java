@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -25,6 +28,9 @@ public class ScheduledTreatmentNotifier {
     private final VisitRepository visitRepository;
     private final PetRepository petRepository;
     private final NotificationService notificationService;
+
+    // Tekrarlayan push bildirim gönderimini önlemek için bildirim atılan tedavi ID'lerini saklar
+    private final Set<UUID> notifiedTreatmentIds = ConcurrentHashMap.newKeySet();
 
     /**
      * Arka planda her 5 dakikada bir çalışarak zamanı yaklaşan tedavileri tarar
@@ -42,6 +48,10 @@ public class ScheduledTreatmentNotifier {
 
             int sentCount = 0;
             for (TreatmentEntry entry : allEntries) {
+                if (entry.getId() != null && notifiedTreatmentIds.contains(entry.getId())) {
+                    continue;
+                }
+
                 // Sadece planlanmış ve zamanı yaklaşan tedaviler
                 if (entry.getStatus() == TreatmentStatus.PLANNED && entry.getStartDate() != null) {
                     if (entry.getStartDate().isAfter(now.minusMinutes(5)) && entry.getStartDate().isBefore(thirtyMinutesLater)) {
@@ -61,6 +71,7 @@ public class ScheduledTreatmentNotifier {
                                         body,
                                         entry.getId()
                                 );
+                                notifiedTreatmentIds.add(entry.getId());
                                 sentCount++;
                             }
                         }
