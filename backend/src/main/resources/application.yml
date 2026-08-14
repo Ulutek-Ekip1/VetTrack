@@ -21,6 +21,7 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${SUPABASE_JWKS_URL}
+          jws-algorithms: ES256
 
 supabase:
   url: ${SUPABASE_URL:https://your-supabase-url.supabase.co}
