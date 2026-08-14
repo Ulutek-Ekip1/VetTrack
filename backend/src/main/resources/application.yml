@@ -10,7 +10,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 15MB
-      max-request-size: 15MB
+      max-request-size: 16MB
   flyway:
     enabled: true
     baseline-on-migrate: true
