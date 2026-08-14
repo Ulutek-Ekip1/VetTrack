@@ -117,13 +117,13 @@ public class VisitController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         boolean isVetStaff = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()));
-        
+
         List<Visit> allVisits = visitService.getVisitsByPetId(pet.getId());
         if (isVetStaff && !isAdmin) {
              List<UUID> userClinicIds = membershipService.getMembershipsByUser(currentUserId).stream().filter(m -> "active".equals(m.getStatus())).map(ClinicMembership::getClinicId).toList();
              allVisits = allVisits.stream().filter(v -> userClinicIds.contains(v.getClinicId())).toList();
         }
-        
+
         return ResponseEntity.ok(new ActiveVisitContextResponse(
                 visit, pet, owner, allVisits
         ));

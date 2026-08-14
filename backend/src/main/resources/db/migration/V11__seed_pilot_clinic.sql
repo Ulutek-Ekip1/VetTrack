@@ -1,4 +1,11 @@
--- Provision admin@pilotvet.local in Supabase Auth before running this migration.
+-- PRE-CONDITION (manuel adım — CI/sıfır ortamında kritik):
+--   Bu migration çalışmadan önce Supabase Auth'ta admin@pilotvet.local
+--   kullanıcısının oluşturulmuş VE profiles tablosuna senkronize edilmiş olması
+--   gerekir. Bu koşul karşılanmazsa klinik satırı oluşturulur ancak üyelik
+--   INSERT'i etkilenen-satır sıfır döner (sessiz başarısızlık — hata fırlatmaz).
+--   Sonuç: pilot klinik sahipsiz (orphan) kalır, admin onu yönetemez.
+--   CI pipeline çözümü: migration öncesi Supabase test kullanıcısı seed adımı
+--   ekleyin veya bu migration'ı production-only olarak işaretleyin.
 INSERT INTO clinics (id, name, address, phone)
 VALUES ('11111111-1111-1111-1111-111111111111', 'Pilot Veteriner Kliniği', 'Merkez/İstanbul', '02120000000')
 ON CONFLICT (id) DO NOTHING;

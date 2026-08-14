@@ -1,4 +1,4 @@
-﻿-- V12__rename_treatment_entry_type.sql
+-- V12__rename_treatment_entry_type.sql
 
 -- 1. Rename column entry_type to type
 ALTER TABLE treatment_entries RENAME COLUMN entry_type TO type;
@@ -7,7 +7,7 @@ ALTER TABLE treatment_entries RENAME COLUMN entry_type TO type;
 ALTER TABLE treatment_entries DROP CONSTRAINT IF EXISTS treatment_entries_entry_type_check;
 
 -- 3. Add new check constraint with expanded types
-ALTER TABLE treatment_entries ADD CONSTRAINT treatment_entries_type_check 
+ALTER TABLE treatment_entries ADD CONSTRAINT treatment_entries_type_check
     CHECK (type IN ('medication', 'vaccine', 'surgery', 'xray', 'lab_result', 'note'));
 
 -- 4. Re-create the notification trigger function to use NEW.type instead of NEW.entry_type
@@ -57,3 +57,8 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- 5. Drop old trigger and attach to the new function
+DROP TRIGGER IF EXISTS trigger_notify_on_treatment ON treatment_entries;
+CREATE TRIGGER trigger_notify_on_treatment AFTER INSERT ON treatment_entries
+    FOR EACH ROW EXECUTE FUNCTION trg_create_treatment_notification();
