@@ -66,5 +66,6 @@ gemini:
   api-key: ${GEMINI_API_KEY:}
   model: ${GEMINI_MODEL:gemini-2.5-flash}
 
-server:
-  port: 8080
+  server:
+  port: ${PORT:8080}
+  
