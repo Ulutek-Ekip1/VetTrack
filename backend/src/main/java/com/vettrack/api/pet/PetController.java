@@ -1,5 +1,6 @@
 package com.vettrack.api.pet;
 
+import com.vettrack.api.pet.dto.PetResponse;
 import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,7 +44,7 @@ public class PetController {
         @ApiResponse(responseCode = "400", description = "Geçersiz istek"),
         @ApiResponse(responseCode = "401", description = "Yetkisiz erişim")
     })
-    public ResponseEntity<Pet> createPet(
+    public ResponseEntity<PetResponse> createPet(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody PetCreateRequest request
     ) {
@@ -59,14 +60,17 @@ public class PetController {
                 .build();
 
         Pet createdPet = petService.createPet(pet);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPet);
+        return ResponseEntity.status(HttpStatus.CREATED).body(PetResponse.fromEntity(createdPet));
     }
 
     @GetMapping
     @Operation(summary = "Sahibin Petlerini Listele", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<List<Pet>> getCurrentUserPets(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<PetResponse>> getCurrentUserPets(@AuthenticationPrincipal Jwt jwt) {
         UUID ownerId = UUID.fromString(jwt.getSubject());
-        return ResponseEntity.ok(petService.getPetsByOwner(ownerId));
+        List<PetResponse> pets = petService.getPetsByOwner(ownerId).stream()
+                .map(PetResponse::fromEntity)
+                .toList();
+        return ResponseEntity.ok(pets);
     }
 
     @GetMapping("/{id}")
@@ -76,7 +80,7 @@ public class PetController {
         @ApiResponse(responseCode = "403", description = "Erişim engellendi"),
         @ApiResponse(responseCode = "404", description = "Pet bulunamadı")
     })
-    public ResponseEntity<Pet> getPetById(
+    public ResponseEntity<PetResponse> getPetById(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id
     ) {
@@ -88,18 +92,18 @@ public class PetController {
             boolean isVetStaff = isRole("ROLE_VET_STAFF");
 
             if (isAdmin) {
-                return ResponseEntity.ok(pet);
+                return ResponseEntity.ok(PetResponse.fromEntity(pet));
             }
             // Tüm vet_staff herhangi bir pet'i okuyabilir (ürün kuralı: klinik filtresi yok).
             if (isVetStaff) {
-                return ResponseEntity.ok(pet);
+                return ResponseEntity.ok(PetResponse.fromEntity(pet));
             }
 
             if (!pet.getOwnerId().equals(ownerId)) {
                 throw new AccessDeniedException("Bu hayvan size ait değil");
             }
         }
-        return ResponseEntity.ok(pet);
+        return ResponseEntity.ok(PetResponse.fromEntity(pet));
     }
 
     @GetMapping("/{id}/visits")
@@ -139,7 +143,7 @@ public class PetController {
         @ApiResponse(responseCode = "403", description = "Erişim engellendi"),
         @ApiResponse(responseCode = "404", description = "Pet bulunamadı")
     })
-    public ResponseEntity<Pet> updatePet(
+    public ResponseEntity<PetResponse> updatePet(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id,
             @Valid @RequestBody PetUpdateRequest request
@@ -151,7 +155,7 @@ public class PetController {
                 throw new AccessDeniedException("Bu hayvan size ait değil");
             }
         }
-        return ResponseEntity.ok(petService.updatePet(id, request));
+        return ResponseEntity.ok(PetResponse.fromEntity(petService.updatePet(id, request)));
     }
 
     @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

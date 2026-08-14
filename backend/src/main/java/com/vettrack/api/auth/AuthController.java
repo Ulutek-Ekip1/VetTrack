@@ -48,14 +48,14 @@ public class AuthController {
         response.put("id", jwt.getSubject());
         response.put("email", jwt.getClaimAsString("email"));
         response.put("role", role);
-        response.put("clinic_memberships", activeMemberships);
+        response.put("clinicMemberships", activeMemberships);
 
         {
             Owner owner = ownerService.getOwnerById(userId);
             if (Boolean.FALSE.equals(owner.getIsActive())) {
                 throw new com.vettrack.api.common.exception.UnauthorizedException("Kullanıcı hesabı pasife alınmıştır.");
             }
-            response.put("profile", owner);
+            response.put("profile", com.vettrack.api.owner.dto.OwnerResponse.fromEntity(owner));
         }
 
         return ResponseEntity.ok(response);
