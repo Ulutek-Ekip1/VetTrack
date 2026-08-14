@@ -325,7 +325,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<void> deleteAccount(String password) async {
     try {
       final response = await dio.delete(
-        '/auth/account',
+        '/auth/me',
         data: {'password': password},
       );
 
