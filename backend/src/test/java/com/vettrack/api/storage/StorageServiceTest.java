@@ -127,6 +127,34 @@ class StorageServiceTest {
             assertThrows(UnsupportedFileTypeException.class,
                     () -> storageService.uploadPetPhoto(file, UUID.randomUUID()));
         }
+
+        @Test
+        @DisplayName("Content-Type image/jpeg olsa bile gerçek içerik text/script ise reddedilmeli (MIME spoofing koruması)")
+        void shouldRejectSpoofedFileContent() throws IOException {
+            when(file.isEmpty()).thenReturn(false);
+            when(file.getContentType()).thenReturn("image/jpeg");
+            when(file.getSize()).thenReturn(1024L);
+            byte[] fakeContent = "<?php echo 'malicious'; ?>".getBytes();
+            when(file.getInputStream()).thenAnswer(inv -> new java.io.ByteArrayInputStream(fakeContent));
+
+            assertThrows(UnsupportedFileTypeException.class,
+                    () -> storageService.uploadPetPhoto(file, UUID.randomUUID()));
+        }
+
+        @Test
+        @DisplayName("Content-Type image/jpeg beyan edilip gerçek içerik PNG ise reddedilmeli (MIME tür uyumsuzluğu koruması)")
+        void shouldRejectDeclaredJpegWithPngContent() throws IOException {
+            when(file.isEmpty()).thenReturn(false);
+            when(file.getContentType()).thenReturn("image/jpeg");
+            when(file.getSize()).thenReturn(1024L);
+            byte[] pngContent = new byte[1024];
+            System.arraycopy(PNG_HEADER, 0, pngContent, 0, PNG_HEADER.length);
+            when(file.getInputStream()).thenAnswer(inv -> new java.io.ByteArrayInputStream(pngContent));
+
+            UnsupportedFileTypeException ex = assertThrows(UnsupportedFileTypeException.class,
+                    () -> storageService.uploadPetPhoto(file, UUID.randomUUID()));
+            assertTrue(ex.getMessage().contains("uyuşmuyor"));
+        }
     }
 
     // =========================================================================
@@ -310,6 +338,10 @@ class StorageServiceTest {
     // Helper metodlar
     // =========================================================================
 
+    private static final byte[] JPEG_HEADER = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01};
+    private static final byte[] PNG_HEADER = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52};
+    private static final byte[] WEBP_HEADER = new byte[]{0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38};
+
     private void setupValidUpload(String contentType, String filename, long size) throws IOException {
         setupFileForUpload(contentType, filename, size);
         when(restClient.post()).thenReturn(requestBodyUriSpec);
@@ -325,7 +357,21 @@ class StorageServiceTest {
         when(file.isEmpty()).thenReturn(false);
         when(file.getContentType()).thenReturn(contentType);
         when(file.getSize()).thenReturn(size);
-        when(file.getBytes()).thenReturn(new byte[(int) Math.min(size, 1024)]);
+
+        byte[] header;
+        if ("image/png".equalsIgnoreCase(contentType)) {
+            header = PNG_HEADER;
+        } else if ("image/webp".equalsIgnoreCase(contentType)) {
+            header = WEBP_HEADER;
+        } else {
+            header = JPEG_HEADER;
+        }
+
+        byte[] content = new byte[(int) Math.min(size, 1024)];
+        System.arraycopy(header, 0, content, 0, Math.min(header.length, content.length));
+
+        when(file.getBytes()).thenReturn(content);
+        when(file.getInputStream()).thenAnswer(inv -> new java.io.ByteArrayInputStream(content));
     }
 
     private void setupInvalidFile(String contentType, String filename, long size) {
