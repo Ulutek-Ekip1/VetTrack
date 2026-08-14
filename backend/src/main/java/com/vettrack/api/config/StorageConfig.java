@@ -38,6 +38,6 @@ public class StorageConfig {
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate(createRequestFactory(Duration.ofSeconds(10)));
+        return new RestTemplate();
     }
 }
