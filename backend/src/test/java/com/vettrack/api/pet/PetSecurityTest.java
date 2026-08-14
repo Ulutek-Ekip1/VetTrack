@@ -218,8 +218,8 @@ class PetSecurityTest {
     }
 
     @Test
-    @DisplayName("Vet rolündeki kullanıcının başka sahibin petini (kendi kliniğinde ziyareti yoksa) GET /pets/{id} ile göremediğini doğrula (403 Forbidden)")
-    void whenVetRequestsOtherOwnersPet_thenReturns403Forbidden() throws Exception {
+    @DisplayName("Vet rolündeki kullanıcı başka sahibin petini GET /pets/{id} ile görebilmeli (200 OK) — ürün kuralı: tüm vet_staff tüm petleri okuyabilir")
+    void whenVetRequestsOtherOwnersPet_thenReturns200OK() throws Exception {
         UUID vetUserId = UUID.randomUUID();
         ClinicMembership membership = new ClinicMembership();
         membership.setClinicId(UUID.randomUUID());
@@ -231,7 +231,7 @@ class PetSecurityTest {
         mockMvc.perform(get("/pets/" + owner1Pet.getId())
                 .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()))
                         .authorities(new SimpleGrantedAuthority("ROLE_VET_STAFF"))))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test
