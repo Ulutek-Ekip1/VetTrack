@@ -1,7 +1,7 @@
 package com.vettrack.api.pet;
 
-import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitService;
+import com.vettrack.api.visit.VisitResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -9,9 +9,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -91,23 +88,24 @@ public class PetController {
     }
 
     @GetMapping("/{id}/visits")
-    @Operation(summary = "Pet'in Ziyaret Geçmişini Sayfalamalı Listele", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Pet'in ziyaret geçmişini listele", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Sayfalandırılmış ziyaret geçmişi başarıyla getirildi"),
+        @ApiResponse(responseCode = "200", description = "Ziyaret geçmişi başarıyla getirildi"),
         @ApiResponse(responseCode = "403", description = "Bu hayvanın ziyaret geçmişine erişim yetkiniz yok"),
         @ApiResponse(responseCode = "404", description = "Pet bulunamadı")
     })
-    public ResponseEntity<Page<Visit>> getPetVisitsPaginated(
+    public ResponseEntity<List<VisitResponse>> getPetVisits(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID id,
-            @ParameterObject Pageable pageable
+            @PathVariable UUID id
     ) {
         Pet pet = petService.getPetById(id);
         UUID ownerId = UUID.fromString(jwt.getSubject());
         if (!pet.getOwnerId().equals(ownerId)) {
             throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
         }
-        return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
+        return ResponseEntity.ok(visitService.getVisitsByPetId(id).stream()
+                .map(VisitResponse::from)
+                .toList());
     }
 
     @GetMapping("/code/{uniqueCode}")

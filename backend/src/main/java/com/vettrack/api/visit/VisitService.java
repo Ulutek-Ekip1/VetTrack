@@ -89,6 +89,21 @@ public class VisitService {
     }
 
     @Transactional(readOnly = true)
+    public List<Visit> getVisitsByOwnerId(UUID ownerId) {
+        List<UUID> petIds = petService.getPetsByOwner(ownerId).stream()
+                .map(Pet::getId)
+                .toList();
+        return petIds.isEmpty()
+                ? List.of()
+                : visitRepository.findByPetIdInOrderByStartedAtDesc(petIds);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Visit> getVisitsByVetStaffId(UUID vetStaffId) {
+        return visitRepository.findByVetStaffIdOrderByStartedAtDesc(vetStaffId);
+    }
+
+    @Transactional(readOnly = true)
     public Page<Visit> getVisitsByPetIdPaginated(UUID petId, Pageable pageable) {
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId, pageable);
     }

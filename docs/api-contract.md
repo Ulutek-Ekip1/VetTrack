@@ -56,7 +56,7 @@
 
 ---
 
-## Endpoint özeti (24 endpoint)
+## Endpoint özeti
 
 | # | Method | Path | Açıklama | Rol |
 |---|---|---|---|---|
@@ -74,6 +74,8 @@
 | 9 | POST | `/pets/{id}/photo` | Fotoğraf yükle | owner |
 | 9a | DELETE | `/pets/{id}/photo` | Fotoğraf sil | owner |
 | 10 | GET | `/pets/{id}/visits` | Hayvanın ziyaret geçmişi | owner |
+| 10a | GET | `/visits/owner` | Sahibin tüm ziyaret geçmişi | owner |
+| 10b | GET | `/visits/vet` | Veterinerin ziyaret geçmişi | vet_staff |
 | 11 | GET | `/pets/{id}/recommendations` | Hayvanın önerileri | owner |
 | 12 | GET | `/visits/code/{code}` | Kod ile hasta bul | vet_staff |
 | 13 | POST | `/visits` | Yeni ziyaret başlat | vet_staff |
@@ -410,7 +412,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 **Path param:** `code` — 6 haneli kod (case-insensitive, boşluk temizlenir)
 
-**Response (200):** `PetResponse` + iç içe `visits[]` (her biri `treatments[]` ve `recommendations[]` dahil)
+**Response (200):** `pet` ve yeniden eskiye sıralı `visits[]` içeren `PatientSearchResponse`.
 
 ```json
 {
@@ -420,13 +422,10 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "visits": [
     {
       "id": "...",
-      "vetStaffName": "Dr. Mehmet Yılmaz",
       "status": "completed",
       "chiefComplaint": "Akut kusma ve iştahsızlık",
       "startedAt": "...",
-      "endedAt": "...",
-      "treatments": [...],
-      "recommendations": [...]
+      "endedAt": "..."
     }
   ]
 }
@@ -442,7 +441,23 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 **Kim:** Sadece hayvanın sahibi (`owner`). **PRD:** US-04.
 
-**Response (200):** `VisitDetailResponse[]` — yeniden eskiye sıralı, tedaviler ve öneriler dahil
+**Response (200):** `VisitResponse[]` — yeniden eskiye sıralı.
+
+---
+
+### GET /visits/owner — Sahibin tüm ziyaret geçmişi
+
+**Kim:** Sadece `owner`.
+
+**Response (200):** Kullanıcının tüm hayvanlarına ait, yeniden eskiye sıralı `VisitResponse[]`.
+
+---
+
+### GET /visits/vet — Veterinerin ziyaret geçmişi
+
+**Kim:** Sadece `vet_staff`.
+
+**Response (200):** Oturum açmış veterinerin başlattığı, yeniden eskiye sıralı `VisitResponse[]`.
 
 ---
 
@@ -489,22 +504,6 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "chiefComplaint": "Akut kusma ve iştahsızlık",
   "startedAt": "2026-07-29T14:32:11Z",
   "endedAt": null
-}
-```
-
-### VisitDetailResponse şeması
-
-```json
-{
-  "id": "...",
-  "vetStaffId": "...",
-  "vetStaffName": "Dr. Mehmet Yılmaz",
-  "status": "completed",
-  "chiefComplaint": "Akut kusma ve iştahsızlık",
-  "startedAt": "...",
-  "endedAt": "...",
-  "treatments": [...],
-  "recommendations": [...]
 }
 ```
 
@@ -753,6 +752,8 @@ Kullanıcı logout olurken çağrılır. İlgili cihaz token'ı silinerek eski c
 | DELETE /pets/{id}/photo | ✅ | — | — |
 | GET /pets/{id}/visits | ✅ | — | — |
 | GET /pets/{id}/recommendations | ✅ | — | — |
+| GET /visits/owner | ✅ | — | — |
+| GET /visits/vet | — | ✅ | — |
 | GET /visits/code/{code} | — | ✅ | — |
 | POST /visits | — | ✅ | — |
 | PUT /visits/{id}/close | — | ✅ | — |

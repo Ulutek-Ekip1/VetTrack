@@ -43,10 +43,20 @@ public class VisitController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_VET_STAFF") || a.getAuthority().equals("ROLE_ADMIN"));
     }
 
+    private boolean isAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    }
+
+    private List<VisitResponse> toResponses(List<Visit> visits) {
+        return visits.stream().map(VisitResponse::from).toList();
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     @Operation(summary = "Yeni Muayene Ziyareti Başlat", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<Visit> createVisit(
+    public ResponseEntity<VisitResponse> createVisit(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody VisitCreateRequest request
     ) {
@@ -55,20 +65,28 @@ public class VisitController {
         // (vetStaff.getId()) değil, vetStaff.getUserId() kullanılmalı.
         VetStaff vetStaff = vetStaffService.getOrCreateByUserId(UUID.fromString(jwt.getSubject()), jwt);
         Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getUserId());
-        return new ResponseEntity<>(visit, HttpStatus.CREATED);
+        return new ResponseEntity<>(VisitResponse.from(visit), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}/close")
     @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
-    public ResponseEntity<Visit> closeVisit(@PathVariable UUID id) {
-        return ResponseEntity.ok(visitService.closeVisit(id));
+    public ResponseEntity<VisitResponse> closeVisit(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id
+    ) {
+        Visit visit = visitService.getVisit(id);
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+        if (!isAdmin() && !currentUserId.equals(visit.getVetStaffId())) {
+            throw new AccessDeniedException("Sadece ziyareti başlatan veteriner kapatabilir");
+        }
+        return ResponseEntity.ok(VisitResponse.from(visitService.closeVisit(id)));
     }
 
     @GetMapping("/code/{code}")
     @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     public ResponseEntity<PatientSearchResponse> getPatientByCode(@PathVariable String code) {
         Pet pet = petService.getPetByUniqueCode(code);
-        List<Visit> visits = visitService.getVisitsByUniqueCode(code);
+        List<VisitResponse> visits = toResponses(visitService.getVisitsByUniqueCode(code));
         return ResponseEntity.ok(new PatientSearchResponse(pet, visits));
     }
 
@@ -89,14 +107,14 @@ public class VisitController {
 
         Owner owner = ownerService.getOwnerById(pet.getOwnerId());
         return ResponseEntity.ok(new ActiveVisitContextResponse(
-                visit, pet, owner, visitService.getVisitsByPetId(pet.getId())
+                VisitResponse.from(visit), pet, owner, toResponses(visitService.getVisitsByPetId(pet.getId()))
         ));
     }
 
     @GetMapping({"/pet/{petId}", "/pets/{petId}/visits"})
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Pet'in Geçmiş Ziyaretlerini Listele", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<List<Visit>> getVisitsByPetId(
+    public ResponseEntity<List<VisitResponse>> getVisitsByPetId(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID petId
     ) {
@@ -107,18 +125,35 @@ public class VisitController {
             throw new AccessDeniedException("Bu pet'in ziyaret geçmişine erişim yetkiniz yok");
         }
 
-        return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
+        return ResponseEntity.ok(toResponses(visitService.getVisitsByPetId(petId)));
+    }
+
+    @GetMapping("/owner")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Sahibin ziyaret geçmişini listele", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<List<VisitResponse>> getOwnerVisitHistory(@AuthenticationPrincipal Jwt jwt) {
+        if (isVetOrAdmin()) {
+            throw new AccessDeniedException("Bu uç nokta yalnızca hayvan sahipleri içindir");
+        }
+        return ResponseEntity.ok(toResponses(visitService.getVisitsByOwnerId(UUID.fromString(jwt.getSubject()))));
+    }
+
+    @GetMapping("/vet")
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
+    @Operation(summary = "Veterinerin ziyaret geçmişini listele", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<List<VisitResponse>> getVetVisitHistory(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(toResponses(visitService.getVisitsByVetStaffId(UUID.fromString(jwt.getSubject()))));
     }
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     @Operation(summary = "Ziyaret Durumunu Güncelle (ör. ongoing -> completed)", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<Visit> updateVisitStatus(
+    public ResponseEntity<VisitResponse> updateVisitStatus(
             @PathVariable UUID id,
             @RequestBody Map<String, String> statusMap
     ) {
         String newStatus = statusMap.getOrDefault("status", "completed");
         Visit updated = visitService.updateVisitStatus(id, newStatus);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(VisitResponse.from(updated));
     }
 }

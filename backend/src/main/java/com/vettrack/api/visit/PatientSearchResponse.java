@@ -11,5 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class PatientSearchResponse {
     private final Pet pet;
-    private final List<Visit> visits;
+    private final List<VisitResponse> visits;
 }

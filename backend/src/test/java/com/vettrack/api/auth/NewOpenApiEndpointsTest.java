@@ -110,7 +110,7 @@ public class NewOpenApiEndpointsTest {
     }
 
     @Test
-    void testGetPetVisitsPaginated_Success() throws Exception {
+    void testGetPetVisits_ReturnsContractedList() throws Exception {
         UUID ownerId = UUID.randomUUID();
         Pet pet = Pet.builder()
                 .ownerId(ownerId)
@@ -122,14 +122,14 @@ public class NewOpenApiEndpointsTest {
                 .build();
         Pet savedPet = petRepository.save(pet);
 
-        mockMvc.perform(get("/pets/" + savedPet.getId() + "/visits?page=0&size=10").with(jwt().jwt(builder -> builder
+        mockMvc.perform(get("/pets/" + savedPet.getId() + "/visits").with(jwt().jwt(builder -> builder
                 .subject(ownerId.toString())
                 .claim("email", "owner@vettrack.local")
                 .claim("user_metadata", Map.of("role", "owner"))
         )))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.totalElements").value(0));
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
     }
 
     @Test
@@ -147,7 +147,7 @@ public class NewOpenApiEndpointsTest {
         Pet savedPet = petRepository.save(pet);
 
         // Attacker presents a claim containing 'vet' substring like 'not-a-vet'
-        mockMvc.perform(get("/pets/" + savedPet.getId() + "/visits?page=0&size=10").with(jwt().jwt(builder -> builder
+        mockMvc.perform(get("/pets/" + savedPet.getId() + "/visits").with(jwt().jwt(builder -> builder
                 .subject(attackerUserId.toString())
                 .claim("email", "attacker@evil.local")
                 .claim("user_metadata", Map.of("role", "not-a-vet"))
