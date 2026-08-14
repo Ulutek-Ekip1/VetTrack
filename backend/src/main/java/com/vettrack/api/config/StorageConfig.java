@@ -19,10 +19,10 @@ public class StorageConfig {
     @Value("${supabase.storage.service-key}")
     private String serviceKey;
 
-    private ClientHttpRequestFactory createRequestFactory() {
+    private ClientHttpRequestFactory createRequestFactory(Duration readTimeout) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout((int) Duration.ofSeconds(5).toMillis());
-        requestFactory.setReadTimeout((int) Duration.ofSeconds(10).toMillis());
+        requestFactory.setReadTimeout((int) readTimeout.toMillis());
         return requestFactory;
     }
 
@@ -30,7 +30,7 @@ public class StorageConfig {
     public RestClient supabaseStorageClient() {
         return RestClient.builder()
                 .baseUrl(storageUrl)
-                .requestFactory(createRequestFactory())
+                .requestFactory(createRequestFactory(Duration.ofSeconds(60)))
                 .defaultHeader("Authorization", "Bearer " + serviceKey)
                 .defaultHeader("apikey", serviceKey)
                 .build();
@@ -38,6 +38,6 @@ public class StorageConfig {
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate(createRequestFactory());
+        return new RestTemplate(createRequestFactory(Duration.ofSeconds(10)));
     }
 }

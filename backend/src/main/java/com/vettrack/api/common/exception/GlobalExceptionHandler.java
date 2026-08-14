@@ -6,6 +6,7 @@ import com.vettrack.api.storage.FileTooLargeException;
 import com.vettrack.api.storage.UnsupportedFileTypeException;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -46,6 +47,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IdempotencyKeyReusedException.class)
     public ResponseEntity<Map<String, Object>> handleIdempotencyConflict(IdempotencyKeyReusedException ex) {
         return buildResponse(HttpStatus.CONFLICT, "IDEMPOTENCY_KEY_REUSED", ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("Veri bütünlüğü ihlali (DataIntegrityViolationException): {}", ex.getMessage());
+        return buildResponse(ErrorCode.CONFLICT.getStatus(), ErrorCode.CONFLICT.name(),
+                "Veri bütünlüğü kısıtlaması ihlal edildi (mükerrer kayıt veya geçersiz referans)");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -116,6 +116,19 @@ class Phase2IntegrationTest {
     }
 
     @Test
+    void testGlobalExceptionHandler_DataIntegrityViolationException() {
+        GlobalExceptionHandler handler = new GlobalExceptionHandler();
+        org.springframework.dao.DataIntegrityViolationException ex =
+                new org.springframework.dao.DataIntegrityViolationException("duplicate key value violates unique constraint");
+
+        ResponseEntity<Map<String, Object>> response = handler.handleDataIntegrityViolation(ex);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("CONFLICT", response.getBody().get("error"));
+        assertTrue(response.getBody().get("message").toString().contains("bütünlüğü"));
+    }
+
+    @Test
     void testVisitService_CreateAndRetrieve() {
         UUID petId = UUID.randomUUID();
         VisitCreateRequest request = VisitCreateRequest.builder()
