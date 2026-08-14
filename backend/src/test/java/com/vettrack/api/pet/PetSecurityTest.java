@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
@@ -217,9 +218,29 @@ class PetSecurityTest {
         UUID vetUserId = UUID.randomUUID();
 
         mockMvc.perform(get("/pets/" + owner1Pet.getId())
-                .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()).claim("role", "vet"))))
+                .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()))
+                        .authorities(new SimpleGrantedAuthority("ROLE_VET_STAFF"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(owner1Pet.getId().toString())))
                 .andExpect(jsonPath("$.name", is("Pamuk")));
+    }
+
+    @Test
+    @DisplayName("Vet rolündeki kullanıcının başka sahibin petini PUT /pets/{id} ile güncellemesi 403 Forbidden dönmeli (vet salt-okunur)")
+    void whenVetUpdatesOtherOwnersPet_thenForbidden() throws Exception {
+        UUID vetUserId = UUID.randomUUID();
+
+        PetUpdateRequest updateRequest = new PetUpdateRequest();
+        updateRequest.setName("Vet Değiştirdi");
+        updateRequest.setBreed("Van Kedisi");
+        updateRequest.setSpecies("Kedi");
+        updateRequest.setGender(Gender.female);
+
+        mockMvc.perform(put("/pets/" + owner1Pet.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest))
+                .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()))
+                        .authorities(new SimpleGrantedAuthority("ROLE_VET_STAFF"))))
+                .andExpect(status().isForbidden());
     }
 }

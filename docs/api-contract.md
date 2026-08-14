@@ -37,9 +37,12 @@
 | Kod | Status | Açıklama | PRD |
 |---|---|---|---|
 | `VALIDATION_ERROR` | 400 | Zorunlu alan eksik veya format hatalı | — |
+| `MALFORMED_JSON` | 400 | İstek gövdesi (JSON) okunamadı veya bozuk | — |
 | `UNAUTHORIZED` | 401 | JWT eksik veya geçersiz | — |
 | `INVALID_CREDENTIALS` | 401 | E-posta veya şifre hatalı | FR-01 |
+| `EMAIL_NOT_VERIFIED` | 401 | E-posta doğrulanmamış, giriş engellendi | FR-01 |
 | `FORBIDDEN` | 403 | Rol yetkisiz (owner/vet_staff ayrımı) | FR-02 |
+| `ROLE_MISMATCH` | 403 | JWT rolü ile erişilen profil endpoint'i uyumsuz | FR-02 |
 | `EDIT_WINDOW_EXPIRED` | 403 | 15 dakikalık düzenleme süresi doldu | EC-08 |
 | `NOT_FOUND` | 404 | Kayıt bulunamadı | — |
 | `PET_NOT_FOUND` | 404 | Kod ile arama sonuçsuz | EC-01 |
@@ -49,6 +52,7 @@
 | `VISIT_CLOSED` | 409 | Kapalı ziyarete giriş/öneri yapılamaz | — |
 | `FILE_TOO_LARGE` | 413 | Dosya 15MB sınırını aşıyor | EC-06 |
 | `UNSUPPORTED_FILE_TYPE` | 415 | Sadece JPEG, PNG, WebP kabul edilir | EC-06 |
+| `TOO_MANY_REQUESTS` | 429 | İstek limiti aşıldı (rate limit / Supabase e-posta limiti) | — |
 
 ---
 
@@ -418,6 +422,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
       "id": "...",
       "vetStaffName": "Dr. Mehmet Yılmaz",
       "status": "completed",
+      "chiefComplaint": "Akut kusma ve iştahsızlık",
       "startedAt": "...",
       "endedAt": "...",
       "treatments": [...],
@@ -481,6 +486,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "petId": "...",
   "vetStaffId": "...",
   "status": "ongoing",
+  "chiefComplaint": "Akut kusma ve iştahsızlık",
   "startedAt": "2026-07-29T14:32:11Z",
   "endedAt": null
 }
@@ -494,6 +500,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "vetStaffId": "...",
   "vetStaffName": "Dr. Mehmet Yılmaz",
   "status": "completed",
+  "chiefComplaint": "Akut kusma ve iştahsızlık",
   "startedAt": "...",
   "endedAt": "...",
   "treatments": [...],
@@ -513,7 +520,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 | Alan | Tip | Zorunlu | Açıklama |
 |---|---|---|---|
-| `type` | Enum | Evet | `medication`, `xray`, `lab_result`, `note` |
+| `type` | Enum | Evet | `medication`, `xray`, `lab_result`, `note`, `vaccine`, `surgery` |
 | `title` | String (1-200) | Evet | Kısa başlık |
 | `description` | String | Hayır | Detaylı açıklama |
 | `attachmentUrl` | String (URI) | Hayır | Supabase Storage URL'si |

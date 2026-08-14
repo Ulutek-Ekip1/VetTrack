@@ -18,6 +18,7 @@ import '../../features/auth/presentation/cubit/profile_cubit.dart';
 import '../../features/auth/presentation/cubit/delete_account_cubit.dart';
 import '../di/injection_container.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/pet/domain/entities/pet_entity.dart';
 import '../../features/pet/presentation/screens/pet_detail_screen.dart';
 import '../../features/pet/presentation/screens/pet_list_screen.dart';
 import '../../features/pet/presentation/screens/add_pet_screen.dart';
@@ -393,7 +394,11 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.chatbot,
           name: 'chatbot',
-          builder: (context, state) => const AIChatbotScreen(),
+          builder: (context, state) {
+            final pet = state.extra is PetEntity ? state.extra as PetEntity : null;
+            final petId = state.uri.queryParameters['petId'] ?? pet?.id;
+            return AIChatbotScreen(petId: petId, pet: pet);
+          },
         ),
 
         /// Delete Account
