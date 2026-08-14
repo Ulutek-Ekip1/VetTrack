@@ -84,22 +84,22 @@ public class PetController {
         if (jwt != null) {
             UUID ownerId = UUID.fromString(jwt.getSubject());
 
-            // If the caller is a vet staff (not admin), require an active clinic membership
-            boolean isVetStaff = SecurityContextHolder.getContext().getAuthentication() != null &&
-                    SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                            .anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()));
+            boolean isAdmin = isRole("ROLE_ADMIN");
+            boolean isVetStaff = isRole("ROLE_VET_STAFF");
 
+            if (isAdmin) {
+                return ResponseEntity.ok(pet);
+            }
             if (isVetStaff) {
-                if (!clinicMembershipService.hasActiveMembership(ownerId)) {
-                    throw new AccessDeniedException("Aktif bir klinik üyeliğiniz yok.");
-                }
-                // vets with active membership can view pet details
+                java.util.List<com.vettrack.api.clinic.ClinicMembership> memberships = clinicMembershipService.getMembershipsByUser(ownerId).stream().filter(m -> "active".equals(m.getStatus())).toList();
+                if (memberships.isEmpty()) throw new AccessDeniedException("Aktif bir klinik üyeliğiniz yok.");
+                java.util.List<UUID> userClinicIds = memberships.stream().map(com.vettrack.api.clinic.ClinicMembership::getClinicId).toList();
+                boolean hasAccess = visitService.getVisitsByPetId(id).stream().anyMatch(v -> userClinicIds.contains(v.getClinicId()));
+                if (!hasAccess) throw new AccessDeniedException("Bu hayvana erişim yetkiniz yok.");
                 return ResponseEntity.ok(pet);
             }
 
-            // existing behavior for owners and admins
-            boolean isStaffOrAdmin = isVetOrAdmin();
-            if (!isStaffOrAdmin && !pet.getOwnerId().equals(ownerId)) {
+            if (!pet.getOwnerId().equals(ownerId)) {
                 throw new AccessDeniedException("Bu hayvan size ait değil");
             }
         }
@@ -119,8 +119,22 @@ public class PetController {
             @ParameterObject Pageable pageable
     ) {
         Pet pet = petService.getPetById(id);
-        UUID ownerId = UUID.fromString(jwt.getSubject());
-        if (!pet.getOwnerId().equals(ownerId)) {
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+        boolean isAdmin = isRole("ROLE_ADMIN");
+        boolean isVetStaff = isRole("ROLE_VET_STAFF");
+
+        if (isAdmin) {
+            return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
+        }
+        if (isVetStaff) {
+            java.util.List<com.vettrack.api.clinic.ClinicMembership> memberships = clinicMembershipService.getMembershipsByUser(currentUserId).stream().filter(m -> "active".equals(m.getStatus())).toList();
+            if (memberships.isEmpty()) throw new AccessDeniedException("Aktif bir klinik üyeliğiniz yok.");
+            java.util.List<UUID> userClinicIds = memberships.stream().map(com.vettrack.api.clinic.ClinicMembership::getClinicId).toList();
+            org.springframework.data.domain.Page<com.vettrack.api.visit.Visit> visits = visitService.getVisitsByPetIdAndClinicIdsPaginated(id, userClinicIds, pageable);
+            if (visits.isEmpty()) throw new AccessDeniedException("Bu hayvana erişim yetkiniz yok.");
+            return ResponseEntity.ok(visits);
+        }
+        if (!pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
         }
         return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
@@ -197,12 +211,9 @@ public class PetController {
         return ResponseEntity.noContent().build();
     }
 
-    private boolean isVetOrAdmin() {
+    private boolean isRole(String role) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getAuthorities() == null) return false;
-        return auth.getAuthorities().stream().anyMatch(a -> {
-            String authority = a.getAuthority();
-            return "ROLE_VET_STAFF".equals(authority) || "ROLE_ADMIN".equals(authority) || "ROLE_VET".equals(authority);
-        });
+        return auth.getAuthorities().stream().anyMatch(a -> role.equals(a.getAuthority()));
     }
 }

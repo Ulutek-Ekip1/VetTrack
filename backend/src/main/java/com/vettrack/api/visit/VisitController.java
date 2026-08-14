@@ -55,9 +55,9 @@ public class VisitController {
         // visits.vet_staff_id -> profiles(id) FK'li ve check_visit_vet_staff_role() trigger'ı
         // bunun bir profiles satırına (JWT subject) ait olmasını doğruluyor — clinic_staff.id
         // (vetStaff.getId()) değil, vetStaff.getUserId() kullanılmalı.
-        
+
                 UUID userId = UUID.fromString(jwt.getSubject());
-        
+
         UUID clinicId = null;
         if (request.getClinicId() != null) {
             clinicId = request.getClinicId();
@@ -71,9 +71,9 @@ public class VisitController {
                 throw new IllegalArgumentException("Birden fazla klinikte aktifsiniz, lutfen clinicId belirtin.");
             }
         }
-        
+
         membershipService.getActiveMembership(userId, clinicId);
-        
+
         Visit visit = visitService.createVisit(request.getPetId(), userId, clinicId, request.getChiefComplaint());
         return new ResponseEntity<>(visit, HttpStatus.CREATED);
     }
@@ -114,8 +114,18 @@ public class VisitController {
         }
 
         Owner owner = ownerService.getOwnerById(pet.getOwnerId());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        boolean isVetStaff = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()));
+        
+        List<Visit> allVisits = visitService.getVisitsByPetId(pet.getId());
+        if (isVetStaff && !isAdmin) {
+             List<UUID> userClinicIds = membershipService.getMembershipsByUser(currentUserId).stream().filter(m -> "active".equals(m.getStatus())).map(ClinicMembership::getClinicId).toList();
+             allVisits = allVisits.stream().filter(v -> userClinicIds.contains(v.getClinicId())).toList();
+        }
+        
         return ResponseEntity.ok(new ActiveVisitContextResponse(
-                visit, pet, owner, visitService.getVisitsByPetId(pet.getId())
+                visit, pet, owner, allVisits
         ));
     }
 
@@ -129,8 +139,25 @@ public class VisitController {
         Pet pet = petService.getPetById(petId);
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
-        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
-            throw new AccessDeniedException("Bu pet'in ziyaret geçmişine erişim yetkiniz yok");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        boolean isVetStaff = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()));
+
+        if (isAdmin) {
+            return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
+        }
+
+        if (isVetStaff) {
+            java.util.List<ClinicMembership> memberships = membershipService.getMembershipsByUser(currentUserId).stream().filter(m -> "active".equals(m.getStatus())).toList();
+            if (memberships.isEmpty()) throw new AccessDeniedException("Aktif bir klinik üyeliğiniz yok.");
+            java.util.List<UUID> userClinicIds = memberships.stream().map(ClinicMembership::getClinicId).toList();
+            java.util.List<Visit> visits = visitService.getVisitsByPetId(petId).stream().filter(v -> userClinicIds.contains(v.getClinicId())).toList();
+            if (visits.isEmpty()) throw new AccessDeniedException("Bu hayvanın ziyaret geçmişine erişim yetkiniz yok.");
+            return ResponseEntity.ok(visits);
+        }
+
+        if (!pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu pet'in ziyaret geçmişine erişim yetkiniz yok.");
         }
 
         return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
@@ -149,5 +176,3 @@ public class VisitController {
         return ResponseEntity.ok(updated);
     }
 }
-
-

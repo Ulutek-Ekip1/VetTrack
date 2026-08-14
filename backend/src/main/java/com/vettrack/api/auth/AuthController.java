@@ -30,7 +30,7 @@ public class AuthController {
     private final AuthService authService;
     private final OwnerService ownerService;
     private final com.vettrack.api.clinic.ClinicMembershipService clinicMembershipService;
-    
+
 
     @GetMapping("/me")
     @Operation(summary = "Mevcut Kullanıcı Profilini Getir", security = @SecurityRequirement(name = "bearerAuth"))
@@ -124,6 +124,3 @@ public class AuthController {
         return (topLevel == null || topLevel.isBlank()) ? "owner" : topLevel;
     }
 }
-
-
-

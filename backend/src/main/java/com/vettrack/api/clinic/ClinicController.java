@@ -43,7 +43,7 @@ public class ClinicController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         UUID adminId = UUID.fromString(jwt.getSubject());
-        
+
         membershipService.requireActiveClinicAdmin(adminId, clinicId);
         if (!clinicRepository.existsById(clinicId)) {
             throw new ResourceNotFoundException("Klinik bulunamadı.");
@@ -59,7 +59,7 @@ public class ClinicController {
                 .expiresAt(OffsetDateTime.now().plusDays(7))
                 .createdBy(adminId) // store the user id of the admin who created the invite
                 .build();
-                
+
         inviteRepository.save(invite);
 
         // MVP: Sadece token'ı dönüyoruz, admin linki WhatsApp'tan vs paylaşacak.
@@ -99,7 +99,7 @@ public class ClinicController {
                 && (userEmail == null || !inviteEmail.trim().equalsIgnoreCase(userEmail.trim()))) {
             throw new UnauthorizedException("Bu davet farklı bir e-posta adresi için oluşturulmuştur.");
         }
-        
+
         // Eğer zaten üyeyse
         if (membershipRepository.findByUserIdAndClinicId(userId, invite.getClinicId()).isPresent()) {
             throw new IllegalArgumentException("Zaten bu kliniğin üyesisiniz.");

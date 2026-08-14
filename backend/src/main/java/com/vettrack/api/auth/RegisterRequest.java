@@ -26,5 +26,3 @@ public class RegisterRequest {
     @Pattern(regexp = "owner", message = "GeÃ§ersiz kullanÄ±cÄ± rolÃ¼")
     private String role = "owner";
 }
-
-

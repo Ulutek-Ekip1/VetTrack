@@ -38,7 +38,7 @@ public class AuthService {
     private final String supabaseServiceKey;
     private final OwnerRepository ownerRepository;
     private final ClinicMembershipService clinicMembershipService;
-    
+
     private final PetRepository petRepository;
     private final RestTemplate restTemplate;
 
@@ -96,10 +96,10 @@ public class AuthService {
         } catch (HttpClientErrorException ex) {
             HttpStatusCode status = ex.getStatusCode();
             String responseBody = ex.getResponseBodyAsString();
-            if (status.value() == HttpStatus.CONFLICT.value() || 
-                status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value() || 
+            if (status.value() == HttpStatus.CONFLICT.value() ||
+                status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value() ||
                 status.value() == 422 ||
-                responseBody.contains("already_exists") || 
+                responseBody.contains("already_exists") ||
                 responseBody.contains("already registered") ||
                 responseBody.contains("user_already_exists")) {
                 throw new ConflictException("EMAIL_ALREADY_EXISTS");
@@ -226,7 +226,7 @@ public class AuthService {
             log.info("Soft-deleted owner profile in database for userId={}", userId);
         }
 
-        
+
 
         if (clinicMembershipService != null) {
             clinicMembershipService.disableAllMemberships(userId);
@@ -288,11 +288,3 @@ public class AuthService {
                 .build();
     }
 }
-
-
-
-
-
-
-
-

@@ -13,4 +13,5 @@ public interface VisitRepository extends JpaRepository<Visit, UUID> {
     List<Visit> findByPetIdOrderByStartedAtDesc(UUID petId);
     List<Visit> findByPetIdAndClinicIdOrderByStartedAtDesc(UUID petId, UUID clinicId);
     Page<Visit> findByPetIdOrderByStartedAtDesc(UUID petId, Pageable pageable);
+    Page<Visit> findByPetIdAndClinicIdInOrderByStartedAtDesc(UUID petId, List<UUID> clinicIds, Pageable pageable);
 }

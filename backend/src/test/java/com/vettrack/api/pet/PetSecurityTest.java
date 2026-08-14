@@ -218,8 +218,8 @@ class PetSecurityTest {
     }
 
     @Test
-    @DisplayName("Vet (Veteriner) rolündeki kullanıcının başka sahibin petini GET /pets/{id} ile görebildiğini doğrula (200 OK)")
-    void whenVetRequestsOtherOwnersPet_thenReturns200Ok() throws Exception {
+    @DisplayName("Vet rolündeki kullanıcının başka sahibin petini (kendi kliniğinde ziyareti yoksa) GET /pets/{id} ile göremediğini doğrula (403 Forbidden)")
+    void whenVetRequestsOtherOwnersPet_thenReturns403Forbidden() throws Exception {
         UUID vetUserId = UUID.randomUUID();
         ClinicMembership membership = new ClinicMembership();
         membership.setClinicId(UUID.randomUUID());
@@ -231,9 +231,7 @@ class PetSecurityTest {
         mockMvc.perform(get("/pets/" + owner1Pet.getId())
                 .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()))
                         .authorities(new SimpleGrantedAuthority("ROLE_VET_STAFF"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(owner1Pet.getId().toString())))
-                .andExpect(jsonPath("$.name", is("Pamuk")));
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -261,4 +259,3 @@ class PetSecurityTest {
                 .andExpect(status().isForbidden());
     }
 }
-

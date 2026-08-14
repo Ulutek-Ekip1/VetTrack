@@ -110,6 +110,11 @@ public class VisitService {
     }
 
     @Transactional(readOnly = true)
+    public Page<Visit> getVisitsByPetIdAndClinicIdsPaginated(UUID petId, List<UUID> clinicIds, Pageable pageable) {
+        return visitRepository.findByPetIdAndClinicIdInOrderByStartedAtDesc(petId, clinicIds, pageable);
+    }
+
+    @Transactional(readOnly = true)
     public Visit getVisit(UUID visitId) {
         return visitRepository.findById(visitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
