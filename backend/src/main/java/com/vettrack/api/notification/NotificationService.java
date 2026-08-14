@@ -2,14 +2,20 @@ package com.vettrack.api.notification;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Message;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.notification.dto.NotificationListResponse;
 import com.vettrack.api.notification.dto.NotificationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -20,8 +26,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NotificationService {
 
+    private static final int MAX_SEND_ATTEMPTS = 3;
+    private static final long RETRY_BASE_DELAY_MS = 500;
+
     private final NotificationRepository notificationRepository;
     private final DeviceTokenRepository deviceTokenRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Notification sendNotificationToOwner(UUID ownerId,
@@ -29,7 +39,6 @@ public class NotificationService {
                                                 String title,
                                                 String body,
                                                 UUID treatmentEntryId) {
-        // 1. Veritabanına bildirimi kaydet
         Notification notification = Notification.builder()
                 .ownerId(ownerId)
                 .type(type != null ? type : NotificationType.SYSTEM)
@@ -40,29 +49,7 @@ public class NotificationService {
                 .build();
         Notification savedNotification = notificationRepository.save(notification);
 
-        // 2. Firebase initialized ise FCM token'larına Push bildirim gönder
-        if (FirebaseApp.getApps().isEmpty()) {
-            log.info("Firebase henüz yapılandırılmadığı için sadece DB bildirimi kaydedildi. (Owner ID: {})", ownerId);
-            return savedNotification;
-        }
-
-        List<DeviceToken> deviceTokens = deviceTokenRepository.findByUserId(ownerId);
-        for (DeviceToken deviceToken : deviceTokens) {
-            try {
-                Message message = Message.builder()
-                        .setToken(deviceToken.getFcmToken())
-                        .putData("title", title)
-                        .putData("body", body)
-                        .putData("type", savedNotification.getType().name())
-                        .putData("notificationId", savedNotification.getId().toString())
-                        .build();
-
-                FirebaseMessaging.getInstance().sendAsync(message);
-                log.info("FCM bildirimi gönderildi. Token: {}", deviceToken.getFcmToken());
-            } catch (Exception e) {
-                log.error("FCM bildirim gönderim hatası (Token: {}): {}", deviceToken.getFcmToken(), e.getMessage());
-            }
-        }
+        eventPublisher.publishEvent(new NotificationCreatedEvent(savedNotification.getId(), ownerId));
 
         return savedNotification;
     }
@@ -75,17 +62,88 @@ public class NotificationService {
                 .body("Evcil hayvanınızın muayenesi tamamlandı. Tedavi ve önerileri görüntüleyebilirsiniz.")
                 .isRead(false).build());
 
-        if (FirebaseApp.getApps().isEmpty()) return savedNotification;
-        for (DeviceToken token : deviceTokenRepository.findByUserId(ownerId)) {
-            try {
-                FirebaseMessaging.getInstance().sendAsync(Message.builder().setToken(token.getFcmToken())
-                        .putData("title", savedNotification.getTitle()).putData("body", savedNotification.getBody())
-                        .putData("type", savedNotification.getType().name())
-                        .putData("notificationId", savedNotification.getId().toString())
-                        .putData("petId", petId.toString()).putData("visitId", visitId.toString()).build());
-            } catch (Exception e) { log.error("FCM visit notification failed: {}", e.getMessage()); }
-        }
+        eventPublisher.publishEvent(new NotificationCreatedEvent(savedNotification.getId(), ownerId));
+
         return savedNotification;
+    }
+
+    /**
+     * Notification kaydını oluşturan transaction commit olduktan SONRA çalışır
+     * (AFTER_COMMIT) — böylece transaction rollback olursa hiç push gitmemiş
+     * olur, ya da DB satırı hiç yokken push atılmış olmaz.
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onNotificationCreated(NotificationCreatedEvent event) {
+        if (FirebaseApp.getApps().isEmpty()) {
+            return;
+        }
+
+        Notification notification = notificationRepository.findById(event.getNotificationId()).orElse(null);
+        if (notification == null) {
+            log.warn("Bildirim gönderim event'i tetiklendi ama kayıt bulunamadı: {}", event.getNotificationId());
+            return;
+        }
+
+        List<DeviceToken> deviceTokens = deviceTokenRepository.findByUserId(event.getOwnerId());
+        for (DeviceToken deviceToken : deviceTokens) {
+            sendWithRetry(deviceToken, notification);
+        }
+    }
+
+    private void sendWithRetry(DeviceToken deviceToken, Notification notification) {
+        Message.Builder messageBuilder = Message.builder()
+                .setToken(deviceToken.getFcmToken())
+                .putData("title", notification.getTitle())
+                .putData("body", notification.getBody())
+                .putData("type", notification.getType().name())
+                .putData("notificationId", notification.getId().toString());
+        if (notification.getPetId() != null) {
+            messageBuilder.putData("petId", notification.getPetId().toString());
+        }
+        if (notification.getVisitId() != null) {
+            messageBuilder.putData("visitId", notification.getVisitId().toString());
+        }
+        Message message = messageBuilder.build();
+
+        for (int attempt = 1; attempt <= MAX_SEND_ATTEMPTS; attempt++) {
+            try {
+                FirebaseMessaging.getInstance().send(message);
+                log.info("FCM bildirimi gönderildi (deneme {}). Token: {}", attempt, deviceToken.getFcmToken());
+                return;
+            } catch (FirebaseMessagingException e) {
+                MessagingErrorCode errorCode = e.getMessagingErrorCode();
+
+                if (errorCode == MessagingErrorCode.UNREGISTERED || errorCode == MessagingErrorCode.INVALID_ARGUMENT) {
+                    log.warn("Geçersiz FCM token, siliniyor. Token: {}, hata: {}", deviceToken.getFcmToken(), errorCode);
+                    deviceTokenRepository.delete(deviceToken);
+                    return;
+                }
+
+                boolean retryable = errorCode == MessagingErrorCode.INTERNAL
+                        || errorCode == MessagingErrorCode.UNAVAILABLE
+                        || errorCode == MessagingErrorCode.QUOTA_EXCEEDED;
+
+                if (!retryable || attempt == MAX_SEND_ATTEMPTS) {
+                    log.error("FCM bildirim gönderim hatası (Token: {}, deneme: {}, hata: {}): {}",
+                            deviceToken.getFcmToken(), attempt, errorCode, e.getMessage());
+                    return;
+                }
+
+                long backoffMs = RETRY_BASE_DELAY_MS * (1L << (attempt - 1));
+                log.warn("FCM gönderim hatası, {} ms sonra tekrar denenecek (deneme {}/{}, hata: {})",
+                        backoffMs, attempt, MAX_SEND_ATTEMPTS, errorCode);
+                try {
+                    Thread.sleep(backoffMs);
+                } catch (InterruptedException interruptedException) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            } catch (Exception e) {
+                log.error("FCM bildirim gönderim hatası (Token: {}): {}", deviceToken.getFcmToken(), e.getMessage());
+                return;
+            }
+        }
     }
 
     @Transactional(readOnly = true)
