@@ -36,20 +36,11 @@ class OwnerShellScreen extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       body: navigationShell,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/chatbot'),
-        icon: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
-        label: const Text(
-          'AI Asistan',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFF004AC6),
-        elevation: 4,
-      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onTap,
-        indicatorColor: theme.colorScheme.primaryContainer,
+        // Açık zemin, seçili koyu mavi ikon ve metnin görünürlüğünü korur.
+        indicatorColor: const Color(0xFFDCEAFF),
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.dashboard_outlined),
