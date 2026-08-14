@@ -6,7 +6,6 @@ import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetService;
 
 import com.vettrack.api.clinic.ClinicMembershipService;
-import com.vettrack.api.clinic.ClinicMembership;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -114,15 +113,10 @@ public class VisitController {
         }
 
         Owner owner = ownerService.getOwnerById(pet.getOwnerId());
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
-        boolean isVetStaff = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()));
 
+        // Tüm vet_staff tüm kliniklerin ziyaret geçmişini okuyabilir (ürün kuralı).
+        // Klinik filtresi yalnızca yazma işlemlerinde (createVisit, closeVisit vb.) uygulanır.
         List<Visit> allVisits = visitService.getVisitsByPetId(pet.getId());
-        if (isVetStaff && !isAdmin) {
-             List<UUID> userClinicIds = membershipService.getMembershipsByUser(currentUserId).stream().filter(m -> "active".equals(m.getStatus())).map(ClinicMembership::getClinicId).toList();
-             allVisits = allVisits.stream().filter(v -> userClinicIds.contains(v.getClinicId())).toList();
-        }
 
         return ResponseEntity.ok(new ActiveVisitContextResponse(
                 visit, pet, owner, allVisits
@@ -140,20 +134,12 @@ public class VisitController {
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
-        boolean isVetStaff = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()));
+        boolean isVetOrAdmin = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()) || "ROLE_ADMIN".equals(a.getAuthority()));
 
-        if (isAdmin) {
+        // Tüm vet_staff/admin tüm kliniklerin ziyaret geçmişini okuyabilir (ürün kuralı).
+        if (isVetOrAdmin) {
             return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
-        }
-
-        if (isVetStaff) {
-            java.util.List<ClinicMembership> memberships = membershipService.getMembershipsByUser(currentUserId).stream().filter(m -> "active".equals(m.getStatus())).toList();
-            if (memberships.isEmpty()) throw new AccessDeniedException("Aktif bir klinik üyeliğiniz yok.");
-            java.util.List<UUID> userClinicIds = memberships.stream().map(ClinicMembership::getClinicId).toList();
-            java.util.List<Visit> visits = visitService.getVisitsByPetId(petId).stream().filter(v -> userClinicIds.contains(v.getClinicId())).toList();
-            if (visits.isEmpty()) throw new AccessDeniedException("Bu hayvanın ziyaret geçmişine erişim yetkiniz yok.");
-            return ResponseEntity.ok(visits);
         }
 
         if (!pet.getOwnerId().equals(currentUserId)) {

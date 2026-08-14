@@ -90,12 +90,8 @@ public class PetController {
             if (isAdmin) {
                 return ResponseEntity.ok(pet);
             }
+            // Tüm vet_staff herhangi bir pet'i okuyabilir (ürün kuralı: klinik filtresi yok).
             if (isVetStaff) {
-                java.util.List<com.vettrack.api.clinic.ClinicMembership> memberships = clinicMembershipService.getMembershipsByUser(ownerId).stream().filter(m -> "active".equals(m.getStatus())).toList();
-                if (memberships.isEmpty()) throw new AccessDeniedException("Aktif bir klinik üyeliğiniz yok.");
-                java.util.List<UUID> userClinicIds = memberships.stream().map(com.vettrack.api.clinic.ClinicMembership::getClinicId).toList();
-                boolean hasAccess = visitService.getVisitsByPetId(id).stream().anyMatch(v -> userClinicIds.contains(v.getClinicId()));
-                if (!hasAccess) throw new AccessDeniedException("Bu hayvana erişim yetkiniz yok.");
                 return ResponseEntity.ok(pet);
             }
 
@@ -126,13 +122,9 @@ public class PetController {
         if (isAdmin) {
             return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
         }
+        // Tüm vet_staff herhangi bir pet'in tüm ziyaretlerini okuyabilir (ürün kuralı: klinik filtresi yok).
         if (isVetStaff) {
-            java.util.List<com.vettrack.api.clinic.ClinicMembership> memberships = clinicMembershipService.getMembershipsByUser(currentUserId).stream().filter(m -> "active".equals(m.getStatus())).toList();
-            if (memberships.isEmpty()) throw new AccessDeniedException("Aktif bir klinik üyeliğiniz yok.");
-            java.util.List<UUID> userClinicIds = memberships.stream().map(com.vettrack.api.clinic.ClinicMembership::getClinicId).toList();
-            org.springframework.data.domain.Page<com.vettrack.api.visit.Visit> visits = visitService.getVisitsByPetIdAndClinicIdsPaginated(id, userClinicIds, pageable);
-            if (visits.isEmpty()) throw new AccessDeniedException("Bu hayvana erişim yetkiniz yok.");
-            return ResponseEntity.ok(visits);
+            return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
         }
         if (!pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
