@@ -144,7 +144,7 @@ class Phase2IntegrationTest {
     @Test
     void testRecommendationService_CreateAndRetrieve() {
         UUID visitId = UUID.randomUUID();
-        UUID ownerId = UUID.randomUUID();
+        UUID vetStaffId = UUID.randomUUID();
 
         RecommendationCreateRequest request = RecommendationCreateRequest.builder()
                 .visitId(visitId)
@@ -159,11 +159,15 @@ class Phase2IntegrationTest {
                 .description("Tahılsız somonlu mama önerildi")
                 .build();
 
-        when(visitRepository.findById(visitId)).thenReturn(Optional.of(Visit.builder().id(visitId).status("ongoing").build()));
+        when(visitRepository.findById(visitId)).thenReturn(Optional.of(Visit.builder()
+                .id(visitId)
+                .vetStaffId(vetStaffId)
+                .status("ongoing")
+                .build()));
         when(recommendationRepository.save(any(Recommendation.class))).thenReturn(saved);
         when(recommendationRepository.findByVisitId(visitId)).thenReturn(List.of(saved));
 
-        RecommendationResponse created = recommendationService.createRecommendation(visitId, request, ownerId);
+        RecommendationResponse created = recommendationService.createRecommendation(visitId, request, vetStaffId);
         assertNotNull(created);
         assertEquals("mama", created.getType());
 
