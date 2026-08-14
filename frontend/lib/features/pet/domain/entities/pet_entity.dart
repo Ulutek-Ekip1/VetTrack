@@ -13,6 +13,14 @@ class PetEntity extends Equatable {
   final String uniqueCode;
   final String? photoUrl;
   final DateTime createdAt;
+  final DateTime? birthDate;
+  final double? weight;
+  final String? microchipNo;
+  final bool? isSpayedOrNeutered;
+  final String? bloodType;
+  final String? color;
+  final String? allergies;
+  final String? chronicIllnesses;
 
   const PetEntity({
     required this.id,
@@ -24,6 +32,14 @@ class PetEntity extends Equatable {
     required this.uniqueCode,
     this.photoUrl,
     required this.createdAt,
+    this.birthDate,
+    this.weight,
+    this.microchipNo,
+    this.isSpayedOrNeutered,
+    this.bloodType,
+    this.color,
+    this.allergies,
+    this.chronicIllnesses,
   });
 
   @override
@@ -37,5 +53,13 @@ class PetEntity extends Equatable {
         uniqueCode,
         photoUrl,
         createdAt,
+        birthDate,
+        weight,
+        microchipNo,
+        isSpayedOrNeutered,
+        bloodType,
+        color,
+        allergies,
+        chronicIllnesses,
       ];
 }

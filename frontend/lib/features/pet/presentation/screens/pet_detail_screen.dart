@@ -210,20 +210,47 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   ? 'Erkek'
                   : (pet.gender == Gender.female ? 'Dişi' : 'Bilinmiyor')),
           const Divider(height: 24),
-          const Text('Ek Detaylar (Statik / Mock)',
+          const Text('Ek Detaylar',
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey)),
           const SizedBox(height: 12),
-          _buildInfoRow('Doğum Tarihi (Mock)', '12.04.2022'),
-          _buildInfoRow('Kilo (Mock)', '23 kg'),
-          _buildInfoRow('Mikroçip No (Mock)', '900215000123456'),
-          _buildInfoRow('Kısırlaştırma (Mock)', 'Evet'),
-          _buildInfoRow('Kan Grubu (Mock)', 'DEA 1.1 (+)'),
-          _buildInfoRow('Renk (Mock)', 'Golden'),
-          _buildInfoRow('Alerjiler (Mock)', 'Tavuk proteinine alerjisi var.'),
-          _buildInfoRow('Kronik Rahatsızlıklar (Mock)', 'Yok'),
+          _buildInfoRow(
+              'Doğum Tarihi',
+              pet.birthDate != null
+                  ? '${pet.birthDate!.day.toString().padLeft(2, '0')}.${pet.birthDate!.month.toString().padLeft(2, '0')}.${pet.birthDate!.year}'
+                  : 'Bilinmiyor'),
+          _buildInfoRow(
+            'Kilo',
+            pet.weight != null ? '${pet.weight} kg' : 'Bilinmiyor',
+          ),
+          _buildInfoRow(
+            'Mikroçip No',
+            pet.microchipNo ?? 'Belirtilmemiş',
+          ),
+          _buildInfoRow(
+            'Kısırlaştırma',
+            pet.isSpayedOrNeutered == true
+                ? 'Evet'
+                : (pet.isSpayedOrNeutered == false ? 'Hayır' : 'Bilinmiyor'),
+          ),
+          _buildInfoRow(
+            'Kan Grubu',
+            pet.bloodType ?? 'Belirtilmemiş',
+          ),
+          _buildInfoRow(
+            'Renk',
+            pet.color ?? 'Belirtilmemiş',
+          ),
+          _buildInfoRow(
+            'Alerjiler',
+            pet.allergies ?? 'Yok',
+          ),
+          _buildInfoRow(
+            'Kronik Rahatsızlıklar',
+            pet.chronicIllnesses ?? 'Yok',
+          ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
