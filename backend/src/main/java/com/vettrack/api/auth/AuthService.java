@@ -20,6 +20,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +41,9 @@ public class AuthService {
     private final VetStaffRepository vetStaffRepository;
     private final PetRepository petRepository;
     private final RestTemplate restTemplate;
+
+    @Value("${supabase.auth.email-redirect-url:vettrack://login-callback/}")
+    private String emailRedirectUrl;
 
     public AuthService(
             @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
@@ -66,9 +71,22 @@ public class AuthService {
         this.restTemplate = restTemplate;
     }
 
+    /**
+     * Supabase e-posta akışlarına (signup/recover/resend) mobil deep-link için redirect_to ekler.
+     * URL, Supabase Dashboard'daki Redirect URLs allowlist'inde birebir bulunmalıdır.
+     * Boşsa (ör. testlerde) URL değiştirilmeden döner.
+     */
+    private String withRedirect(String baseUrl) {
+        if (!StringUtils.hasText(emailRedirectUrl)) {
+            return baseUrl;
+        }
+        String separator = baseUrl.contains("?") ? "&" : "?";
+        return baseUrl + separator + "redirect_to=" + URLEncoder.encode(emailRedirectUrl, StandardCharsets.UTF_8);
+    }
+
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        String url = supabaseUrl + "/auth/v1/signup";
+        String url = withRedirect(supabaseUrl + "/auth/v1/signup");
 
         Map<String, Object> body = new HashMap<>();
         body.put("email", request.getEmail());
@@ -146,7 +164,7 @@ public class AuthService {
     }
 
     public void resendVerification(String email) {
-        String url = supabaseUrl + "/auth/v1/resend";
+        String url = withRedirect(supabaseUrl + "/auth/v1/resend");
 
         Map<String, Object> body = new HashMap<>();
         body.put("type", "signup");
@@ -179,7 +197,7 @@ public class AuthService {
     }
 
     public void forgotPassword(String email) {
-        String url = supabaseUrl + "/auth/v1/recover";
+        String url = withRedirect(supabaseUrl + "/auth/v1/recover");
 
         Map<String, Object> body = new HashMap<>();
         body.put("email", email);
