@@ -1,5 +1,9 @@
 package com.vettrack.api.common;
 
+import com.vettrack.api.clinic.Clinic;
+import com.vettrack.api.clinic.ClinicMembership;
+import com.vettrack.api.clinic.ClinicMembershipRepository;
+import com.vettrack.api.clinic.ClinicRepository;
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
 import com.vettrack.api.pet.Gender;
@@ -164,8 +168,14 @@ class ResponseDtoSerializationMvcTest {
                 .andExpect(jsonPath("$[0].deleted_at").doesNotExist());
     }
 
+    @Autowired
+    private com.vettrack.api.clinic.ClinicRepository clinicRepository;
+
+    @Autowired
+    private ClinicMembershipRepository clinicMembershipRepository;
+
     @Test
-    @DisplayName("GET /auth/me vet_staff rolüyle çağrıldığında profile alanında clinic-staff alanları ve isActive bulunmamalı, OwnerResponse dönmeli")
+    @DisplayName("GET /auth/me vet_staff rolüyle çağrıldığında profile alanında clinic-staff alanları ve isActive bulunmamalı, OwnerResponse ve ClinicMembershipResponse dönmeli")
     void testAuthMeVetStaffDoesNotLeakSensitiveFieldsOrClinicStaffFields() throws Exception {
         UUID userId = UUID.randomUUID();
         Owner owner = Owner.builder()
@@ -178,6 +188,22 @@ class ResponseDtoSerializationMvcTest {
                 .build();
         ownerRepository.save(owner);
 
+        var clinic = com.vettrack.api.clinic.Clinic.builder()
+                .name("Merkez Veteriner Kliniği")
+                .phone("+905551112233")
+                .address("Kadıköy, İstanbul")
+                .build();
+        var savedClinic = clinicRepository.save(clinic);
+
+        var membership = ClinicMembership.builder()
+                .userId(userId)
+                .clinicId(savedClinic.getId())
+                .role("doctor")
+                .isClinicAdmin(true)
+                .status("active")
+                .build();
+        clinicMembershipRepository.save(membership);
+
         mockMvc.perform(get("/auth/me")
                         .with(jwt().jwt(builder -> builder
                                 .subject(userId.toString())
@@ -189,6 +215,11 @@ class ResponseDtoSerializationMvcTest {
                 .andExpect(jsonPath("$.role").value("vet_staff"))
                 .andExpect(jsonPath("$.clinicMemberships").isArray())
                 .andExpect(jsonPath("$.clinic_memberships").doesNotExist())
+                .andExpect(jsonPath("$.clinicMemberships[0].clinicId").value(savedClinic.getId().toString()))
+                .andExpect(jsonPath("$.clinicMemberships[0].userId").value(userId.toString()))
+                .andExpect(jsonPath("$.clinicMemberships[0].role").value("doctor"))
+                .andExpect(jsonPath("$.clinicMemberships[0].isClinicAdmin").value(true))
+                .andExpect(jsonPath("$.clinicMemberships[0].status").value("active"))
                 .andExpect(jsonPath("$.profile.id").value(userId.toString()))
                 .andExpect(jsonPath("$.profile.fullName").value("Dr. Mehmet Yılmaz"))
                 .andExpect(jsonPath("$.profile.email").value("dr.mehmet@vetklinik.com"))

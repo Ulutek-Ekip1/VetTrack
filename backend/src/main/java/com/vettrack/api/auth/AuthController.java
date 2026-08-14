@@ -48,7 +48,9 @@ public class AuthController {
         response.put("id", jwt.getSubject());
         response.put("email", jwt.getClaimAsString("email"));
         response.put("role", role);
-        response.put("clinicMemberships", activeMemberships);
+        response.put("clinicMemberships", activeMemberships.stream()
+                .map(com.vettrack.api.clinic.dto.ClinicMembershipResponse::fromEntity)
+                .toList());
 
         {
             Owner owner = ownerService.getOwnerById(userId);
