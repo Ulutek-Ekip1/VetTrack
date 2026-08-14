@@ -35,6 +35,7 @@ public class PetController {
 
     private final PetService petService;
     private final VisitService visitService;
+    private final com.vettrack.api.clinic.ClinicMembershipService clinicMembershipService;
     @PostMapping
     @Operation(summary = "Yeni Pet Ekle", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
@@ -81,9 +82,20 @@ public class PetController {
     ) {
         Pet pet = petService.getPetById(id);
         if (jwt != null) {
-            boolean isStaffOrAdmin = isVetOrAdmin();
             UUID ownerId = UUID.fromString(jwt.getSubject());
-            if (!isStaffOrAdmin && !pet.getOwnerId().equals(ownerId)) {
+
+            boolean isAdmin = isRole("ROLE_ADMIN");
+            boolean isVetStaff = isRole("ROLE_VET_STAFF");
+
+            if (isAdmin) {
+                return ResponseEntity.ok(pet);
+            }
+            // Tüm vet_staff herhangi bir pet'i okuyabilir (ürün kuralı: klinik filtresi yok).
+            if (isVetStaff) {
+                return ResponseEntity.ok(pet);
+            }
+
+            if (!pet.getOwnerId().equals(ownerId)) {
                 throw new AccessDeniedException("Bu hayvan size ait değil");
             }
         }
@@ -103,8 +115,18 @@ public class PetController {
             @ParameterObject Pageable pageable
     ) {
         Pet pet = petService.getPetById(id);
-        UUID ownerId = UUID.fromString(jwt.getSubject());
-        if (!pet.getOwnerId().equals(ownerId)) {
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+        boolean isAdmin = isRole("ROLE_ADMIN");
+        boolean isVetStaff = isRole("ROLE_VET_STAFF");
+
+        if (isAdmin) {
+            return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
+        }
+        // Tüm vet_staff herhangi bir pet'in tüm ziyaretlerini okuyabilir (ürün kuralı: klinik filtresi yok).
+        if (isVetStaff) {
+            return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
+        }
+        if (!pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
         }
         return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
@@ -181,12 +203,9 @@ public class PetController {
         return ResponseEntity.noContent().build();
     }
 
-    private boolean isVetOrAdmin() {
+    private boolean isRole(String role) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getAuthorities() == null) return false;
-        return auth.getAuthorities().stream().anyMatch(a -> {
-            String authority = a.getAuthority();
-            return "ROLE_VET_STAFF".equals(authority) || "ROLE_ADMIN".equals(authority) || "ROLE_VET".equals(authority);
-        });
+        return auth.getAuthorities().stream().anyMatch(a -> role.equals(a.getAuthority()));
     }
 }

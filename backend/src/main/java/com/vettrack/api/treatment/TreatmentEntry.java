@@ -21,8 +21,8 @@ public class TreatmentEntry {
     @Column(name = "visit_id", nullable = false)
     private UUID visitId;
 
-    @Column(name = "entry_type", nullable = false)
-    private String entryType;
+    @Column(name = "type", nullable = false)
+    private String type;
 
     @Column(nullable = false, length = 200)
     private String title;

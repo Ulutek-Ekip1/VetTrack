@@ -39,7 +39,7 @@ public class TreatmentService {
 
         TreatmentEntry entry = TreatmentEntry.builder()
                 .visitId(visitId)
-                .entryType(request.getEntryType())
+                .type(request.getType())
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .attachmentUrl(request.getAttachmentUrl())
@@ -70,13 +70,18 @@ public class TreatmentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public UUID getVisitIdForTreatment(UUID treatmentId) {
+        return getTreatmentById(treatmentId).getVisitId();
+    }
+
     @Transactional
     public TreatmentEntry updateTreatment(UUID treatmentId, TreatmentUpdateRequest request, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
         checkEditWindow(entry);
 
-        if (request.getEntryType() != null) entry.setEntryType(request.getEntryType());
+        if (request.getType() != null) entry.setType(request.getType());
         if (request.getTitle() != null) entry.setTitle(request.getTitle());
         if (request.getDescription() != null) entry.setDescription(request.getDescription());
         if (request.getAttachmentUrl() != null) entry.setAttachmentUrl(request.getAttachmentUrl());

@@ -90,7 +90,7 @@ public class PetContextService {
             int count = 0;
             for (TreatmentEntry entry : allTreatments) {
                 if (count++ >= 10) break; // Limit to 10 most recent entries for context budget
-                sb.append("- [").append(entry.getEntryType()).append("] ")
+                sb.append("- [").append(entry.getType()).append("] ")
                         .append(entry.getTitle())
                         .append(" (Durum: ").append(entry.getStatus()).append(")");
                 if (entry.getDescription() != null && !entry.getDescription().isBlank()) {

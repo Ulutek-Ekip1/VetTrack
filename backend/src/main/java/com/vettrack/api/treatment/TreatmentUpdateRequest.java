@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class TreatmentUpdateRequest {
 
-    private String entryType;
+    @jakarta.validation.constraints.Pattern(regexp = "^(medication|vaccine|surgery|xray|lab_result|note)$", message = "Geçersiz tedavi tipi")
+    private String type;
     private String title;
     private String description;
     private String attachmentUrl;

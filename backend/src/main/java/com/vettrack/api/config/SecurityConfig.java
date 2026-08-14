@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity; // <-- 1. Eklendi
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,7 +16,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.vettrack.api.auth.JwtAuthenticationFilter;
-import com.vettrack.api.auth.CustomJwtAuthenticationConverter; // <-- 2. Eklendi
+import com.vettrack.api.auth.CustomJwtAuthenticationConverter;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -30,7 +30,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // <-- 3. Eklendi: Rol denetimini aktif eder
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080}")
@@ -43,7 +43,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            RateLimitingFilter rateLimitingFilter
+            RateLimitingFilter rateLimitingFilter,
+            CustomJwtAuthenticationConverter customJwtAuthenticationConverter
     ) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -62,8 +63,8 @@ public class SecurityConfig {
                 ).permitAll()
                 .anyRequest().authenticated()
             )
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> 
-                jwt.jwtAuthenticationConverter(new CustomJwtAuthenticationConverter()) // <-- 4. Eklendi: Converter bağlandı
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
+                jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter)
             ))
             .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(jwtAuthenticationFilter, BearerTokenAuthenticationFilter.class);

@@ -47,9 +47,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _phoneController.text.trim().isEmpty
                 ? null
                 : _phoneController.text.trim(),
-            AppPlatform.isVetWebExperience
-                ? UserRole.vet
-                : UserRole.owner,
+            // Vet portal access is granted only after a clinic invite is accepted.
+            UserRole.owner,
           );
     }
   }

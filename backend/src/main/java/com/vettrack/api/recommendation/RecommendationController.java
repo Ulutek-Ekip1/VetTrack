@@ -22,9 +22,10 @@ import java.util.UUID;
 public class RecommendationController {
 
     private final RecommendationService recommendationService;
+    private final com.vettrack.api.clinic.ClinicAccessService clinicAccessService;
 
     @PostMapping("/visits/{visitId}/recommendations")
-    @PreAuthorize("hasRole('VET_STAFF')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Ziyarete Yeni Tavsiye/Bakim Onerisi Ekle", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<RecommendationResponse> createRecommendation(
             @AuthenticationPrincipal Jwt jwt,
@@ -32,6 +33,7 @@ public class RecommendationController {
             @Valid @RequestBody RecommendationCreateRequest request
     ) {
         UUID createdBy = jwt != null && jwt.getSubject() != null ? UUID.fromString(jwt.getSubject()) : null;
+        clinicAccessService.requireVisitAccess(createdBy, visitId);
         RecommendationResponse created = recommendationService.createRecommendation(visitId, request, createdBy);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }

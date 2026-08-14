@@ -67,7 +67,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> register(String email, String password, String name,
       String? phone, UserRole role) async {
     try {
-      final roleStr = role == UserRole.vet ? 'vet_staff' : 'owner';
+      // Public registration never creates vet_staff accounts. Clinic membership
+      // is granted solely by the authenticated invite-acceptance endpoint.
+      const roleStr = 'owner';
 
       final data = {
         'email': email,
