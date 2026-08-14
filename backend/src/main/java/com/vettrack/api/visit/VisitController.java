@@ -53,6 +53,13 @@ public class VisitController {
         return visits.stream().map(VisitResponse::from).toList();
     }
 
+    private void requireVisitEditor(Jwt jwt, Visit visit) {
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+        if (!isAdmin() && !currentUserId.equals(visit.getVetStaffId())) {
+            throw new AccessDeniedException("Sadece ziyareti başlatan veteriner düzenleme yapabilir");
+        }
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     @Operation(summary = "Yeni Muayene Ziyareti Başlat", security = @SecurityRequirement(name = "bearerAuth"))
@@ -75,10 +82,7 @@ public class VisitController {
             @PathVariable UUID id
     ) {
         Visit visit = visitService.getVisit(id);
-        UUID currentUserId = UUID.fromString(jwt.getSubject());
-        if (!isAdmin() && !currentUserId.equals(visit.getVetStaffId())) {
-            throw new AccessDeniedException("Sadece ziyareti başlatan veteriner kapatabilir");
-        }
+        requireVisitEditor(jwt, visit);
         return ResponseEntity.ok(VisitResponse.from(visitService.closeVisit(id)));
     }
 
@@ -140,18 +144,20 @@ public class VisitController {
 
     @GetMapping("/vet")
     @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
-    @Operation(summary = "Veterinerin ziyaret geçmişini listele", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Klinikteki ziyaret geçmişini listele", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<List<VisitResponse>> getVetVisitHistory(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(toResponses(visitService.getVisitsByVetStaffId(UUID.fromString(jwt.getSubject()))));
+        return ResponseEntity.ok(toResponses(visitService.getAllVisits()));
     }
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
     @Operation(summary = "Ziyaret Durumunu Güncelle (ör. ongoing -> completed)", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<VisitResponse> updateVisitStatus(
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id,
             @RequestBody Map<String, String> statusMap
     ) {
+        requireVisitEditor(jwt, visitService.getVisit(id));
         String newStatus = statusMap.getOrDefault("status", "completed");
         Visit updated = visitService.updateVisitStatus(id, newStatus);
         return ResponseEntity.ok(VisitResponse.from(updated));

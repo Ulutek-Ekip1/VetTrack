@@ -100,7 +100,7 @@ public class PetController {
     ) {
         Pet pet = petService.getPetById(id);
         UUID ownerId = UUID.fromString(jwt.getSubject());
-        if (!pet.getOwnerId().equals(ownerId)) {
+        if (!isVetOrAdmin() && !pet.getOwnerId().equals(ownerId)) {
             throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
         }
         return ResponseEntity.ok(visitService.getVisitsByPetId(id).stream()

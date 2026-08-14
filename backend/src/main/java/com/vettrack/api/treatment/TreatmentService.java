@@ -36,6 +36,9 @@ public class TreatmentService {
         if (!"ongoing".equals(visit.getStatus())) {
             throw new ConflictException(ErrorCode.VISIT_CLOSED, "Kapalı ziyarete tedavi girişi yapılamaz");
         }
+        if (!vetStaffId.equals(visit.getVetStaffId())) {
+            throw new AccessDeniedException("Sadece ziyareti başlatan veteriner tedavi girişi yapabilir");
+        }
 
         TreatmentEntry entry = TreatmentEntry.builder()
                 .visitId(visitId)

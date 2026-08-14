@@ -457,7 +457,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 **Kim:** Sadece `vet_staff`.
 
-**Response (200):** Oturum açmış veterinerin başlattığı, yeniden eskiye sıralı `VisitResponse[]`.
+**Response (200):** Klinikte kaydedilmiş tüm ziyaretler, yeniden eskiye sıralı `VisitResponse[]`. Veteriner, hastanın önceki ziyaretlerini görüntüleyebilir; düzenleme işlemlerini yalnızca kendi başlattığı ziyaretlerde yapabilir.
 
 ---
 

@@ -556,12 +556,12 @@ paths:
   /visits/vet:
     get:
       tags: [Visits]
-      summary: Veterinerin ziyaret geçmişini listele
+      summary: Klinikteki ziyaret geçmişini listele
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Oturum açmış veterinerin başlattığı ziyaretler
+          description: Klinikte kaydedilmiş tüm ziyaretler; düzenleme yalnızca ziyareti başlatan veteriner tarafından yapılabilir
           content:
             application/json:
               schema:

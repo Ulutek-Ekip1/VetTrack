@@ -104,6 +104,11 @@ public class VisitService {
     }
 
     @Transactional(readOnly = true)
+    public List<Visit> getAllVisits() {
+        return visitRepository.findAllByOrderByStartedAtDesc();
+    }
+
+    @Transactional(readOnly = true)
     public Page<Visit> getVisitsByPetIdPaginated(UUID petId, Pageable pageable) {
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId, pageable);
     }

@@ -35,6 +35,9 @@ public class RecommendationService {
         if ("CANCELLED".equalsIgnoreCase(visit.getStatus()) || "COMPLETED".equalsIgnoreCase(visit.getStatus())) {
             throw new ConflictException(ErrorCode.VISIT_CLOSED, "Kapanmis veya iptal edilmis ziyarete oneri eklenemez.");
         }
+        if (!createdBy.equals(visit.getVetStaffId())) {
+            throw new AccessDeniedException("Sadece ziyareti başlatan veteriner öneri ekleyebilir.");
+        }
 
         Recommendation rec = Recommendation.builder()
                 .visitId(visitId)
