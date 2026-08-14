@@ -132,12 +132,6 @@ public class PetController {
         return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
     }
 
-    @GetMapping("/code/{uniqueCode}")
-    @Operation(summary = "Benzersiz Kod ile Pet Bul", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<Pet> getPetByUniqueCode(@PathVariable String uniqueCode) {
-        return ResponseEntity.ok(petService.getPetByUniqueCode(uniqueCode));
-    }
-
     @PutMapping("/{id}")
     @Operation(summary = "Pet Bilgilerini Güncelle", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
