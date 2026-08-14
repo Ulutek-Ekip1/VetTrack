@@ -522,7 +522,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Açık ziyaret zaten var (EC-02)
+          description: >
+            Açık ziyaret zaten var (EC-02). Normalde VISIT_ALREADY_OPEN döner;
+            eş zamanlı iki istekte (yarış durumu) DB seviyesindeki partial
+            unique index (idx_visits_active_pet) ikinciyi reddeder ve generic
+            CONFLICT döner. Frontend her iki durumda da aynı davranmalı:
+            mevcut açık ziyareti tekrar çek, otomatik retry yapma.
           content:
             application/json:
               schema:

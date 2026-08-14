@@ -47,6 +47,7 @@
 | `NOT_FOUND` | 404 | Kayıt bulunamadı | — |
 | `PET_NOT_FOUND` | 404 | Kod ile arama sonuçsuz | EC-01 |
 | `EMAIL_ALREADY_EXISTS` | 409 | E-posta zaten kayıtlı | FR-01 |
+| `CONFLICT` | 409 | Generic DB constraint ihlali (örn. EC-02'de yarış durumu) | EC-02 |
 | `VISIT_ALREADY_OPEN` | 409 | Hayvanın açık ziyareti var | EC-02 |
 | `VISIT_ALREADY_CLOSED` | 409 | Ziyaret zaten kapatılmış | — |
 | `VISIT_CLOSED` | 409 | Kapalı ziyarete giriş/öneri yapılamaz | — |
@@ -458,9 +459,11 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 **Response (201):** `VisitResponse`
 
-**Hatalar:** 400, 401, 403, 404, 409 (`VISIT_ALREADY_OPEN`)
+**Hatalar:** 400, 401, 403, 404, 409 (`VISIT_ALREADY_OPEN` veya `CONFLICT`)
 
 > Not: `vetStaffId` JWT'den çıkarılır. `status` otomatik `ongoing`, `startedAt` otomatik şu an.
+>
+> **EC-02 — 409 davranışı:** Normalde uygulama seviyesindeki kontrol açık ziyareti erkenden yakalar ve `VISIT_ALREADY_OPEN` döner. Aynı hayvana eş zamanlı iki istek gelirse (nadir bir yarış durumu), uygulama kontrolü ikisini de geçebilir — bu durumda DB seviyesindeki partial unique index (`idx_visits_active_pet`) ikinciyi reddeder ve generic `CONFLICT` error code'u döner (spesifik `VISIT_ALREADY_OPEN` değil). Frontend her iki 409 durumunda da aynı şekilde davranmalı: "bu hayvanın zaten açık bir ziyareti var" mesajı gösterip mevcut açık ziyareti tekrar çekmeli (retry ile otomatik tekrar oluşturmaya çalışmamalı).
 
 ---
 
