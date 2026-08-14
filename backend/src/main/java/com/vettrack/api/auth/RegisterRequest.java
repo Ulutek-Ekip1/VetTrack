@@ -9,20 +9,22 @@ import lombok.Data;
 @Data
 public class RegisterRequest {
 
-    @NotBlank(message = "Ad soyad alanı boş bırakılamaz")
-    @Size(min = 2, max = 100, message = "Ad soyad 2 ile 100 karakter arasında olmalıdır")
+    @NotBlank(message = "Ad soyad alanÄ± boÅŸ bÄ±rakÄ±lamaz")
+    @Size(min = 2, max = 100, message = "Ad soyad 2 ile 100 karakter arasÄ±nda olmalÄ±dÄ±r")
     private String name;
 
-    @NotBlank(message = "E-posta alanı boş bırakılamaz")
-    @Email(message = "Lütfen geçerli bir e-posta adresi giriniz")
+    @NotBlank(message = "E-posta alanÄ± boÅŸ bÄ±rakÄ±lamaz")
+    @Email(message = "LÃ¼tfen geÃ§erli bir e-posta adresi giriniz")
     private String email;
 
-    @NotBlank(message = "Şifre alanı boş bırakılamaz")
-    @Size(min = 6, message = "Şifre en az 6 karakter olmalıdır")
+    @NotBlank(message = "Åifre alanÄ± boÅŸ bÄ±rakÄ±lamaz")
+    @Size(min = 6, message = "Åifre en az 6 karakter olmalÄ±dÄ±r")
     private String password;
 
     private String phone;
 
-    @Pattern(regexp = "owner|vet_staff", message = "Geçersiz kullanıcı rolü")
+    @Pattern(regexp = "owner", message = "GeÃ§ersiz kullanÄ±cÄ± rolÃ¼")
     private String role = "owner";
 }
+
+

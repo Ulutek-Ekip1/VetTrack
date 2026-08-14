@@ -35,6 +35,7 @@ public class PetController {
 
     private final PetService petService;
     private final VisitService visitService;
+    private final com.vettrack.api.clinic.ClinicMembershipService clinicMembershipService;
     @PostMapping
     @Operation(summary = "Yeni Pet Ekle", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
@@ -81,8 +82,23 @@ public class PetController {
     ) {
         Pet pet = petService.getPetById(id);
         if (jwt != null) {
-            boolean isStaffOrAdmin = isVetOrAdmin();
             UUID ownerId = UUID.fromString(jwt.getSubject());
+
+            // If the caller is a vet staff (not admin), require an active clinic membership
+            boolean isVetStaff = SecurityContextHolder.getContext().getAuthentication() != null &&
+                    SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                            .anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()));
+
+            if (isVetStaff) {
+                if (!clinicMembershipService.hasActiveMembership(ownerId)) {
+                    throw new AccessDeniedException("Aktif bir klinik üyeliğiniz yok.");
+                }
+                // vets with active membership can view pet details
+                return ResponseEntity.ok(pet);
+            }
+
+            // existing behavior for owners and admins
+            boolean isStaffOrAdmin = isVetOrAdmin();
             if (!isStaffOrAdmin && !pet.getOwnerId().equals(ownerId)) {
                 throw new AccessDeniedException("Bu hayvan size ait değil");
             }

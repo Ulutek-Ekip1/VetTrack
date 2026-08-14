@@ -9,8 +9,9 @@ import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
-import com.vettrack.api.vetstaff.VetStaff;
-import com.vettrack.api.vetstaff.VetStaffRepository;
+import com.vettrack.api.clinic.ClinicMembershipService;
+
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -36,7 +37,8 @@ public class AuthService {
     private final String supabaseUrl;
     private final String supabaseServiceKey;
     private final OwnerRepository ownerRepository;
-    private final VetStaffRepository vetStaffRepository;
+    private final ClinicMembershipService clinicMembershipService;
+    
     private final PetRepository petRepository;
     private final RestTemplate restTemplate;
 
@@ -54,14 +56,14 @@ public class AuthService {
             @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
             @Value("${supabase.service-key:${SUPABASE_SERVICE_KEY:}}") String supabaseServiceKey,
             OwnerRepository ownerRepository,
-            VetStaffRepository vetStaffRepository,
-            PetRepository petRepository,
+              ClinicMembershipService clinicMembershipService,
+              PetRepository petRepository,
             RestTemplate restTemplate
     ) {
         this.supabaseUrl = supabaseUrl;
         this.supabaseServiceKey = supabaseServiceKey;
         this.ownerRepository = ownerRepository;
-        this.vetStaffRepository = vetStaffRepository;
+        this.clinicMembershipService = clinicMembershipService;
         this.petRepository = petRepository;
         this.restTemplate = restTemplate;
     }
@@ -224,20 +226,11 @@ public class AuthService {
             log.info("Soft-deleted owner profile in database for userId={}", userId);
         }
 
-        if (vetStaffRepository != null) {
-            Optional<VetStaff> vetStaffOpt = vetStaffRepository.findByUserId(userId);
-            if (vetStaffOpt.isPresent()) {
-                VetStaff vetStaff = vetStaffOpt.get();
-                vetStaff.setIsActive(false);
-                vetStaff.setUpdatedAt(OffsetDateTime.now());
-                vetStaffRepository.save(vetStaff);
-                found = true;
-                log.info("Soft-deleted vet_staff profile in database for userId={}", userId);
-            }
-        }
+        
 
-        if (!found) {
-            throw new ResourceNotFoundException("Kullanıcı profili bulunamadı: " + userId);
+        if (clinicMembershipService != null) {
+            clinicMembershipService.disableAllMemberships(userId);
+            log.info("Disabled all clinic memberships for userId={}", userId);
         }
 
         // Soft-delete all pets owned by the user according to API contract specification
@@ -295,3 +288,11 @@ public class AuthService {
                 .build();
     }
 }
+
+
+
+
+
+
+
+

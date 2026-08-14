@@ -12,6 +12,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
+import com.vettrack.api.clinic.ClinicMembership;
+import com.vettrack.api.clinic.ClinicMembershipRepository;
+import com.vettrack.api.clinic.Clinic;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -44,6 +47,8 @@ class PetSecurityTest {
 
     @Autowired
     private PetRepository petRepository;
+    @Autowired
+    private ClinicMembershipRepository clinicMembershipRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -216,6 +221,12 @@ class PetSecurityTest {
     @DisplayName("Vet (Veteriner) rolündeki kullanıcının başka sahibin petini GET /pets/{id} ile görebildiğini doğrula (200 OK)")
     void whenVetRequestsOtherOwnersPet_thenReturns200Ok() throws Exception {
         UUID vetUserId = UUID.randomUUID();
+        ClinicMembership membership = new ClinicMembership();
+        membership.setClinicId(UUID.randomUUID());
+        membership.setUserId(vetUserId);
+        membership.setRole("vet");
+        membership.setStatus("active");
+        clinicMembershipRepository.save(membership);
 
         mockMvc.perform(get("/pets/" + owner1Pet.getId())
                 .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()))
@@ -229,6 +240,12 @@ class PetSecurityTest {
     @DisplayName("Vet rolündeki kullanıcının başka sahibin petini PUT /pets/{id} ile güncellemesi 403 Forbidden dönmeli (vet salt-okunur)")
     void whenVetUpdatesOtherOwnersPet_thenForbidden() throws Exception {
         UUID vetUserId = UUID.randomUUID();
+        ClinicMembership membership = new ClinicMembership();
+        membership.setClinicId(UUID.randomUUID());
+        membership.setUserId(vetUserId);
+        membership.setRole("vet");
+        membership.setStatus("active");
+        clinicMembershipRepository.save(membership);
 
         PetUpdateRequest updateRequest = new PetUpdateRequest();
         updateRequest.setName("Vet Değiştirdi");
@@ -244,3 +261,4 @@ class PetSecurityTest {
                 .andExpect(status().isForbidden());
     }
 }
+

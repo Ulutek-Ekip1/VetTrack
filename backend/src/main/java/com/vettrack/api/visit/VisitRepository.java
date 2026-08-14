@@ -11,5 +11,6 @@ import java.util.UUID;
 public interface VisitRepository extends JpaRepository<Visit, UUID> {
     Optional<Visit> findByPetIdAndStatus(UUID petId, String status);
     List<Visit> findByPetIdOrderByStartedAtDesc(UUID petId);
+    List<Visit> findByPetIdAndClinicIdOrderByStartedAtDesc(UUID petId, UUID clinicId);
     Page<Visit> findByPetIdOrderByStartedAtDesc(UUID petId, Pageable pageable);
 }

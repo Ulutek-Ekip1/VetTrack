@@ -70,6 +70,11 @@ public class TreatmentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public UUID getVisitIdForTreatment(UUID treatmentId) {
+        return getTreatmentById(treatmentId).getVisitId();
+    }
+
     @Transactional
     public TreatmentEntry updateTreatment(UUID treatmentId, TreatmentUpdateRequest request, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);

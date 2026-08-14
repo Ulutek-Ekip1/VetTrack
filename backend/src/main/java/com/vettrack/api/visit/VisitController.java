@@ -4,8 +4,9 @@ import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerService;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetService;
-import com.vettrack.api.vetstaff.VetStaff;
-import com.vettrack.api.vetstaff.VetStaffService;
+
+import com.vettrack.api.clinic.ClinicMembershipService;
+import com.vettrack.api.clinic.ClinicMembership;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,7 +34,8 @@ public class VisitController {
 
     private final VisitService visitService;
     private final PetService petService;
-    private final VetStaffService vetStaffService;
+    private final ClinicMembershipService membershipService;
+    private final com.vettrack.api.clinic.ClinicAccessService clinicAccessService;
     private final OwnerService ownerService;
 
     private boolean isVetOrAdmin() {
@@ -44,7 +46,7 @@ public class VisitController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Yeni Muayene Ziyareti Başlat", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Visit> createVisit(
             @AuthenticationPrincipal Jwt jwt,
@@ -53,22 +55,44 @@ public class VisitController {
         // visits.vet_staff_id -> profiles(id) FK'li ve check_visit_vet_staff_role() trigger'ı
         // bunun bir profiles satırına (JWT subject) ait olmasını doğruluyor — clinic_staff.id
         // (vetStaff.getId()) değil, vetStaff.getUserId() kullanılmalı.
-        VetStaff vetStaff = vetStaffService.getOrCreateByUserId(UUID.fromString(jwt.getSubject()), jwt);
-        Visit visit = visitService.createVisit(request.getPetId(), vetStaff.getUserId());
+        
+                UUID userId = UUID.fromString(jwt.getSubject());
+        
+        UUID clinicId = null;
+        if (request.getClinicId() != null) {
+            clinicId = request.getClinicId();
+        } else {
+            var memberships = membershipService.getMembershipsByUser(userId).stream().filter(m -> "active".equals(m.getStatus())).toList();
+            if (memberships.size() == 1) {
+                clinicId = memberships.get(0).getClinicId();
+            } else if (memberships.isEmpty()) {
+                throw new com.vettrack.api.common.exception.UnauthorizedException("Aktif klinik uyeliginiz bulunmamaktadir.");
+            } else {
+                throw new IllegalArgumentException("Birden fazla klinikte aktifsiniz, lutfen clinicId belirtin.");
+            }
+        }
+        
+        membershipService.getActiveMembership(userId, clinicId);
+        
+        Visit visit = visitService.createVisit(request.getPetId(), userId, clinicId, request.getChiefComplaint());
         return new ResponseEntity<>(visit, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}/close")
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
-    public ResponseEntity<Visit> closeVisit(@PathVariable UUID id) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Visit> closeVisit(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        clinicAccessService.requireVisitAccess(UUID.fromString(jwt.getSubject()), id);
         return ResponseEntity.ok(visitService.closeVisit(id));
     }
 
     @GetMapping("/code/{code}")
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
-    public ResponseEntity<PatientSearchResponse> getPatientByCode(@PathVariable String code) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PatientSearchResponse> getPatientByCode(@AuthenticationPrincipal Jwt jwt,
+                                                                    @PathVariable String code,
+                                                                    @RequestParam UUID clinicId) {
+        clinicAccessService.requireClinicAccess(UUID.fromString(jwt.getSubject()), clinicId);
         Pet pet = petService.getPetByUniqueCode(code);
-        List<Visit> visits = visitService.getVisitsByUniqueCode(code);
+        List<Visit> visits = visitService.getVisitsByPetIdAndClinicId(pet.getId(), clinicId);
         return ResponseEntity.ok(new PatientSearchResponse(pet, visits));
     }
 
@@ -83,7 +107,9 @@ public class VisitController {
 
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
-        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
+        if (!pet.getOwnerId().equals(currentUserId)) {
+            clinicAccessService.requireVisitAccess(currentUserId, visitId);
+        } else if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu ziyaret detayına erişim yetkiniz yok");
         }
 
@@ -111,14 +137,17 @@ public class VisitController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Ziyaret Durumunu Güncelle (ör. ongoing -> completed)", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<Visit> updateVisitStatus(
+    public ResponseEntity<Visit> updateVisitStatus(@AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id,
             @RequestBody Map<String, String> statusMap
     ) {
+        clinicAccessService.requireVisitAccess(UUID.fromString(jwt.getSubject()), id);
         String newStatus = statusMap.getOrDefault("status", "completed");
         Visit updated = visitService.updateVisitStatus(id, newStatus);
         return ResponseEntity.ok(updated);
     }
 }
+
+
