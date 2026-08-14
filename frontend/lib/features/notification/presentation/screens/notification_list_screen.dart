@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vettrack_frontend/core/utils/formatters.dart';
+import 'package:vettrack_frontend/core/widgets/app_async_state_views.dart';
 import 'package:vettrack_frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'package:vettrack_frontend/features/notification/presentation/cubit/notification_state.dart';
 
@@ -51,45 +52,19 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
       body: BlocBuilder<NotificationCubit, NotificationState>(
         builder: (context, state) {
           if (state is NotificationLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const AppLoadingView(label: 'Bildirimler yükleniyor');
           } else if (state is NotificationError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.cloud_off_outlined, size: 48),
-                    const SizedBox(height: 12),
-                    Text(state.message, textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
-                    FilledButton.icon(
-                      onPressed: context.read<NotificationCubit>().loadNotifications,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Yeniden Dene'),
-                    ),
-                  ],
-                ),
-              ),
+            return AppErrorStateView(
+              message: state.message,
+              onRetry: context.read<NotificationCubit>().loadNotifications,
             );
           } else if (state is NotificationLoaded) {
             final notifications = List.of(state.notificationList.notifications);
 
             if (notifications.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.notifications_off_outlined,
-                        size: 64, color: Colors.grey.shade400),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Henüz bildiriminiz yok',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
+              return const AppEmptyStateView(
+                icon: Icons.notifications_off_outlined,
+                title: 'Henüz bildiriminiz yok',
               );
             }
 
