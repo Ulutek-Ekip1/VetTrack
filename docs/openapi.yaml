@@ -1055,29 +1055,82 @@ components:
         user:
           $ref: '#/components/schemas/MeResponse'
 
+    OwnerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+          example: "Ayşe Yılmaz"
+        email:
+          type: string
+          format: email
+          example: "ayse@example.com"
+        phone:
+          type: string
+          nullable: true
+          example: "+905551234567"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ClinicMembershipResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [doctor, staff]
+          example: "doctor"
+        status:
+          type: string
+          enum: [invited, active, disabled]
+          example: "active"
+        isClinicAdmin:
+          type: boolean
+          example: false
+        joinedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
     MeResponse:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        authId:
-          type: string
-          format: uuid
         email:
           type: string
           format: email
-        name:
-          type: string
-        phone:
-          type: string
-          nullable: true
         role:
           type: string
           enum: [owner, vet_staff]
-        createdAt:
-          type: string
-          format: date-time
+        clinicMemberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicMembershipResponse'
+        profile:
+          $ref: '#/components/schemas/OwnerResponse'
 
     # -- Pets --
     PetCreateRequest:
