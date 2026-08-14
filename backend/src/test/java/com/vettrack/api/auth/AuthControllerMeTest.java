@@ -67,7 +67,10 @@ class AuthControllerMeTest {
         assertEquals(userId.toString(), body.get("id"));
         assertEquals("owner@test.com", body.get("email"));
         assertEquals("owner", body.get("role"));
-        assertSame(owner, body.get("profile"));
+        assertTrue(body.get("profile") instanceof com.vettrack.api.owner.dto.OwnerResponse);
+        var profile = (com.vettrack.api.owner.dto.OwnerResponse) body.get("profile");
+        assertEquals(userId, profile.getId());
+        assertEquals("Test Owner", profile.getFullName());
         verify(ownerService).getOwnerById(userId);
     }
 
@@ -84,7 +87,10 @@ class AuthControllerMeTest {
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
         assertEquals("vet_staff", body.get("role"));
-        assertSame(owner, body.get("profile"));
+        assertTrue(body.get("profile") instanceof com.vettrack.api.owner.dto.OwnerResponse);
+        var profile = (com.vettrack.api.owner.dto.OwnerResponse) body.get("profile");
+        assertEquals(userId, profile.getId());
+        assertEquals("Test Vet", profile.getFullName());
         verify(ownerService).getOwnerById(userId);
     }
 
@@ -99,6 +105,7 @@ class AuthControllerMeTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("owner", response.getBody().get("role"));
+        assertTrue(response.getBody().get("profile") instanceof com.vettrack.api.owner.dto.OwnerResponse);
         verify(ownerService).getOwnerById(userId);
     }
 }
