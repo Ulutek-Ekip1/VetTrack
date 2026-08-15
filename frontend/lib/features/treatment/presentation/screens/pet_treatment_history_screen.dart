@@ -54,16 +54,19 @@ class PetTreatmentHistoryScreen extends StatelessWidget {
                         treatment.description!.isNotEmpty,
                     trailing: hasAttachment
                         ? IconButton(
-                            icon: const Icon(Icons.open_in_new, color: Colors.teal),
+                            icon: const Icon(Icons.open_in_new,
+                                color: Colors.teal),
                             tooltip: 'Eki Görüntüle',
                             onPressed: () async {
                               final uri = Uri.parse(treatment.attachmentUrl!);
                               if (await canLaunchUrl(uri)) {
-                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                await launchUrl(uri,
+                                    mode: LaunchMode.externalApplication);
                               } else {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Dosya açılamadı.')),
+                                    const SnackBar(
+                                        content: Text('Dosya açılamadı.')),
                                   );
                                 }
                               }
