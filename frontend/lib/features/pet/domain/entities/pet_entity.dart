@@ -21,6 +21,7 @@ class PetEntity extends Equatable {
   final String? color;
   final String? allergies;
   final String? chronicIllnesses;
+  final List<PetWeightEntity>? weightHistory;
 
   const PetEntity({
     required this.id,
@@ -40,6 +41,7 @@ class PetEntity extends Equatable {
     this.color,
     this.allergies,
     this.chronicIllnesses,
+    this.weightHistory,
   });
 
   @override
@@ -61,5 +63,19 @@ class PetEntity extends Equatable {
         color,
         allergies,
         chronicIllnesses,
+        weightHistory,
       ];
+}
+
+class PetWeightEntity extends Equatable {
+  final DateTime date;
+  final double weight;
+
+  const PetWeightEntity({
+    required this.date,
+    required this.weight,
+  });
+
+  @override
+  List<Object> get props => [date, weight];
 }

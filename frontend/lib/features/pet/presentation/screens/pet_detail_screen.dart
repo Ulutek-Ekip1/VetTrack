@@ -12,6 +12,8 @@ import '../../../treatment/presentation/cubit/treatment_state.dart';
 import '../../../recommendation/presentation/cubit/recommendation_cubit.dart';
 import '../../../recommendation/presentation/cubit/recommendation_state.dart';
 import '../../../recommendation/domain/entities/recommendation_entity.dart';
+import '../cubit/weight_history_cubit.dart';
+import '../cubit/weight_history_state.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final String petId;
@@ -265,111 +267,175 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            height: 180,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 5,
-                  getDrawingHorizontalLine: (value) =>
-                      FlLine(color: Colors.grey.shade200, strokeWidth: 1),
-                ),
-                titlesData: FlTitlesData(
-                  rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 22,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        const style =
-                            TextStyle(color: Color(0xFF737686), fontSize: 10);
-                        Widget text;
-                        switch (value.toInt()) {
-                          case 0:
-                            text = const Text('Ara 2024', style: style);
-                            break;
-                          case 1:
-                            text = const Text('Oca 2025', style: style);
-                            break;
-                          case 2:
-                            text = const Text('Şub 2025', style: style);
-                            break;
-                          case 3:
-                            text = const Text('Mar 2025', style: style);
-                            break;
-                          case 4:
-                            text = const Text('Nis 2025', style: style);
-                            break;
-                          case 5:
-                            text = const Text('May 2025', style: style);
-                            break;
-                          default:
-                            text = const Text('', style: style);
-                            break;
-                        }
-                        return SideTitleWidget(
-                            axisSide: meta.axisSide, child: text);
-                      },
+          BlocBuilder<WeightHistoryCubit, WeightHistoryState>(
+            builder: (context, state) {
+              if (state is WeightHistoryLoading) {
+                return Container(
+                  height: 180,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: const CircularProgressIndicator(),
+                );
+              } else if (state is WeightHistoryLoaded) {
+                final history = state.history;
+                if (history.isEmpty) {
+                  return Container(
+                    height: 120,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Text(
+                      'Kilo geçmişi kaydı bulunmuyor.',
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    ),
+                  );
+                }
+
+                final spots = <FlSpot>[];
+                double minYVal = 0;
+                double maxYVal = 30;
+                double maxXVal = 5;
+
+                final sortedHistory = List<PetWeightEntity>.from(history)
+                  ..sort((a, b) => a.date.compareTo(b.date));
+
+                double minW = sortedHistory[0].weight;
+                double maxW = sortedHistory[0].weight;
+                for (int i = 0; i < sortedHistory.length; i++) {
+                  final record = sortedHistory[i];
+                  spots.add(FlSpot(i.toDouble(), record.weight));
+                  if (record.weight < minW) minW = record.weight;
+                  if (record.weight > maxW) maxW = record.weight;
+                }
+                minYVal = (minW - 2).clamp(0, double.infinity);
+                maxYVal = maxW + 2;
+                maxXVal = (spots.length - 1).toDouble();
+                if (maxXVal == 0) maxXVal = 1.0;
+
+                return Container(
+                  height: 180,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: LineChart(
+                    LineChartData(
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: 5,
+                        getDrawingHorizontalLine: (value) =>
+                            FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+                      ),
+                      titlesData: FlTitlesData(
+                        rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 22,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              const style = TextStyle(
+                                  color: Color(0xFF737686), fontSize: 10);
+                              final index = value.toInt();
+                              if (index >= 0 && index < sortedHistory.length) {
+                                final date = sortedHistory[index].date;
+                                final months = [
+                                  'Oca',
+                                  'Şub',
+                                  'Mar',
+                                  'Nis',
+                                  'May',
+                                  'Haz',
+                                  'Tem',
+                                  'Ağu',
+                                  'Eyl',
+                                  'Eki',
+                                  'Kas',
+                                  'Ara'
+                                ];
+                                return SideTitleWidget(
+                                  axisSide: meta.axisSide,
+                                  child: Text(
+                                      '${months[date.month - 1]} ${date.year}',
+                                      style: style),
+                                );
+                              }
+                              return SideTitleWidget(
+                                  axisSide: meta.axisSide,
+                                  child: const Text(''));
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            interval: 5,
+                            getTitlesWidget: (value, meta) {
+                              return Text('${value.toInt()} kg',
+                                  style: const TextStyle(
+                                      color: Color(0xFF737686), fontSize: 10));
+                            },
+                            reservedSize: 32,
+                          ),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      minX: 0,
+                      maxX: maxXVal,
+                      minY: minYVal,
+                      maxY: maxYVal,
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: spots,
+                          isCurved: true,
+                          color: primaryBlue,
+                          barWidth: 2,
+                          isStrokeCapRound: true,
+                          dotData: const FlDotData(show: true),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: primaryBlue.withValues(alpha: 0.1),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 5,
-                      getTitlesWidget: (value, meta) {
-                        return Text('${value.toInt()} kg',
-                            style: const TextStyle(
-                                color: Color(0xFF737686), fontSize: 10));
-                      },
-                      reservedSize: 32,
-                    ),
+                );
+              } else if (state is WeightHistoryError) {
+                return Container(
+                  height: 120,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                ),
-                borderData: FlBorderData(show: false),
-                minX: 0,
-                maxX: 5,
-                minY: 10,
-                maxY: 25,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: const [
-                      FlSpot(0, 21),
-                      FlSpot(1, 22),
-                      FlSpot(2, 21.5),
-                      FlSpot(3, 22.5),
-                      FlSpot(4, 21.8),
-                      FlSpot(5, 23),
-                    ],
-                    isCurved: true,
-                    color: primaryBlue,
-                    barWidth: 2,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: true),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: primaryBlue.withValues(alpha: 0.1),
-                    ),
+                  child: Text(
+                    'Kilo geçmişi yüklenemedi: ${state.message}',
+                    style: const TextStyle(color: Colors.red, fontSize: 13),
                   ),
-                ],
-              ),
-            ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
           const SizedBox(height: 24),
           const Text('Son Aktivite',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

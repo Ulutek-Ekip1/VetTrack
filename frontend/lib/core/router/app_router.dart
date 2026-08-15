@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vettrack_frontend/features/pet/presentation/cubit/weight_history_cubit.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/cubit/auth_state.dart';
@@ -231,13 +232,20 @@ class AppRouter {
                         return MultiBlocProvider(
                           providers: [
                             BlocProvider<VisitCubit>(
-                              create: (context) => sl<VisitCubit>()..fetchPetVisitHistory(petId),
+                              create: (context) =>
+                                  sl<VisitCubit>()..fetchPetVisitHistory(petId),
                             ),
                             BlocProvider<TreatmentCubit>(
-                              create: (context) => sl<TreatmentCubit>()..loadPetTreatments(petId),
+                              create: (context) => sl<TreatmentCubit>()
+                                ..loadPetTreatments(petId),
                             ),
                             BlocProvider<RecommendationCubit>(
-                              create: (context) => sl<RecommendationCubit>()..loadRecommendations(petId),
+                              create: (context) => sl<RecommendationCubit>()
+                                ..loadRecommendations(petId),
+                            ),
+                            BlocProvider<WeightHistoryCubit>(
+                              create: (context) => sl<WeightHistoryCubit>()
+                                ..fetchWeightHistory(petId),
                             ),
                           ],
                           child: PetDetailScreen(petId: petId),
@@ -266,7 +274,8 @@ class AppRouter {
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
                             return BlocProvider<TreatmentCubit>(
-                              create: (context) => sl<TreatmentCubit>()..loadPetTreatments(petId),
+                              create: (context) => sl<TreatmentCubit>()
+                                ..loadPetTreatments(petId),
                               child: PetTreatmentHistoryScreen(petId: petId),
                             );
                           },
@@ -277,7 +286,8 @@ class AppRouter {
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
                             return BlocProvider<RecommendationCubit>(
-                              create: (context) => sl<RecommendationCubit>()..loadRecommendations(petId),
+                              create: (context) => sl<RecommendationCubit>()
+                                ..loadRecommendations(petId),
                               child: PetRecommendationScreen(petId: petId),
                             );
                           },
@@ -334,8 +344,8 @@ class AppRouter {
                   path: AppRoutes.vetVisitHistory,
                   name: 'vetVisitHistory',
                   builder: (context, state) => BlocProvider<VisitCubit>(
-                    create: (context) => sl<VisitCubit>()
-                      ..fetchVetVisitHistory(),
+                    create: (context) =>
+                        sl<VisitCubit>()..fetchVetVisitHistory(),
                     child: const VetVisitHistoryScreen(),
                   ),
                 ),

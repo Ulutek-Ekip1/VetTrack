@@ -6,6 +6,14 @@ abstract class PetRepository {
     required Gender gender,
     int? age,
     String? breed,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   });
   Future<List<PetEntity>> getPets();
   Future<PetEntity> getPetById(String id);
@@ -15,8 +23,17 @@ abstract class PetRepository {
     Gender? gender,
     int? age,
     String? breed,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   });
   Future<String> updatePetPhoto(String id, String photoFilePath);
   Future<void> deletePet(String id);
   Future<void> deletePetPhoto(String id);
+  Future<List<PetWeightEntity>>getWeightHistory(String petId);
 }

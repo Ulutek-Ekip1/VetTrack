@@ -21,6 +21,7 @@ class PetModel extends PetEntity {
     super.color,
     super.allergies,
     super.chronicIllnesses,
+    super.weightHistory,
   });
 
   factory PetModel.fromJson(Map<String, dynamic> json) {
@@ -59,6 +60,14 @@ class PetModel extends PetEntity {
     final bool? parsedSpayed =
         json['isSpayedOrNeutered'] as bool? ?? json['neutered'] as bool?;
 
+    final List<dynamic>? weightHistoryJson =
+        json['weightHistory'] as List<dynamic>?;
+    final List<PetWeightModel>? parsedWeightHistory = weightHistoryJson != null
+        ? weightHistoryJson
+            .map((e) => PetWeightModel.fromJson(e as Map<String, dynamic>))
+            .toList()
+        : null;
+
     return PetModel(
       id: json['id'] as String,
       ownerId: json['ownerId'] as String,
@@ -77,6 +86,7 @@ class PetModel extends PetEntity {
       color: json['color'] as String?,
       allergies: json['allergies'] as String?,
       chronicIllnesses: json['chronicIllnesses'] as String?,
+      weightHistory: parsedWeightHistory,
     );
   }
 
@@ -100,6 +110,30 @@ class PetModel extends PetEntity {
       if (color != null) 'color': color,
       if (allergies != null) 'allergies': allergies,
       if (chronicIllnesses != null) 'chronicIllnesses': chronicIllnesses,
+      if (weightHistory != null)
+        'weightHistory':
+            weightHistory!.map((e) => (e as PetWeightModel).toJson()).toList(),
+    };
+  }
+}
+
+class PetWeightModel extends PetWeightEntity {
+  const PetWeightModel({
+    required super.date,
+    required super.weight,
+  });
+
+  factory PetWeightModel.fromJson(Map<String, dynamic> json) {
+    return PetWeightModel(
+      date: DateTime.parse(json['date'] as String),
+      weight: (json['weight'] as num).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'date': date.toIso8601String().split('T')[0],
+      'weight': weight,
     };
   }
 }
