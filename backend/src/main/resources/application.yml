@@ -10,7 +10,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 15MB
-      max-request-size: 15MB
+      max-request-size: 16MB
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -21,6 +21,7 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${SUPABASE_JWKS_URL}
+          jws-algorithms: ES256
 
 supabase:
   url: ${SUPABASE_URL:https://your-supabase-url.supabase.co}
@@ -62,5 +63,10 @@ app:
         max-requests: 3
         window-seconds: 3600
 
-server:
-  port: 8080
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-2.5-flash}
+
+  server:
+  port: ${PORT:8080}
+  

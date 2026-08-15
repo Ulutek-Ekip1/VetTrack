@@ -1,11 +1,14 @@
 package com.vettrack.api.visit;
 
 import com.vettrack.api.common.exception.ConflictException;
+import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetService;
 import com.vettrack.api.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,10 +28,9 @@ public class VisitService {
     public Visit createVisit(UUID petId, UUID vetStaffId) {
         Pet pet = petService.getPetById(petId);
 
-        // Eşzamanlı Ziyaret Kilidi (EC-02): Repository'deki findByPetIdAndStatus metodunu kullanıyoruz
         boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(pet.getId(), "ongoing").isPresent();
         if (hasActiveVisit) {
-            throw new ConflictException("Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_OPEN, "Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
         }
 
         Visit visit = Visit.builder()
@@ -37,7 +39,34 @@ public class VisitService {
                 .status("ongoing")
                 .startedAt(OffsetDateTime.now())
                 .build();
+        return visitRepository.save(visit);
+    }
 
+    @Transactional
+    public Visit createVisit(UUID petId, UUID vetStaffId, UUID clinicId, String chiefComplaint) {
+        Pet pet = petService.getPetById(petId);
+        if (visitRepository.findByPetIdAndStatus(pet.getId(), "ongoing").isPresent()) {
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_OPEN, "Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
+        }
+        return visitRepository.save(Visit.builder().petId(pet.getId()).vetStaffId(vetStaffId)
+                .clinicId(clinicId).chiefComplaint(chiefComplaint).status("ongoing")
+                .startedAt(OffsetDateTime.now()).build());
+    }
+
+    @Transactional
+    public Visit createVisit(VisitCreateRequest request) {
+        boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(request.getPetId(), "ongoing").isPresent();
+        if (hasActiveVisit) {
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_OPEN, "Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
+        }
+        Visit visit = Visit.builder()
+                .petId(request.getPetId())
+                .vetStaffId(request.getVetStaffId())
+                .clinicId(request.getClinicId())
+                .chiefComplaint(request.getChiefComplaint())
+                .status("ongoing")
+                .startedAt(OffsetDateTime.now())
+                .build();
         return visitRepository.save(visit);
     }
 
@@ -47,7 +76,7 @@ public class VisitService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı ID: " + visitId));
 
         if (!"ongoing".equalsIgnoreCase(visit.getStatus())) {
-            throw new ConflictException("Bu ziyaret zaten kapatılmış veya tamamlanmış.");
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_CLOSED, "Bu ziyaret zaten kapatılmış veya tamamlanmış.");
         }
 
         visit.setStatus("completed");
@@ -67,13 +96,53 @@ public class VisitService {
 
     @Transactional(readOnly = true)
     public List<Visit> getVisitsByPetId(UUID petId) {
-        petService.getPetById(petId);
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Visit> getVisitsByPetIdAndClinicId(UUID petId, UUID clinicId) {
+        return visitRepository.findByPetIdAndClinicIdOrderByStartedAtDesc(petId, clinicId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Visit> getVisitsByPetIdPaginated(UUID petId, Pageable pageable) {
+        return visitRepository.findByPetIdOrderByStartedAtDesc(petId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Visit> getVisitsByPetIdAndClinicIdsPaginated(UUID petId, List<UUID> clinicIds, Pageable pageable) {
+        return visitRepository.findByPetIdAndClinicIdInOrderByStartedAtDesc(petId, clinicIds, pageable);
     }
 
     @Transactional(readOnly = true)
     public Visit getVisit(UUID visitId) {
         return visitRepository.findById(visitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
+    }
+
+    @Transactional(readOnly = true)
+    public Visit getVisitById(UUID id) {
+        return visitRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ziyaret kaydı bulunamadı: " + id));
+    }
+
+    @Transactional
+    public Visit updateVisitStatus(UUID id, String status) {
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("Ziyaret durumu boş olamaz.");
+        }
+        String normalized = status.toLowerCase().trim();
+
+        if ("completed".equals(normalized) || "ended".equals(normalized)) {
+            return closeVisit(id);
+        }
+
+        if (!List.of("ongoing", "completed", "cancelled").contains(normalized)) {
+            throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status + ". İzin verilen durumlar: ongoing, completed, cancelled.");
+        }
+
+        Visit visit = getVisitById(id);
+        visit.setStatus(normalized);
+        return visitRepository.save(visit);
     }
 }

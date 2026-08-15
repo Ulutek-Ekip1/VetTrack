@@ -23,6 +23,6 @@ public class RegisterRequest {
 
     private String phone;
 
-    @Pattern(regexp = "owner|vet_staff", message = "Geçersiz kullanıcı rolü")
+    @Pattern(regexp = "owner", message = "Geçersiz kullanıcı rolü")
     private String role = "owner";
 }

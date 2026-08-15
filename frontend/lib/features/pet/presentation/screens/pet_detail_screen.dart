@@ -56,6 +56,23 @@ class _PetDetailScreenState extends State<PetDetailScreen>
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.auto_awesome, color: Color(0xFFD9531E)),
+            tooltip: "AI'ya Sor",
+            onPressed: () {
+              final petState = context.read<PetCubit>().state;
+              if (petState is PetLoaded) {
+                try {
+                  final pet = petState.pets.firstWhere((p) => p.id == widget.petId);
+                  context.push('/chatbot', extra: pet);
+                } catch (_) {
+                  context.push('/chatbot?petId=${widget.petId}');
+                }
+              } else {
+                context.push('/chatbot?petId=${widget.petId}');
+              }
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.more_vert, color: Color(0xFF131B2E)),
             onPressed: () {},
           ),
@@ -127,7 +144,23 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 12),
+                          // AI'ya Sor Aksiyon Butonu
+                          ElevatedButton.icon(
+                            onPressed: () => context.push('/chatbot', extra: pet),
+                            icon: const Icon(Icons.auto_awesome, size: 18),
+                            label: Text('${pet.name} İçin AI\'ya Sor'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFFECE5),
+                              foregroundColor: const Color(0xFFD9531E),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),

@@ -39,7 +39,8 @@ class OwnerShellScreen extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onTap,
-        indicatorColor: theme.colorScheme.primaryContainer,
+        // Açık zemin, seçili koyu mavi ikon ve metnin görünürlüğünü korur.
+        indicatorColor: const Color(0xFFDCEAFF),
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.dashboard_outlined),

@@ -9,7 +9,11 @@ import '../../domain/entities/user_entity.dart';
 import 'token_local_data_source.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<UserModel> loginWithEmail(String email, String password);
+  Future<UserModel> loginWithEmail(
+    String email,
+    String password, {
+    bool rememberMe = false,
+  });
   Future<UserModel> register(
       String email, String password, String name, String? phone, UserRole role);
   Future<void> logout();
@@ -26,7 +30,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl(this.dio, this.localDataSource);
 
   @override
-  Future<UserModel> loginWithEmail(String email, String password) async {
+  Future<UserModel> loginWithEmail(
+    String email,
+    String password, {
+    bool rememberMe = false,
+  }) async {
     try {
       final response = await dio.post('/auth/login', data: {
         'email': email,
@@ -38,7 +46,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         final token = response.data['accessToken'];
 
         if (token != null) {
-          await localDataSource.cacheToken(token);
+          await localDataSource.cacheToken(token, persist: rememberMe);
         }
 
         return UserModel.fromJson(userData as Map<String, dynamic>);
@@ -59,7 +67,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> register(String email, String password, String name,
       String? phone, UserRole role) async {
     try {
-      final roleStr = role == UserRole.vet ? 'vet_staff' : 'owner';
+      // Public registration never creates vet_staff accounts. Clinic membership
+      // is granted solely by the authenticated invite-acceptance endpoint.
+      const roleStr = 'owner';
 
       final data = {
         'email': email,
@@ -118,11 +128,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel?> getCurrentUser() async {
     try {
+      final cachedToken = await localDataSource.getToken();
+      if (cachedToken == null) return null;
+
       // Supabase OAuth dönüşlerinde oturumu senkronize etmek için:
       final supabaseSession = Supabase.instance.client.auth.currentSession;
       if (supabaseSession != null) {
-        final cachedToken = await localDataSource.getToken();
-        if (cachedToken == null || cachedToken != supabaseSession.accessToken) {
+        if (cachedToken != supabaseSession.accessToken) {
           await localDataSource.cacheToken(supabaseSession.accessToken);
         }
       }

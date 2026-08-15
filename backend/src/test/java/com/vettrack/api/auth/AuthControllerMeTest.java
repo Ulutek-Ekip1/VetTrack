@@ -2,8 +2,8 @@ package com.vettrack.api.auth;
 
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerService;
-import com.vettrack.api.vetstaff.VetStaff;
-import com.vettrack.api.vetstaff.VetStaffService;
+
+import com.vettrack.api.clinic.ClinicMembershipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -23,15 +23,16 @@ class AuthControllerMeTest {
 
     private AuthService authService;
     private OwnerService ownerService;
-    private VetStaffService vetStaffService;
+    private ClinicMembershipService clinicMembershipService;
     private AuthController controller;
 
     @BeforeEach
     void setUp() {
         authService = mock(AuthService.class);
         ownerService = mock(OwnerService.class);
-        vetStaffService = mock(VetStaffService.class);
-        controller = new AuthController(authService, ownerService, vetStaffService);
+        clinicMembershipService = mock(ClinicMembershipService.class);
+        controller = new AuthController(authService, ownerService, clinicMembershipService);
+        when(clinicMembershipService.getMembershipsByUser(any())).thenReturn(java.util.List.of());
     }
 
     private Jwt jwtWith(UUID sub, String email, Map<String, Object> userMetadata, String topLevelRole) {
@@ -48,7 +49,7 @@ class AuthControllerMeTest {
     void shouldReturn401WhenJwtIsNull() {
         ResponseEntity<Map<String, Object>> response = controller.me(null);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verifyNoInteractions(ownerService, vetStaffService);
+        verifyNoInteractions(ownerService);
     }
 
     @Test
@@ -66,16 +67,18 @@ class AuthControllerMeTest {
         assertEquals(userId.toString(), body.get("id"));
         assertEquals("owner@test.com", body.get("email"));
         assertEquals("owner", body.get("role"));
-        assertSame(owner, body.get("profile"));
+        assertTrue(body.get("profile") instanceof com.vettrack.api.owner.dto.OwnerResponse);
+        var profile = (com.vettrack.api.owner.dto.OwnerResponse) body.get("profile");
+        assertEquals(userId, profile.getId());
+        assertEquals("Test Owner", profile.getFullName());
         verify(ownerService).getOwnerById(userId);
-        verifyNoInteractions(vetStaffService);
     }
 
     @Test
-    void shouldRouteToVetStaffServiceWhenRoleIsVetStaff() {
+    void shouldReturnOwnerWhenRoleIsVetStaff() {
         UUID userId = UUID.randomUUID();
-        VetStaff vetStaff = VetStaff.builder().userId(userId).staffRole("vet").build();
-        when(vetStaffService.getOrCreateByUserId(eq(userId), any(Jwt.class))).thenReturn(vetStaff);
+        Owner owner = Owner.builder().id(userId).email("vet@test.com").fullName("Test Vet").role("vet_staff").build();
+        when(ownerService.getOwnerById(userId)).thenReturn(owner);
 
         Jwt jwt = jwtWith(userId, "vet@test.com", Map.of("role", "vet_staff"), "authenticated");
         ResponseEntity<Map<String, Object>> response = controller.me(jwt);
@@ -84,15 +87,15 @@ class AuthControllerMeTest {
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
         assertEquals("vet_staff", body.get("role"));
-        assertSame(vetStaff, body.get("profile"));
-        verify(vetStaffService).getOrCreateByUserId(eq(userId), any(Jwt.class));
-        verifyNoInteractions(ownerService);
+        assertTrue(body.get("profile") instanceof com.vettrack.api.owner.dto.OwnerResponse);
+        var profile = (com.vettrack.api.owner.dto.OwnerResponse) body.get("profile");
+        assertEquals(userId, profile.getId());
+        assertEquals("Test Vet", profile.getFullName());
+        verify(ownerService).getOwnerById(userId);
     }
 
     @Test
     void shouldFallBackToOwnerWhenRoleClaimMissingEntirely() {
-        // Legacy tokens without user_metadata.role and without a meaningful top-level role
-        // must still resolve — default to owner to preserve existing behaviour.
         UUID userId = UUID.randomUUID();
         Owner owner = Owner.builder().id(userId).email("legacy@test.com").fullName("Legacy").role("owner").build();
         when(ownerService.getOwnerById(userId)).thenReturn(owner);
@@ -102,21 +105,7 @@ class AuthControllerMeTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("owner", response.getBody().get("role"));
+        assertTrue(response.getBody().get("profile") instanceof com.vettrack.api.owner.dto.OwnerResponse);
         verify(ownerService).getOwnerById(userId);
-    }
-
-    @Test
-    void shouldPreferUserMetadataRoleOverTopLevelRole() {
-        // Supabase sets top-level role to 'authenticated' by default; we must ignore it
-        // and use user_metadata.role for the app-level role decision.
-        UUID userId = UUID.randomUUID();
-        VetStaff vetStaff = VetStaff.builder().userId(userId).staffRole("vet").build();
-        when(vetStaffService.getOrCreateByUserId(eq(userId), any(Jwt.class))).thenReturn(vetStaff);
-
-        Jwt jwt = jwtWith(userId, "vet@test.com", Map.of("role", "vet_staff"), "authenticated");
-        ResponseEntity<Map<String, Object>> response = controller.me(jwt);
-
-        assertEquals("vet_staff", response.getBody().get("role"));
-        verify(vetStaffService).getOrCreateByUserId(eq(userId), any(Jwt.class));
     }
 }

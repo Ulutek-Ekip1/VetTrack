@@ -3,6 +3,7 @@ package com.vettrack.api.treatment;
 import com.vettrack.api.audit.AuditLog;
 import com.vettrack.api.audit.AuditLogRepository;
 import com.vettrack.api.common.exception.EditWindowExpiredException;
+import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.visit.Visit;
@@ -33,12 +34,12 @@ public class TreatmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
 
         if (!"ongoing".equals(visit.getStatus())) {
-            throw new ConflictException("Kapalı ziyarete tedavi girişi yapılamaz");
+            throw new ConflictException(ErrorCode.VISIT_CLOSED, "Kapalı ziyarete tedavi girişi yapılamaz");
         }
 
         TreatmentEntry entry = TreatmentEntry.builder()
                 .visitId(visitId)
-                .entryType(request.getEntryType())
+                .type(request.getType())
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .attachmentUrl(request.getAttachmentUrl())
@@ -69,13 +70,18 @@ public class TreatmentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public UUID getVisitIdForTreatment(UUID treatmentId) {
+        return getTreatmentById(treatmentId).getVisitId();
+    }
+
     @Transactional
     public TreatmentEntry updateTreatment(UUID treatmentId, TreatmentUpdateRequest request, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
         checkEditWindow(entry);
 
-        if (request.getEntryType() != null) entry.setEntryType(request.getEntryType());
+        if (request.getType() != null) entry.setType(request.getType());
         if (request.getTitle() != null) entry.setTitle(request.getTitle());
         if (request.getDescription() != null) entry.setDescription(request.getDescription());
         if (request.getAttachmentUrl() != null) entry.setAttachmentUrl(request.getAttachmentUrl());

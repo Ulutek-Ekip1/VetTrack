@@ -2,8 +2,13 @@ package com.vettrack.api.auth;
 
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerService;
-import com.vettrack.api.vetstaff.VetStaff;
-import com.vettrack.api.vetstaff.VetStaffService;
+
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,57 +24,95 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Tag(name = "Kimlik Doğrulama API", description = "Kullanıcı kayıt, giriş, profil, şifre sıfırlama ve hesap silme uç noktaları")
 public class AuthController {
 
     private final AuthService authService;
     private final OwnerService ownerService;
-    private final VetStaffService vetStaffService;
+    private final com.vettrack.api.clinic.ClinicMembershipService clinicMembershipService;
 
-    /**
-     * Returns the current user's identity plus their JIT-synced profile.
-     * <p>
-     * Frontend calls this on every app open / login. The role is resolved from the
-     * Supabase JWT claim {@code user_metadata.role}, which is set by the frontend at
-     * signup / OAuth time based on the platform (mobile → owner, web → vet_staff).
-     * <p>
-     * If the profile row does not exist yet (first login after Google OAuth), it is
-     * created automatically from JWT claims (JIT provisioning).
-     * <p>
-     * Response keeps the legacy top-level {@code id}, {@code email}, {@code role} fields
-     * for backward compatibility with existing frontend code, and adds a {@code profile}
-     * object carrying the full owner/vet_staff row.
-     */
+
     @GetMapping("/me")
+    @Operation(summary = "Mevcut Kullanıcı Profilini Getir", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Map<String, Object>> me(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         UUID userId = UUID.fromString(jwt.getSubject());
-        String role = resolveRole(jwt);
+        var activeMemberships = clinicMembershipService.getMembershipsByUser(userId).stream()
+                .filter(m -> "active".equalsIgnoreCase(m.getStatus())).toList();
+        String role = activeMemberships.isEmpty() ? resolveRole(jwt) : "vet_staff";
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", jwt.getSubject());
         response.put("email", jwt.getClaimAsString("email"));
         response.put("role", role);
+        response.put("clinicMemberships", activeMemberships.stream()
+                .map(com.vettrack.api.clinic.dto.ClinicMembershipResponse::fromEntity)
+                .toList());
 
-        if ("vet_staff".equalsIgnoreCase(role)) {
-            VetStaff vetStaff = vetStaffService.getOrCreateByUserId(userId, jwt);
-            response.put("profile", vetStaff);
-        } else {
-            // Default to owner for any role that is not explicitly vet_staff, including
-            // legacy tokens without a role claim.
+        {
             Owner owner = ownerService.getOwnerById(userId);
-            response.put("profile", owner);
+            if (Boolean.FALSE.equals(owner.getIsActive())) {
+                throw new com.vettrack.api.common.exception.UnauthorizedException("Kullanıcı hesabı pasife alınmıştır.");
+            }
+            response.put("profile", com.vettrack.api.owner.dto.OwnerResponse.fromEntity(owner));
         }
 
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Reads the role from user_metadata.role first (set by frontend at signup / OAuth),
-     * falling back to the top-level 'role' claim for backward compatibility.
-     */
+    @DeleteMapping("/me")
+    @Operation(summary = "Kullanıcı Hesabını Sil (Soft Delete)", description = "Oturum açmış kullanıcının hesabını ve pet'lerini pasife alır (soft-delete), ilişkisel verileri korur ve aktif oturumunu geçersiz kılar.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Hesap ve bağlı tüm pet'ler başarıyla pasife alındı"),
+        @ApiResponse(responseCode = "401", description = "Yetkisiz erişim")
+    })
+    public ResponseEntity<Void> deleteMyAccount(@AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        UUID userId = UUID.fromString(jwt.getSubject());
+        authService.softDeleteUserAccount(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/register")
+    @Operation(summary = "Yeni Kullanıcı Kaydı")
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse resp = authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "Kullanıcı Girişi")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse resp = authService.login(request);
+        return ResponseEntity.ok(resp);
+    }
+
+    @PostMapping("/resend-verification")
+    @Operation(summary = "Doğrulama E-postasını Tekrar Gönder")
+    public ResponseEntity<Map<String, String>> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
+        authService.resendVerification(request.getEmail());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Doğrulama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin.");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Şifre Sıfırlama Bağlantısı Gönder", description = "Kullanıcının e-posta adresine şifre sıfırlama bağlantısı gönderir. User Enumeration koruması uygulanır.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "İstek alındı, e-posta gönderildi (veya e-posta kayıtlı değilse bile başarılı dönüldü)")
+    })
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Eğer e-posta adresi sistemimizde kayıtlıysa, şifre sıfırlama bağlantısı gönderilmiştir.");
+        return ResponseEntity.ok(response);
+    }
+
     @SuppressWarnings("unchecked")
     private String resolveRole(Jwt jwt) {
         Object userMetadata = jwt.getClaim("user_metadata");
@@ -81,34 +124,5 @@ public class AuthController {
         }
         String topLevel = jwt.getClaimAsString("role");
         return (topLevel == null || topLevel.isBlank()) ? "owner" : topLevel;
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse resp = authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse resp = authService.login(request);
-        return ResponseEntity.ok(resp);
-    }
-
-    /**
-     * Resends the Supabase signup confirmation email.
-     * <p>
-     * Always returns 200 OK regardless of whether the email exists or is already confirmed —
-     * this prevents user enumeration. Real infrastructure errors (Supabase down, network) still
-     * surface as 5xx via the global exception handler.
-     * <p>
-     * Rate limited to 3 requests / hour / IP by RateLimitingFilter.
-     */
-    @PostMapping("/resend-verification")
-    public ResponseEntity<Map<String, String>> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
-        authService.resendVerification(request.getEmail());
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Doğrulama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin.");
-        return ResponseEntity.ok(response);
     }
 }

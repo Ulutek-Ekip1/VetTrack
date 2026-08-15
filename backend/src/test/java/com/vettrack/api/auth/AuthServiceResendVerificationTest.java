@@ -8,6 +8,7 @@ import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Map;
 
@@ -89,5 +90,25 @@ class AuthServiceResendVerificationTest {
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> authService.resendVerification("user@example.com"));
         assertTrue(ex.getMessage().contains("resend failed"));
+    }
+
+    @Test
+    void shouldAppendRedirectToWhenEmailRedirectConfigured() {
+        ReflectionTestUtils.setField(authService, "emailRedirectUrl", "vettrack://login-callback/");
+        when(restTemplate.exchange(
+                anyString(), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)
+        )).thenReturn(new ResponseEntity<>(Map.of(), HttpStatus.OK));
+
+        authService.resendVerification("user@example.com");
+
+        verify(restTemplate).exchange(
+                argThat((String url) -> url != null
+                        && url.startsWith(SUPABASE_URL + "/auth/v1/resend")
+                        && url.contains("redirect_to=")
+                        && url.contains("login-callback")),
+                eq(HttpMethod.POST),
+                any(HttpEntity.class),
+                any(ParameterizedTypeReference.class)
+        );
     }
 }
