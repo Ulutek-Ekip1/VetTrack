@@ -93,8 +93,8 @@ public class TreatmentController {
 
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
-        if (!pet.getOwnerId().equals(currentUserId)) {
-            clinicAccessService.requireVisitAccess(currentUserId, visitId);
+        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu ziyaretin tedavi kaydına erişim yetkiniz yok");
         }
 
         return ResponseEntity.ok(treatmentService.getTreatmentsByVisit(visitId, status));
