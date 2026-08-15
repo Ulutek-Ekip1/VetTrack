@@ -36,7 +36,7 @@ public class PetController {
 
     private final PetService petService;
     private final VisitService visitService;
-    private final com.vettrack.api.clinic.ClinicMembershipService clinicMembershipService;
+
     @PostMapping
     @Operation(summary = "Yeni Pet Ekle", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
@@ -101,7 +101,6 @@ public class PetController {
             return ResponseEntity.ok(PetResponse.fromEntity(pet));
         }
         if (isVetStaff) {
-            requireVetHasPetInClinic(currentUserId, pet.getId());
             return ResponseEntity.ok(PetResponse.fromEntity(pet));
         }
 
@@ -132,14 +131,7 @@ public class PetController {
             return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
         }
         if (isVetStaff) {
-            var activeClinics = clinicMembershipService.getMembershipsByUser(currentUserId).stream()
-                    .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
-                    .map(com.vettrack.api.clinic.ClinicMembership::getClinicId)
-                    .toList();
-            if (activeClinics.isEmpty()) {
-                throw new AccessDeniedException("Aktif bir klinik üyeliğiniz bulunmamaktadır.");
-            }
-            return ResponseEntity.ok(visitService.getVisitsByPetIdAndClinicIdsPaginated(id, activeClinics, pageable));
+            return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
         }
         if (!pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
@@ -169,7 +161,7 @@ public class PetController {
         if (isAdmin) {
             // Admin tüm verileri görebilir
         } else if (isVetStaff) {
-            requireVetHasPetInClinic(currentUserId, pet.getId());
+            // Vet staff tüm petlerin kilo geçmişini görebilir
         } else if (!pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu hayvanın kilo geçmişini görüntüleme yetkiniz yoktur");
         }
@@ -249,24 +241,5 @@ public class PetController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getAuthorities() == null) return false;
         return auth.getAuthorities().stream().anyMatch(a -> role.equals(a.getAuthority()));
-    }
-
-    /**
-     * Vet_staff kullanıcısının aktif kliniklerinden birinde bu pet'in ziyareti olup olmadığını doğrular.
-     * Yoksa AccessDeniedException fırlatır.
-     */
-    private void requireVetHasPetInClinic(UUID vetUserId, UUID petId) {
-        var activeClinics = clinicMembershipService.getMembershipsByUser(vetUserId).stream()
-                .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
-                .map(com.vettrack.api.clinic.ClinicMembership::getClinicId)
-                .toList();
-        if (activeClinics.isEmpty()) {
-            throw new AccessDeniedException("Aktif bir klinik üyeliğiniz bulunmamaktadır.");
-        }
-        boolean hasPetInClinic = visitService.getVisitsByPetId(petId).stream()
-                .anyMatch(v -> v.getClinicId() != null && activeClinics.contains(v.getClinicId()));
-        if (!hasPetInClinic) {
-            throw new AccessDeniedException("Bu hayvanın verilerine erişim yetkiniz yok.");
-        }
     }
 }

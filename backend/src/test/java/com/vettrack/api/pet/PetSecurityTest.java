@@ -11,12 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 import com.vettrack.api.clinic.ClinicMembership;
 import com.vettrack.api.clinic.ClinicMembershipRepository;
-import com.vettrack.api.visit.Visit;
-import com.vettrack.api.visit.VisitRepository;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -51,8 +48,6 @@ class PetSecurityTest {
     private PetRepository petRepository;
     @Autowired
     private ClinicMembershipRepository clinicMembershipRepository;
-    @Autowired
-    private VisitRepository visitRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -222,7 +217,7 @@ class PetSecurityTest {
     }
 
     @Test
-    @DisplayName("Vet rolündeki kullanıcı aktif kliniğinde ziyareti olan peti GET /pets/{id} ile görebilmeli (200 OK)")
+    @DisplayName("Vet rolündeki kullanıcı kliniğinde ziyareti olan peti GET /pets/{id} ile görebilmeli (200 OK)")
     void whenVetRequestsOtherOwnersPet_thenReturns200OK() throws Exception {
         UUID vetUserId = UUID.randomUUID();
         UUID clinicId = UUID.randomUUID();
@@ -233,15 +228,7 @@ class PetSecurityTest {
         membership.setStatus("active");
         clinicMembershipRepository.save(membership);
 
-        // Pet'in bu klinikte ziyareti olmalı
-        visitRepository.save(Visit.builder()
-                .petId(owner1Pet.getId())
-                .vetStaffId(vetUserId)
-                .clinicId(clinicId)
-                .status("completed")
-                .startedAt(OffsetDateTime.now())
-                .build());
-
+        // Vet her peti görebilir — klinikte ziyaret şartı YOK
         mockMvc.perform(get("/pets/" + owner1Pet.getId())
                 .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()))
                         .authorities(new SimpleGrantedAuthority("ROLE_VET_STAFF"))))
@@ -249,8 +236,8 @@ class PetSecurityTest {
     }
 
     @Test
-    @DisplayName("Vet rolündeki kullanıcı kliniğinde ziyareti olmayan peti GET /pets/{id} ile göremez (403)")
-    void whenVetRequestsPetWithoutClinicVisit_thenReturns403() throws Exception {
+    @DisplayName("Vet rolündeki kullanıcı kliniğinde ziyareti olmayan peti GET /pets/{id} ile yine görebilmeli (200 OK) — vet global okuma yetkisine sahip")
+    void whenVetRequestsPetWithoutClinicVisit_thenReturns200OK() throws Exception {
         UUID vetUserId = UUID.randomUUID();
         UUID clinicId = UUID.randomUUID();
         ClinicMembership membership = new ClinicMembership();
@@ -260,11 +247,11 @@ class PetSecurityTest {
         membership.setStatus("active");
         clinicMembershipRepository.save(membership);
 
-        // Bu pet'in vet'in kliniğinde ziyareti YOK
+        // Bu pet'in vet'in kliniğinde ziyareti YOK — ama vet yine de görebilir
         mockMvc.perform(get("/pets/" + owner1Pet.getId())
                 .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()))
                         .authorities(new SimpleGrantedAuthority("ROLE_VET_STAFF"))))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test

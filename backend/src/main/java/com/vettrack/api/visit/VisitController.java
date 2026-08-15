@@ -116,16 +116,7 @@ public class VisitController {
 
         List<Visit> allVisits;
         if (isVetOrAdmin()) {
-            var activeClinics = membershipService.getMembershipsByUser(currentUserId).stream()
-                    .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
-                    .map(com.vettrack.api.clinic.ClinicMembership::getClinicId)
-                    .toList();
-            if (activeClinics.isEmpty()) {
-                throw new AccessDeniedException("Aktif bir klinik üyeliğiniz bulunmamaktadır.");
-            }
-            allVisits = visitService.getVisitsByPetId(pet.getId()).stream()
-                    .filter(v -> v.getClinicId() != null && activeClinics.contains(v.getClinicId()))
-                    .toList();
+            allVisits = visitService.getVisitsByPetId(pet.getId());
         } else {
             allVisits = visitService.getVisitsByPetId(pet.getId());
         }
@@ -156,16 +147,7 @@ public class VisitController {
         }
 
         if (isVet) {
-            var activeClinics = membershipService.getMembershipsByUser(currentUserId).stream()
-                    .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
-                    .map(com.vettrack.api.clinic.ClinicMembership::getClinicId)
-                    .toList();
-            if (activeClinics.isEmpty()) {
-                throw new AccessDeniedException("Aktif bir klinik üyeliğiniz bulunmamaktadır.");
-            }
-            return ResponseEntity.ok(visitService.getVisitsByPetId(petId).stream()
-                    .filter(v -> v.getClinicId() != null && activeClinics.contains(v.getClinicId()))
-                    .toList());
+            return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
         }
 
         if (!pet.getOwnerId().equals(currentUserId)) {
