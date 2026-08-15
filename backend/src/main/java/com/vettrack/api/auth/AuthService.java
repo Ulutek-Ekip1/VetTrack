@@ -1,21 +1,33 @@
 package com.vettrack.api.auth;
 
+import com.vettrack.api.common.exception.ApiException;
 import com.vettrack.api.common.exception.ConflictException;
+import com.vettrack.api.common.exception.ErrorCode;
+import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
+import com.vettrack.api.pet.Pet;
+import com.vettrack.api.pet.PetRepository;
+import com.vettrack.api.clinic.ClinicMembershipService;
+
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +39,13 @@ public class AuthService {
     private final String supabaseUrl;
     private final String supabaseServiceKey;
     private final OwnerRepository ownerRepository;
+    private final ClinicMembershipService clinicMembershipService;
+
+    private final PetRepository petRepository;
     private final RestTemplate restTemplate;
+
+    @Value("${supabase.auth.email-redirect-url:vettrack://login-callback/}")
+    private String emailRedirectUrl;
 
     public AuthService(
             @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
@@ -35,15 +53,42 @@ public class AuthService {
             OwnerRepository ownerRepository,
             RestTemplate restTemplate
     ) {
+        this(supabaseUrl, supabaseServiceKey, ownerRepository, null, null, restTemplate);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public AuthService(
+            @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
+            @Value("${supabase.service-key:${SUPABASE_SERVICE_KEY:}}") String supabaseServiceKey,
+            OwnerRepository ownerRepository,
+              ClinicMembershipService clinicMembershipService,
+              PetRepository petRepository,
+            RestTemplate restTemplate
+    ) {
         this.supabaseUrl = supabaseUrl;
         this.supabaseServiceKey = supabaseServiceKey;
         this.ownerRepository = ownerRepository;
+        this.clinicMembershipService = clinicMembershipService;
+        this.petRepository = petRepository;
         this.restTemplate = restTemplate;
+    }
+
+    /**
+     * Supabase e-posta akışlarına (signup/recover/resend) mobil deep-link için redirect_to ekler.
+     * URL, Supabase Dashboard'daki Redirect URLs allowlist'inde birebir bulunmalıdır.
+     * Boşsa (ör. testlerde) URL değiştirilmeden döner.
+     */
+    private String withRedirect(String baseUrl) {
+        if (!StringUtils.hasText(emailRedirectUrl)) {
+            return baseUrl;
+        }
+        String separator = baseUrl.contains("?") ? "&" : "?";
+        return baseUrl + separator + "redirect_to=" + URLEncoder.encode(emailRedirectUrl, StandardCharsets.UTF_8);
     }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        String url = supabaseUrl + "/auth/v1/signup";
+        String url = withRedirect(supabaseUrl + "/auth/v1/signup");
 
         Map<String, Object> body = new HashMap<>();
         body.put("email", request.getEmail());
@@ -65,15 +110,14 @@ public class AuthService {
                     url, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
             );
 
-            AuthResponse authResponse = mapToAuthResponse(resp.getBody());
-            return authResponse;
+            return mapToAuthResponse(resp.getBody());
         } catch (HttpClientErrorException ex) {
             HttpStatusCode status = ex.getStatusCode();
             String responseBody = ex.getResponseBodyAsString();
-            if (status.value() == HttpStatus.CONFLICT.value() || 
-                status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value() || 
+            if (status.value() == HttpStatus.CONFLICT.value() ||
+                status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value() ||
                 status.value() == 422 ||
-                responseBody.contains("already_exists") || 
+                responseBody.contains("already_exists") ||
                 responseBody.contains("already registered") ||
                 responseBody.contains("user_already_exists")) {
                 throw new ConflictException("EMAIL_ALREADY_EXISTS");
@@ -88,8 +132,6 @@ public class AuthService {
             throw new RuntimeException("Registration failed: " + ex.getMessage(), ex);
         }
     }
-
-
 
     public AuthResponse login(LoginRequest request) {
         String url = supabaseUrl + "/auth/v1/token?grant_type=password";
@@ -123,17 +165,8 @@ public class AuthService {
         }
     }
 
-    /**
-     * Triggers Supabase to resend the signup confirmation email.
-     * <p>
-     * To prevent user enumeration, this method never throws for "user not found" or
-     * "already confirmed" states — the controller returns 200 OK regardless. Real
-     * infrastructure errors (5xx, network) still propagate as RuntimeException.
-     * <p>
-     * Rate limiting is enforced upstream by RateLimitingFilter (3 requests / hour / IP).
-     */
     public void resendVerification(String email) {
-        String url = supabaseUrl + "/auth/v1/resend";
+        String url = withRedirect(supabaseUrl + "/auth/v1/resend");
 
         Map<String, Object> body = new HashMap<>();
         body.put("type", "signup");
@@ -151,8 +184,6 @@ public class AuthService {
             HttpStatusCode status = ex.getStatusCode();
             String responseBody = ex.getResponseBodyAsString();
 
-            // Silently swallow client errors to prevent user enumeration.
-            // Supabase returns 400/422 for "user not found" or "already confirmed" — both are treated as success.
             if (status.is4xxClientError()) {
                 log.info("Supabase resend returned {} for email hash={} — treating as success (enumeration guard)",
                         status.value(), Integer.toHexString(email.hashCode()));
@@ -164,6 +195,91 @@ public class AuthService {
         } catch (Exception ex) {
             log.error("Supabase resend failed: {}", ex.getMessage());
             throw new RuntimeException("Verification email resend failed: " + ex.getMessage(), ex);
+        }
+    }
+
+    public void forgotPassword(String email) {
+        String url = withRedirect(supabaseUrl + "/auth/v1/recover");
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("email", email);
+
+        HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        try {
+            restTemplate.exchange(
+                    url, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+            log.info("Password reset link requested for email hash={}", Integer.toHexString(email.hashCode()));
+        } catch (HttpClientErrorException ex) {
+            HttpStatusCode status = ex.getStatusCode();
+            if (status.is4xxClientError()) {
+                log.info("Supabase password recovery returned {} for email hash={} - treating as success (enumeration guard)",
+                        status.value(), Integer.toHexString(email.hashCode()));
+                return;
+            }
+            log.error("Supabase password recovery failed with status {}: {}", status.value(), ex.getResponseBodyAsString());
+            throw new RuntimeException("Password recovery failed: " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            log.error("Supabase password recovery failed: {}", ex.getMessage());
+            throw new RuntimeException("Password recovery failed: " + ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Soft-deletes user profiles and all owned pets, while enforcing Supabase account ban (876600h).
+     */
+    @Transactional
+    public void softDeleteUserAccount(UUID userId) {
+        boolean found = false;
+
+        Optional<Owner> ownerOpt = ownerRepository.findById(userId);
+        if (ownerOpt.isPresent()) {
+            Owner owner = ownerOpt.get();
+            owner.setIsActive(false);
+            owner.setUpdatedAt(OffsetDateTime.now());
+            ownerRepository.save(owner);
+            found = true;
+            log.info("Soft-deleted owner profile in database for userId={}", userId);
+        }
+
+
+
+        if (clinicMembershipService != null) {
+            clinicMembershipService.disableAllMemberships(userId);
+            log.info("Disabled all clinic memberships for userId={}", userId);
+        }
+
+        // Soft-delete all pets owned by the user according to API contract specification
+        if (petRepository != null) {
+            List<Pet> pets = petRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId);
+            for (Pet pet : pets) {
+                pet.setIsActive(false);
+                pet.setDeletedAt(OffsetDateTime.now());
+                petRepository.save(pet);
+            }
+            log.info("Soft-deleted {} pets owned by userId={}", pets.size(), userId);
+        }
+
+        // Enforce account ban in Supabase Admin API so user cannot log back in or generate new tokens
+        if (StringUtils.hasText(supabaseUrl) && StringUtils.hasText(supabaseServiceKey)) {
+            String adminUrl = supabaseUrl + "/auth/v1/admin/users/" + userId;
+            Map<String, Object> body = new HashMap<>();
+            body.put("ban_duration", "876600h"); // Ban user for 100 years
+            Map<String, Object> userMetadata = new HashMap<>();
+            userMetadata.put("is_active", false);
+            body.put("user_metadata", userMetadata);
+
+            HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            try {
+                restTemplate.exchange(adminUrl, HttpMethod.PUT, entity, Map.class);
+                log.info("Banned user in Supabase Auth and marked inactive for userId={}", userId);
+            } catch (Exception e) {
+                log.warn("Supabase Admin API user ban call failed for userId={}: {}", userId, e.getMessage());
+            }
         }
     }
 

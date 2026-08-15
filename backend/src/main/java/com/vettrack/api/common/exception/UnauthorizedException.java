@@ -1,16 +1,16 @@
 package com.vettrack.api.common.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(HttpStatus.UNAUTHORIZED)
-public class UnauthorizedException extends RuntimeException {
+public class UnauthorizedException extends ApiException {
 
     public UnauthorizedException(String message) {
-        super(message);
+        super(ErrorCode.UNAUTHORIZED, message);
+    }
+
+    public UnauthorizedException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
     }
 
     public UnauthorizedException(String message, Throwable cause) {
-        super(message, cause);
+        super(ErrorCode.UNAUTHORIZED, message, cause);
     }
 }

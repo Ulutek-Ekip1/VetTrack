@@ -6,6 +6,12 @@ import 'package:vettrack_frontend/core/constants/app_constants.dart';
 import '../network/auth_interceptor.dart';
 import '../../features/auth/data/datasources/token_local_data_source.dart';
 
+// AI Imports
+import 'package:vettrack_frontend/features/ai/data/datasources/ai_remote_datasource.dart';
+import 'package:vettrack_frontend/features/ai/data/repositories/ai_repository_impl.dart';
+import 'package:vettrack_frontend/features/ai/domain/repositories/ai_repository.dart';
+import 'package:vettrack_frontend/features/ai/presentation/cubit/ai_chat_cubit.dart';
+
 // Pet Imports
 import 'package:vettrack_frontend/features/pet/data/datasources/pet_remote_datasource.dart';
 import 'package:vettrack_frontend/features/pet/data/repositories/pet_repository_impl.dart';
@@ -259,5 +265,18 @@ Future<void> init() async {
       addRecommendationUseCase: sl(),
       getRecommendationsUseCase: sl(),
     ),
+  );
+
+  // ---------------------------------------------------------------------------
+  // AI FEATURE
+  // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<AiRemoteDataSource>(
+    () => AiRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<AiRepository>(
+    () => AiRepositoryImpl(sl()),
+  );
+  sl.registerFactory(
+    () => AiChatCubit(aiRepository: sl()),
   );
 }

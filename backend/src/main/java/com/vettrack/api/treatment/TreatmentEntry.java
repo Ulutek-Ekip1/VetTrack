@@ -21,8 +21,8 @@ public class TreatmentEntry {
     @Column(name = "visit_id", nullable = false)
     private UUID visitId;
 
-    @Column(name = "entry_type", nullable = false)
-    private String entryType;
+    @Column(name = "type", nullable = false)
+    private String type;
 
     @Column(nullable = false, length = 200)
     private String title;
@@ -50,6 +50,10 @@ public class TreatmentEntry {
     @Column(name = "is_editable")
     @Builder.Default
     private Boolean isEditable = true;
+
+    @Column(name = "notification_sent")
+    @Builder.Default
+    private Boolean notificationSent = false;
 
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;

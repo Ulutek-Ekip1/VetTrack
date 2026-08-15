@@ -45,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context.read<AuthCubit>().signInWithEmail(
             _emailController.text.trim(),
             _passwordController.text,
+            rememberMe: _rememberMe,
           );
     }
   }

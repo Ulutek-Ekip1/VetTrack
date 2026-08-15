@@ -37,18 +37,23 @@
 | Kod | Status | Açıklama | PRD |
 |---|---|---|---|
 | `VALIDATION_ERROR` | 400 | Zorunlu alan eksik veya format hatalı | — |
+| `MALFORMED_JSON` | 400 | İstek gövdesi (JSON) okunamadı veya bozuk | — |
 | `UNAUTHORIZED` | 401 | JWT eksik veya geçersiz | — |
 | `INVALID_CREDENTIALS` | 401 | E-posta veya şifre hatalı | FR-01 |
+| `EMAIL_NOT_VERIFIED` | 401 | E-posta doğrulanmamış, giriş engellendi | FR-01 |
 | `FORBIDDEN` | 403 | Rol yetkisiz (owner/vet_staff ayrımı) | FR-02 |
+| `ROLE_MISMATCH` | 403 | JWT rolü ile erişilen profil endpoint'i uyumsuz | FR-02 |
 | `EDIT_WINDOW_EXPIRED` | 403 | 15 dakikalık düzenleme süresi doldu | EC-08 |
 | `NOT_FOUND` | 404 | Kayıt bulunamadı | — |
 | `PET_NOT_FOUND` | 404 | Kod ile arama sonuçsuz | EC-01 |
 | `EMAIL_ALREADY_EXISTS` | 409 | E-posta zaten kayıtlı | FR-01 |
+| `CONFLICT` | 409 | Generic DB constraint ihlali (örn. EC-02'de yarış durumu) | EC-02 |
 | `VISIT_ALREADY_OPEN` | 409 | Hayvanın açık ziyareti var | EC-02 |
 | `VISIT_ALREADY_CLOSED` | 409 | Ziyaret zaten kapatılmış | — |
 | `VISIT_CLOSED` | 409 | Kapalı ziyarete giriş/öneri yapılamaz | — |
 | `FILE_TOO_LARGE` | 413 | Dosya 15MB sınırını aşıyor | EC-06 |
 | `UNSUPPORTED_FILE_TYPE` | 415 | Sadece JPEG, PNG, WebP kabul edilir | EC-06 |
+| `TOO_MANY_REQUESTS` | 429 | İstek limiti aşıldı (rate limit / Supabase e-posta limiti) | — |
 
 ---
 
@@ -194,10 +199,9 @@
 
 Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profilini döner. Frontend uygulamayı her açtığında veya login sonrasında bu endpoint'i çağırır.
 
-**JIT Provisioning:** Kullanıcının profil kaydı veritabanında yoksa (ör. Google ile ilk giriş), JWT claim'lerinden (`user_metadata.role`, `user_metadata.name` / `full_name`, `email`) otomatik olarak oluşturulur. Rol `user_metadata.role`'e göre belirlenir:
-- `owner` → `profiles` tablosuna kaydedilir (`OwnerService`)
-- `vet_staff` → `clinic_staff` tablosuna kaydedilir (`VetStaffService`)
-- Rol yoksa veya boşsa varsayılan `owner` kabul edilir
+**JIT Provisioning & Profil Yönetimi (Kart #8):** Kullanıcının profil kaydı veritabanında yoksa (ör. Google ile ilk giriş), JWT claim'lerinden (`user_metadata.name` / `full_name`, `email`) otomatik olarak `profiles` tablosuna kaydedilir (`OwnerService`).
+- Kullanıcının `vet_staff` rolü `clinic_memberships` tablosundaki aktif üyeliklerine göre belirlenir (`status = 'active'` üyeliği varsa rol `vet_staff` döner ve aktif üyelikler `clinicMemberships` listesinde sunulur).
+- Profil nesnesi (`profile`) her iki rol için de `profiles` tablosundan `OwnerResponse` formatında güvenli bir şekilde döner.
 
 **Response (200) — owner:**
 
@@ -211,8 +215,6 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
     "fullName": "Ayşe Yılmaz",
     "email": "ayse@example.com",
     "phone": "+905551234567",
-    "role": "owner",
-    "isActive": true,
     "createdAt": "2026-07-29T14:32:11Z",
     "updatedAt": "2026-07-29T14:32:11Z"
   }
@@ -226,13 +228,24 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "id": "660e8400-...",
   "email": "dr.mehmet@vetklinik.com",
   "role": "vet_staff",
+  "clinicMemberships": [
+    {
+      "id": "880e8400-...",
+      "clinicId": "990e8400-...",
+      "userId": "660e8400-...",
+      "role": "doctor",
+      "status": "active",
+      "isClinicAdmin": false,
+      "joinedAt": "2026-08-11T12:00:00Z",
+      "createdAt": "2026-08-11T12:00:00Z",
+      "updatedAt": "2026-08-11T12:00:00Z"
+    }
+  ],
   "profile": {
-    "id": "770e8400-...",
-    "userId": "660e8400-...",
-    "clinicId": null,
-    "staffRole": "vet",
-    "licenseNumber": null,
-    "isActive": true,
+    "id": "660e8400-...",
+    "fullName": "Dr. Mehmet Yılmaz",
+    "email": "dr.mehmet@vetklinik.com",
+    "phone": "+905559998877",
     "createdAt": "2026-08-11T12:00:00Z",
     "updatedAt": "2026-08-11T12:00:00Z"
   }
@@ -255,17 +268,16 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 **Kim:** Sadece `owner`. JWT gerekli.
 
-**Response (200):**
+**Response (200) — `OwnerResponse`:**
 
 ```json
 {
   "id": "550e8400-...",
-  "name": "Ayşe",
-  "surname": "Yılmaz",
+  "fullName": "Ayşe Yılmaz",
   "email": "ayse@example.com",
   "phone": "+905551234567",
-  "address": "Bursa, Nilüfer",
-  "createdAt": "2026-07-29T14:32:11Z"
+  "createdAt": "2026-07-29T14:32:11Z",
+  "updatedAt": "2026-07-29T14:32:11Z"
 }
 ```
 
@@ -281,10 +293,8 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 | Alan | Tip | Zorunlu | Açıklama |
 |---|---|---|---|
-| `name` | String | Hayır | Ad |
-| `surname` | String | Hayır | Soyad |
+| `fullName` | String | Hayır | Ad Soyad |
 | `phone` | String | Hayır | Telefon |
-| `address` | String | Hayır | Adres |
 
 **Response (200):** Güncellenmiş `OwnerResponse` (yukarıdaki şemayla aynı)
 
@@ -302,16 +312,36 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 | Alan | Tip | Zorunlu | Açıklama |
 |---|---|---|---|
-| `name` | String (1-100) | Evet | Hayvan adı |
-| `age` | Integer (0-50) | Hayır | Yaş, null olabilir |
+| `name` | String | Evet | Hayvan adı |
+| `species` | String | Evet | Tür (Kedi, Köpek vb.) |
+| `breed` | String | Hayır | Cins, null olabilir |
 | `gender` | Enum | Evet | `male`, `female`, `unknown` |
-| `breed` | String (max 100) | Hayır | Cins, null olabilir |
+| `birthDate` | Date | Hayır | Doğum tarihi (`YYYY-MM-DD`) |
+| `estimatedBirthYear` | Short | Hayır | Tahmini doğum yılı |
+| `photoUrl` | String | Hayır | Fotoğraf URL |
 
-**Response (201):** `PetResponse`
+**Response (201) — `PetResponse`:**
+
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "ownerId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Pamuk",
+  "species": "Kedi",
+  "breed": "Tekir",
+  "gender": "female",
+  "birthDate": "2022-04-15",
+  "estimatedBirthYear": 2022,
+  "photoUrl": "https://xxx.supabase.co/storage/v1/object/public/pet-photos/...",
+  "uniqueCode": "ABC123",
+  "createdAt": "2026-07-29T14:32:11Z",
+  "updatedAt": "2026-07-29T14:32:11Z"
+}
+```
 
 **Hatalar:** 400, 401, 403
 
-> Not: `uniqueCode` request'te alınmaz — sistem 6 haneli kod üretir (FR-04).
+> Not: `uniqueCode`, `createdAt`, `updatedAt` sistem tarafından üretilir. `isActive` ve `deletedAt` gibi dahili alanlar response'a dahil edilmez.
 
 ---
 
@@ -327,7 +357,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 ### GET /pets/{id} — Hayvan detayı
 
-**Kim:** Sadece hayvanın sahibi. **PRD:** FR-03.
+**Kim:** Sadece hayvanın sahibi veya `vet_staff`. **PRD:** FR-03.
 
 **Response (200):** `PetResponse`
 
@@ -339,7 +369,7 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 **Kim:** Sadece hayvanın sahibi. **PRD:** FR-03.
 
-**Request body:** `PetCreateRequest` ile aynı alanlar, hepsi opsiyonel. `uniqueCode` ve `photoUrl` güncellenemez.
+**Request body:** `PetUpdateRequest` (tüm alanlar opsiyonel). `uniqueCode` ve `photoUrl` güncellenemez.
 
 **Response (200):** `PetResponse`
 
@@ -454,9 +484,11 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 **Response (201):** `VisitResponse`
 
-**Hatalar:** 400, 401, 403, 404, 409 (`VISIT_ALREADY_OPEN`)
+**Hatalar:** 400, 401, 403, 404, 409 (`VISIT_ALREADY_OPEN` veya `CONFLICT`)
 
 > Not: `vetStaffId` JWT'den çıkarılır. `status` otomatik `ongoing`, `startedAt` otomatik şu an.
+>
+> **EC-02 — 409 davranışı:** Normalde uygulama seviyesindeki kontrol açık ziyareti erkenden yakalar ve `VISIT_ALREADY_OPEN` döner. Aynı hayvana eş zamanlı iki istek gelirse (nadir bir yarış durumu), uygulama kontrolü ikisini de geçebilir — bu durumda DB seviyesindeki partial unique index (`idx_visits_active_pet`) ikinciyi reddeder ve generic `CONFLICT` error code'u döner (spesifik `VISIT_ALREADY_OPEN` değil). Frontend her iki 409 durumunda da aynı şekilde davranmalı: "bu hayvanın zaten açık bir ziyareti var" mesajı gösterip mevcut açık ziyareti tekrar çekmeli (retry ile otomatik tekrar oluşturmaya çalışmamalı).
 
 ---
 

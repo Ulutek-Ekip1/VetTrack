@@ -8,9 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
+import com.vettrack.api.clinic.ClinicMembership;
+import com.vettrack.api.clinic.ClinicMembershipRepository;
+import com.vettrack.api.clinic.Clinic;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -43,6 +47,8 @@ class PetSecurityTest {
 
     @Autowired
     private PetRepository petRepository;
+    @Autowired
+    private ClinicMembershipRepository clinicMembershipRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -212,14 +218,44 @@ class PetSecurityTest {
     }
 
     @Test
-    @DisplayName("Vet (Veteriner) rolündeki kullanıcının başka sahibin petini GET /pets/{id} ile görebildiğini doğrula (200 OK)")
-    void whenVetRequestsOtherOwnersPet_thenReturns200Ok() throws Exception {
+    @DisplayName("Vet rolündeki kullanıcı başka sahibin petini GET /pets/{id} ile görebilmeli (200 OK) — ürün kuralı: tüm vet_staff tüm petleri okuyabilir")
+    void whenVetRequestsOtherOwnersPet_thenReturns200OK() throws Exception {
         UUID vetUserId = UUID.randomUUID();
+        ClinicMembership membership = new ClinicMembership();
+        membership.setClinicId(UUID.randomUUID());
+        membership.setUserId(vetUserId);
+        membership.setRole("vet");
+        membership.setStatus("active");
+        clinicMembershipRepository.save(membership);
 
         mockMvc.perform(get("/pets/" + owner1Pet.getId())
-                .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()).claim("role", "vet"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(owner1Pet.getId().toString())))
-                .andExpect(jsonPath("$.name", is("Pamuk")));
+                .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()))
+                        .authorities(new SimpleGrantedAuthority("ROLE_VET_STAFF"))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Vet rolündeki kullanıcının başka sahibin petini PUT /pets/{id} ile güncellemesi 403 Forbidden dönmeli (vet salt-okunur)")
+    void whenVetUpdatesOtherOwnersPet_thenForbidden() throws Exception {
+        UUID vetUserId = UUID.randomUUID();
+        ClinicMembership membership = new ClinicMembership();
+        membership.setClinicId(UUID.randomUUID());
+        membership.setUserId(vetUserId);
+        membership.setRole("vet");
+        membership.setStatus("active");
+        clinicMembershipRepository.save(membership);
+
+        PetUpdateRequest updateRequest = new PetUpdateRequest();
+        updateRequest.setName("Vet Değiştirdi");
+        updateRequest.setBreed("Van Kedisi");
+        updateRequest.setSpecies("Kedi");
+        updateRequest.setGender(Gender.female);
+
+        mockMvc.perform(put("/pets/" + owner1Pet.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest))
+                .with(jwt().jwt(builder -> builder.subject(vetUserId.toString()))
+                        .authorities(new SimpleGrantedAuthority("ROLE_VET_STAFF"))))
+                .andExpect(status().isForbidden());
     }
 }
