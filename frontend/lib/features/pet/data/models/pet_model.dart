@@ -62,11 +62,9 @@ class PetModel extends PetEntity {
 
     final List<dynamic>? weightHistoryJson =
         json['weightHistory'] as List<dynamic>?;
-    final List<PetWeightModel>? parsedWeightHistory = weightHistoryJson != null
-        ? weightHistoryJson
-            .map((e) => PetWeightModel.fromJson(e as Map<String, dynamic>))
-            .toList()
-        : null;
+    final List<PetWeightModel>? parsedWeightHistory = weightHistoryJson
+        ?.map((e) => PetWeightModel.fromJson(e as Map<String, dynamic>))
+        .toList();
 
     return PetModel(
       id: json['id'] as String,
