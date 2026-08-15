@@ -307,6 +307,55 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /pets/{id}/weight-history:
+    get:
+      tags: [Pets]
+      summary: Hayvanın kilo geçmişini listele (Seçenek A)
+      description: |
+        Zamana bağlı kilo geçmişini kronolojik (ASC) olarak döner.
+        Mobil kilo grafiği için kullanılır.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Sayfa numarası (0-indexed, opsiyonel)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: Sayfa boyutu (opsiyonel)
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Sıralama alanı ve yönü (örn. recordedAt,asc)
+      responses:
+        '200':
+          description: Kilo geçmişi listesi (varsayılan: dizi, sayfalama talep edildiğinde Page nesnesi)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/PetWeightHistoryResponse'
+                  - $ref: '#/components/schemas/PagePetWeightHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /pets/{id}/photo:
     post:
       tags: [Pets]
@@ -1168,6 +1217,35 @@ components:
           type: string
           nullable: true
           format: uri
+        weight:
+          type: number
+          format: double
+          nullable: true
+          example: 23.0
+        microchipNo:
+          type: string
+          nullable: true
+          example: "900215000123456"
+        isSpayedOrNeutered:
+          type: boolean
+          nullable: true
+          example: true
+        bloodType:
+          type: string
+          nullable: true
+          example: "DEA 1.1 (+)"
+        color:
+          type: string
+          nullable: true
+          example: "Golden"
+        allergies:
+          type: string
+          nullable: true
+          example: "Tavuk proteinine alerjik."
+        chronicIllnesses:
+          type: string
+          nullable: true
+          example: "Yok"
 
     PetUpdateRequest:
       type: object
@@ -1192,6 +1270,33 @@ components:
           nullable: true
         estimatedBirthYear:
           type: integer
+          nullable: true
+        weight:
+          type: number
+          format: double
+          nullable: true
+          example: 23.0
+        microchipNo:
+          type: string
+          nullable: true
+          example: "900215000123456"
+        isSpayedOrNeutered:
+          type: boolean
+          nullable: true
+          example: true
+        bloodType:
+          type: string
+          nullable: true
+          example: "DEA 1.1 (+)"
+        color:
+          type: string
+          nullable: true
+          example: "Golden"
+        allergies:
+          type: string
+          nullable: true
+        chronicIllnesses:
+          type: string
           nullable: true
 
     PetResponse:
@@ -1230,6 +1335,35 @@ components:
           type: string
           nullable: true
           format: uri
+        weight:
+          type: number
+          format: double
+          nullable: true
+          example: 23.0
+        microchipNo:
+          type: string
+          nullable: true
+          example: "900215000123456"
+        isSpayedOrNeutered:
+          type: boolean
+          nullable: true
+          example: true
+        bloodType:
+          type: string
+          nullable: true
+          example: "DEA 1.1 (+)"
+        color:
+          type: string
+          nullable: true
+          example: "Golden"
+        allergies:
+          type: string
+          nullable: true
+          example: "Tavuk proteinine alerjik."
+        chronicIllnesses:
+          type: string
+          nullable: true
+          example: "Yok"
         uniqueCode:
           type: string
           minLength: 6
@@ -1242,6 +1376,47 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    PetWeightHistoryResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2026-03-15"
+        weight:
+          type: number
+          format: double
+          example: 21.0
+
+    PagePetWeightHistoryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PetWeightHistoryResponse'
+        totalPages:
+          type: integer
+          example: 1
+        totalElements:
+          type: integer
+          example: 3
+        size:
+          type: integer
+          example: 20
+        number:
+          type: integer
+          example: 0
+        first:
+          type: boolean
+          example: true
+        last:
+          type: boolean
+          example: true
+        empty:
+          type: boolean
+          example: false
 
     PetWithVisitsResponse:
       allOf:

@@ -319,6 +319,13 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 | `birthDate` | Date | Hayır | Doğum tarihi (`YYYY-MM-DD`) |
 | `estimatedBirthYear` | Short | Hayır | Tahmini doğum yılı |
 | `photoUrl` | String | Hayır | Fotoğraf URL |
+| `weight` | Double | Hayır | Güncel Kilo (kg), örn: 23.0 |
+| `microchipNo` | String | Hayır | Mikroçip Numarası |
+| `isSpayedOrNeutered` | Boolean | Hayır | Kısırlaştırılma durumu (true/false) |
+| `bloodType` | String | Hayır | Kan grubu, örn: "DEA 1.1 (+)" |
+| `color` | String | Hayır | Renk / Kürk Rengi |
+| `allergies` | String | Hayır | Alerjiler |
+| `chronicIllnesses` | String | Hayır | Kronik Rahatsızlıklar |
 
 **Response (201) — `PetResponse`:**
 
@@ -333,6 +340,13 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "birthDate": "2022-04-15",
   "estimatedBirthYear": 2022,
   "photoUrl": "https://xxx.supabase.co/storage/v1/object/public/pet-photos/...",
+  "weight": 23.0,
+  "microchipNo": "900215000123456",
+  "isSpayedOrNeutered": true,
+  "bloodType": "DEA 1.1 (+)",
+  "color": "Golden",
+  "allergies": "Tavuk proteinine alerjik.",
+  "chronicIllnesses": "Yok",
   "uniqueCode": "ABC123",
   "createdAt": "2026-07-29T14:32:11Z",
   "updatedAt": "2026-07-29T14:32:11Z"
@@ -365,11 +379,65 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 ---
 
+### GET /pets/{id}/weight-history — Kilo Geçmişi (Seçenek A)
+
+**Kim:** Hayvanın sahibi veya aktif `vet_staff`.
+
+Zamana bağlı kilo geçmişini kronolojik (`date ASC`) olarak listeler. Parametre verilmediğinde mobil kilo grafiği için doğrudan JSON dizisi döner; `page` veya `size` parametresi verildiğinde sayfalandırılmış `Page` nesnesi döner.
+
+**Query Parametreleri (Opsiyonel):**
+- `page`: Sayfa numarası (0-indexed, örn: 0)
+- `size`: Sayfa boyutu (örn: 20)
+- `sort`: Sıralama (varsayılan: `recordedAt,asc`)
+
+**Response (200) — Standart Dizi (Parametresiz Çağrı):**
+
+```json
+[
+  {
+    "date": "2026-03-15",
+    "weight": 21.0
+  },
+  {
+    "date": "2026-04-15",
+    "weight": 22.0
+  },
+  {
+    "date": "2026-05-15",
+    "weight": 23.0
+  }
+]
+```
+
+**Response (200) — Sayfalandırılmış (`?page=0&size=10`):**
+
+```json
+{
+  "content": [
+    {
+      "date": "2026-03-15",
+      "weight": 21.0
+    }
+  ],
+  "totalPages": 1,
+  "totalElements": 1,
+  "size": 10,
+  "number": 0,
+  "first": true,
+  "last": true,
+  "empty": false
+}
+```
+
+**Hatalar:** 401, 403, 404
+
+---
+
 ### PUT /pets/{id} — Hayvan güncelle
 
 **Kim:** Sadece hayvanın sahibi. **PRD:** FR-03.
 
-**Request body:** `PetUpdateRequest` (tüm alanlar opsiyonel). `uniqueCode` ve `photoUrl` güncellenemez.
+**Request body:** `PetUpdateRequest` (tüm alanlar opsiyonel). `uniqueCode` ve `photoUrl` güncellenemez. `weight` güncellendiğinde `pet_weight_history` tablosuna da otomatik kayıt eklenir.
 
 **Response (200):** `PetResponse`
 
@@ -417,12 +485,22 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "id": "550e8400-...",
   "ownerId": "660e8400-...",
   "name": "Boncuk",
-  "age": 3,
+  "species": "Kedi",
+  "breed": "Tekir",
   "gender": "male",
-  "breed": "Golden Retriever",
-  "uniqueCode": "7K4R9M",
+  "birthDate": "2022-04-15",
+  "estimatedBirthYear": 2022,
   "photoUrl": "https://xxx.supabase.co/storage/v1/pets/abc.jpg",
-  "createdAt": "2026-07-29T14:32:11Z"
+  "weight": 23.0,
+  "microchipNo": "900215000123456",
+  "isSpayedOrNeutered": true,
+  "bloodType": "DEA 1.1 (+)",
+  "color": "Golden",
+  "allergies": "Tavuk proteinine alerjik.",
+  "chronicIllnesses": "Yok",
+  "uniqueCode": "7K4R9M",
+  "createdAt": "2026-07-29T14:32:11Z",
+  "updatedAt": "2026-07-29T14:32:11Z"
 }
 ```
 
