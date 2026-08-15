@@ -57,6 +57,13 @@ public class PetController {
                 .birthDate(request.getBirthDate())
                 .estimatedBirthYear(request.getEstimatedBirthYear())
                 .photoUrl(request.getPhotoUrl())
+                .weight(request.getWeight())
+                .microchipNo(request.getMicrochipNo())
+                .isSpayedOrNeutered(request.getIsSpayedOrNeutered())
+                .bloodType(request.getBloodType())
+                .color(request.getColor())
+                .allergies(request.getAllergies())
+                .chronicIllnesses(request.getChronicIllnesses())
                 .build();
 
         Pet createdPet = petService.createPet(pet);
@@ -85,23 +92,21 @@ public class PetController {
             @PathVariable UUID id
     ) {
         Pet pet = petService.getPetById(id);
-        if (jwt != null) {
-            UUID ownerId = UUID.fromString(jwt.getSubject());
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
 
-            boolean isAdmin = isRole("ROLE_ADMIN");
-            boolean isVetStaff = isRole("ROLE_VET_STAFF");
+        boolean isAdmin = isRole("ROLE_ADMIN");
+        boolean isVetStaff = isRole("ROLE_VET_STAFF");
 
-            if (isAdmin) {
-                return ResponseEntity.ok(PetResponse.fromEntity(pet));
-            }
-            // Tüm vet_staff herhangi bir pet'i okuyabilir (ürün kuralı: klinik filtresi yok).
-            if (isVetStaff) {
-                return ResponseEntity.ok(PetResponse.fromEntity(pet));
-            }
+        if (isAdmin) {
+            return ResponseEntity.ok(PetResponse.fromEntity(pet));
+        }
+        if (isVetStaff) {
+            requireVetHasPetInClinic(currentUserId, pet.getId());
+            return ResponseEntity.ok(PetResponse.fromEntity(pet));
+        }
 
-            if (!pet.getOwnerId().equals(ownerId)) {
-                throw new AccessDeniedException("Bu hayvan size ait değil");
-            }
+        if (!pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu hayvan size ait değil");
         }
         return ResponseEntity.ok(PetResponse.fromEntity(pet));
     }
@@ -126,14 +131,53 @@ public class PetController {
         if (isAdmin) {
             return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
         }
-        // Tüm vet_staff herhangi bir pet'in tüm ziyaretlerini okuyabilir (ürün kuralı: klinik filtresi yok).
         if (isVetStaff) {
-            return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
+            var activeClinics = clinicMembershipService.getMembershipsByUser(currentUserId).stream()
+                    .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
+                    .map(com.vettrack.api.clinic.ClinicMembership::getClinicId)
+                    .toList();
+            if (activeClinics.isEmpty()) {
+                throw new AccessDeniedException("Aktif bir klinik üyeliğiniz bulunmamaktadır.");
+            }
+            return ResponseEntity.ok(visitService.getVisitsByPetIdAndClinicIdsPaginated(id, activeClinics, pageable));
         }
         if (!pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
         }
         return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
+    }
+
+    @GetMapping("/{id}/weight-history")
+    @Operation(summary = "Pet'in Kilo Geçmişini Listele (Seçenek A)", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Kilo geçmişi başarıyla getirildi"),
+        @ApiResponse(responseCode = "403", description = "Bu hayvanın kilo geçmişine erişim yetkiniz yok"),
+        @ApiResponse(responseCode = "404", description = "Pet bulunamadı")
+    })
+    public ResponseEntity<?> getPetWeightHistory(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @ParameterObject Pageable pageable
+    ) {
+        Pet pet = petService.getPetById(id);
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+        boolean isAdmin = isRole("ROLE_ADMIN");
+        boolean isVetStaff = isRole("ROLE_VET_STAFF");
+
+        if (isAdmin) {
+            // Admin tüm verileri görebilir
+        } else if (isVetStaff) {
+            requireVetHasPetInClinic(currentUserId, pet.getId());
+        } else if (!pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu hayvanın kilo geçmişini görüntüleme yetkiniz yoktur");
+        }
+
+        if (page != null || size != null) {
+            return ResponseEntity.ok(petService.getWeightHistoryPaginated(id, pageable));
+        }
+        return ResponseEntity.ok(petService.getWeightHistory(id));
     }
 
     @PutMapping("/{id}")
@@ -205,5 +249,24 @@ public class PetController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getAuthorities() == null) return false;
         return auth.getAuthorities().stream().anyMatch(a -> role.equals(a.getAuthority()));
+    }
+
+    /**
+     * Vet_staff kullanıcısının aktif kliniklerinden birinde bu pet'in ziyareti olup olmadığını doğrular.
+     * Yoksa AccessDeniedException fırlatır.
+     */
+    private void requireVetHasPetInClinic(UUID vetUserId, UUID petId) {
+        var activeClinics = clinicMembershipService.getMembershipsByUser(vetUserId).stream()
+                .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
+                .map(com.vettrack.api.clinic.ClinicMembership::getClinicId)
+                .toList();
+        if (activeClinics.isEmpty()) {
+            throw new AccessDeniedException("Aktif bir klinik üyeliğiniz bulunmamaktadır.");
+        }
+        boolean hasPetInClinic = visitService.getVisitsByPetId(petId).stream()
+                .anyMatch(v -> v.getClinicId() != null && activeClinics.contains(v.getClinicId()));
+        if (!hasPetInClinic) {
+            throw new AccessDeniedException("Bu hayvanın verilerine erişim yetkiniz yok.");
+        }
     }
 }

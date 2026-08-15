@@ -114,9 +114,21 @@ public class VisitController {
 
         Owner owner = ownerService.getOwnerById(pet.getOwnerId());
 
-        // Tüm vet_staff tüm kliniklerin ziyaret geçmişini okuyabilir (ürün kuralı).
-        // Klinik filtresi yalnızca yazma işlemlerinde (createVisit, closeVisit vb.) uygulanır.
-        List<Visit> allVisits = visitService.getVisitsByPetId(pet.getId());
+        List<Visit> allVisits;
+        if (isVetOrAdmin()) {
+            var activeClinics = membershipService.getMembershipsByUser(currentUserId).stream()
+                    .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
+                    .map(com.vettrack.api.clinic.ClinicMembership::getClinicId)
+                    .toList();
+            if (activeClinics.isEmpty()) {
+                throw new AccessDeniedException("Aktif bir klinik üyeliğiniz bulunmamaktadır.");
+            }
+            allVisits = visitService.getVisitsByPetId(pet.getId()).stream()
+                    .filter(v -> v.getClinicId() != null && activeClinics.contains(v.getClinicId()))
+                    .toList();
+        } else {
+            allVisits = visitService.getVisitsByPetId(pet.getId());
+        }
 
         return ResponseEntity.ok(new ActiveVisitContextResponse(
                 visit, pet, owner, allVisits
@@ -134,12 +146,26 @@ public class VisitController {
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isVetOrAdmin = auth != null && auth.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()) || "ROLE_ADMIN".equals(a.getAuthority()));
+        boolean isAdmin = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        boolean isVet = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()));
 
-        // Tüm vet_staff/admin tüm kliniklerin ziyaret geçmişini okuyabilir (ürün kuralı).
-        if (isVetOrAdmin) {
+        if (isAdmin) {
             return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
+        }
+
+        if (isVet) {
+            var activeClinics = membershipService.getMembershipsByUser(currentUserId).stream()
+                    .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
+                    .map(com.vettrack.api.clinic.ClinicMembership::getClinicId)
+                    .toList();
+            if (activeClinics.isEmpty()) {
+                throw new AccessDeniedException("Aktif bir klinik üyeliğiniz bulunmamaktadır.");
+            }
+            return ResponseEntity.ok(visitService.getVisitsByPetId(petId).stream()
+                    .filter(v -> v.getClinicId() != null && activeClinics.contains(v.getClinicId()))
+                    .toList());
         }
 
         if (!pet.getOwnerId().equals(currentUserId)) {

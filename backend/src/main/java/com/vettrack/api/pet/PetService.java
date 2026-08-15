@@ -1,7 +1,10 @@
 package com.vettrack.api.pet;
 
 import com.vettrack.api.storage.StorageService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 import com.vettrack.api.common.exception.ErrorCode;
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class PetService {
 
     private final PetRepository petRepository;
+    private final PetWeightHistoryRepository petWeightHistoryRepository;
     private final StorageService storageService;
 
     private static final String ALPHANUMERIC = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
@@ -27,7 +31,11 @@ public class PetService {
     @Transactional
     public Pet createPet(Pet pet) {
         pet.setUniqueCode(generateUniqueCode());
-        return petRepository.save(pet);
+        Pet savedPet = petRepository.save(pet);
+        if (savedPet.getWeight() != null) {
+            recordWeight(savedPet.getId(), savedPet.getWeight(), LocalDate.now(), savedPet.getOwnerId());
+        }
+        return savedPet;
     }
 
     @Transactional(readOnly = true)
@@ -59,14 +67,70 @@ public class PetService {
     public Pet updatePet(UUID id, PetUpdateRequest request) {
         Pet existingPet = getPetById(id);
 
-        if (request.getName() != null) existingPet.setName(request.getName());
+        if (request.getName() != null) {
+            if (request.getName().isBlank()) {
+                throw new IllegalArgumentException("Pet adı boş olamaz");
+            }
+            existingPet.setName(request.getName());
+        }
         if (request.getSpecies() != null) existingPet.setSpecies(request.getSpecies());
         if (request.getBreed() != null) existingPet.setBreed(request.getBreed());
         if (request.getGender() != null) existingPet.setGender(request.getGender());
         if (request.getBirthDate() != null) existingPet.setBirthDate(request.getBirthDate());
         if (request.getEstimatedBirthYear() != null) existingPet.setEstimatedBirthYear(request.getEstimatedBirthYear());
+        if (request.getWeight() != null) {
+            existingPet.setWeight(request.getWeight());
+            recordWeight(existingPet.getId(), request.getWeight(), LocalDate.now(), existingPet.getOwnerId());
+        }
+        if (request.getMicrochipNo() != null) existingPet.setMicrochipNo(request.getMicrochipNo());
+        if (request.getIsSpayedOrNeutered() != null) existingPet.setIsSpayedOrNeutered(request.getIsSpayedOrNeutered());
+        if (request.getBloodType() != null) existingPet.setBloodType(request.getBloodType());
+        if (request.getColor() != null) existingPet.setColor(request.getColor());
+        if (request.getAllergies() != null) existingPet.setAllergies(request.getAllergies());
+        if (request.getChronicIllnesses() != null) existingPet.setChronicIllnesses(request.getChronicIllnesses());
 
         return petRepository.save(existingPet);
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.vettrack.api.pet.dto.PetWeightHistoryResponse> getWeightHistory(UUID petId) {
+        getPetById(petId);
+        return petWeightHistoryRepository.findByPetIdOrderByRecordedAtAscCreatedAtAsc(petId).stream()
+                .map(com.vettrack.api.pet.dto.PetWeightHistoryResponse::fromEntity)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<com.vettrack.api.pet.dto.PetWeightHistoryResponse> getWeightHistoryPaginated(UUID petId, Pageable pageable) {
+        getPetById(petId);
+        return petWeightHistoryRepository.findByPetIdOrderByRecordedAtAscCreatedAtAsc(petId, pageable)
+                .map(com.vettrack.api.pet.dto.PetWeightHistoryResponse::fromEntity);
+    }
+
+    @Transactional
+    public void recordWeight(UUID petId, Double weight, LocalDate date, UUID recordedBy) {
+        if (weight == null) return;
+        if (Double.isNaN(weight) || Double.isInfinite(weight) || weight <= 0 || weight > 2000.0) {
+            throw new IllegalArgumentException("Kilo değeri 0'dan büyük ve en fazla 2000 kg olmalıdır");
+        }
+        // Son kayıtla aynı değerse tekrar ekleme
+        var lastRecord = petWeightHistoryRepository.findTopByPetIdOrderByRecordedAtDescCreatedAtDesc(petId);
+        if (lastRecord.isPresent() && lastRecord.get().getWeight().equals(weight)) {
+            return;
+        }
+        OffsetDateTime recordedAt;
+        if (date == null || date.isEqual(LocalDate.now(java.time.ZoneOffset.UTC))) {
+            recordedAt = OffsetDateTime.now(java.time.ZoneOffset.UTC);
+        } else {
+            recordedAt = date.atStartOfDay().atOffset(java.time.ZoneOffset.UTC);
+        }
+        PetWeightHistory history = PetWeightHistory.builder()
+                .petId(petId)
+                .weight(weight)
+                .recordedAt(recordedAt)
+                .recordedBy(recordedBy)
+                .build();
+        petWeightHistoryRepository.save(history);
     }
 
     @Transactional
