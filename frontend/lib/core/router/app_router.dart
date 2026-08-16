@@ -15,7 +15,6 @@ import '../../features/auth/presentation/screens/owner_profile_screen.dart';
 import '../../features/auth/presentation/screens/edit_profile_screen.dart';
 import '../../features/auth/presentation/screens/vet_profile_screen.dart';
 import '../../features/auth/presentation/cubit/profile_cubit.dart';
-import '../../features/auth/presentation/cubit/delete_account_cubit.dart';
 import '../di/injection_container.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/pet/domain/entities/pet_entity.dart';
@@ -405,10 +404,7 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.deleteAccount,
           name: 'deleteAccount',
-          builder: (context, state) => BlocProvider<DeleteAccountCubit>(
-            create: (context) => sl<DeleteAccountCubit>(),
-            child: const DeleteAccountScreen(),
-          ),
+          builder: (context, state) => const DeleteAccountScreen(),
         ),
 
         GoRoute(

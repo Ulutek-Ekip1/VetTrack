@@ -19,7 +19,7 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> signInWithGoogle();
   Future<void> reSendVerificationEmail(String email);
   Future<void> forgotPassword(String email);
-  Future<void> deleteAccount(String password);
+  Future<void> deleteAccount();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -322,11 +322,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> deleteAccount(String password) async {
+  Future<void> deleteAccount() async {
     try {
       final response = await dio.delete(
         '/auth/me',
-        data: {'password': password},
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {

@@ -5,7 +5,7 @@ class DeleteAccountUsecase {
 
   DeleteAccountUsecase(this.authRepository);
 
-  Future<void> call(String password) async {
-    await authRepository.deleteAccount(password);
+  Future<void> call() async {
+    await authRepository.deleteAccount();
   }
 }

@@ -15,8 +15,7 @@ class DeleteAccountVerifyScreen extends StatefulWidget {
       _DeleteAccountVerifyScreenState();
 }
 
-class _DeleteAccountVerifyScreenState
-    extends State<DeleteAccountVerifyScreen> {
+class _DeleteAccountVerifyScreenState extends State<DeleteAccountVerifyScreen> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
@@ -98,7 +97,8 @@ class _DeleteAccountVerifyScreenState
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: colorScheme.primaryContainer.withValues(alpha: 0.7),
+                          color: colorScheme.primaryContainer
+                              .withValues(alpha: 0.7),
                           boxShadow: [
                             BoxShadow(
                               color: colorScheme.primary.withValues(alpha: 0.1),
@@ -169,7 +169,8 @@ class _DeleteAccountVerifyScreenState
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: colorScheme.errorContainer.withValues(alpha: 0.35),
+                          color: colorScheme.errorContainer
+                              .withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: colorScheme.error.withValues(alpha: 0.25),
@@ -245,42 +246,39 @@ class _DeleteAccountVerifyScreenState
                             ),
                           ),
                           filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                          fillColor: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.3),
                         ),
                       ),
 
                       const SizedBox(height: AppDimensions.spacingLg),
 
                       // DELETE CONFIRM BUTTON
-                      Builder(
-                        builder: (buttonContext) {
-                          return SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton.icon(
-                              onPressed: () => _onDeletePressed(buttonContext),
-                              icon: const Icon(
-                                Icons.delete_forever_rounded,
-                                size: 24,
-                              ),
-                              label: const Text(
-                                'Hesabımı Kalıcı Olarak Sil',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.error,
-                                foregroundColor: colorScheme.onError,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _onDeletePressed(context),
+                          icon: const Icon(
+                            Icons.delete_forever_rounded,
+                            size: 24,
+                          ),
+                          label: const Text(
+                            'Hesabımı Kalıcı Olarak Sil',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
                             ),
-                          );
-                        },
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.error,
+                            foregroundColor: colorScheme.onError,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: AppDimensions.spacingMd),
@@ -377,4 +375,3 @@ class Loading extends StatelessWidget {
     );
   }
 }
-
