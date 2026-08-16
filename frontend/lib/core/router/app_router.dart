@@ -195,7 +195,6 @@ class AppRouter {
           path: AppRoutes.ownerEmailVerification,
           name: 'ownerEmailVerification',
           builder: (context, state) {
-            // Yönlendirme sırasında gönderilen veriyi (emaili) alıyoruz
             final passedEmail = state.extra as String? ?? '';
             return EmailVerificationScreen(email: passedEmail);
           },
@@ -394,7 +393,8 @@ class AppRouter {
           path: AppRoutes.chatbot,
           name: 'chatbot',
           builder: (context, state) {
-            final pet = state.extra is PetEntity ? state.extra as PetEntity : null;
+            final pet =
+                state.extra is PetEntity ? state.extra as PetEntity : null;
             final petId = state.uri.queryParameters['petId'] ?? pet?.id;
             return AIChatbotScreen(petId: petId, pet: pet);
           },

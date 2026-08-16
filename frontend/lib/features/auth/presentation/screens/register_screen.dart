@@ -173,9 +173,12 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                     );
                   }
                   if (state is RegistrationSuccess) {
-                    context.go(AppPlatform.isVetWebExperience
-                        ? AppRoutes.vetSearch
-                        : AppRoutes.ownerEmailVerification);
+                    context.go(
+                      AppPlatform.isVetWebExperience
+                          ? AppRoutes.vetSearch
+                          : AppRoutes.ownerEmailVerification,
+                      extra: _emailController.text.trim(),
+                    );
                   }
                 },
                 builder: (context, state) {
