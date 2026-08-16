@@ -19,6 +19,10 @@ public class Pet {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @Column(name = "owner_id", nullable = false)
     private UUID ownerId;
 
@@ -43,6 +47,27 @@ public class Pet {
 
     @Column(name = "photo_url", columnDefinition = "TEXT")
     private String photoUrl;
+
+    @Column
+    private Double weight;
+
+    @Column(name = "microchip_no", length = 50)
+    private String microchipNo;
+
+    @Column(name = "is_spayed_or_neutered")
+    private Boolean isSpayedOrNeutered;
+
+    @Column(name = "blood_type", length = 20)
+    private String bloodType;
+
+    @Column(length = 50)
+    private String color;
+
+    @Column(columnDefinition = "TEXT")
+    private String allergies;
+
+    @Column(name = "chronic_illnesses", columnDefinition = "TEXT")
+    private String chronicIllnesses;
 
     @Column(name = "unique_code", nullable = false, unique = true, length = 6)
     private String uniqueCode;

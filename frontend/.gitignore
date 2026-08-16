@@ -46,3 +46,9 @@ app.*.map.json
 
 # Local configuration
 **/android/local.properties
+
+# Firebase
+.firebase/
+*.cache
+
+

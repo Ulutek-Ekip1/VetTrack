@@ -307,6 +307,55 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /pets/{id}/weight-history:
+    get:
+      tags: [Pets]
+      summary: Hayvanın kilo geçmişini listele (Seçenek A)
+      description: |
+        Zamana bağlı kilo geçmişini kronolojik (ASC) olarak döner.
+        Mobil kilo grafiği için kullanılır.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Sayfa numarası (0-indexed, opsiyonel)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: Sayfa boyutu (opsiyonel)
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Sıralama alanı ve yönü (örn. recordedAt,asc)
+      responses:
+        '200':
+          description: Kilo geçmişi listesi (varsayılan: dizi, sayfalama talep edildiğinde Page nesnesi)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/PetWeightHistoryResponse'
+                  - $ref: '#/components/schemas/PagePetWeightHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /pets/{id}/photo:
     post:
       tags: [Pets]
@@ -522,7 +571,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Açık ziyaret zaten var (EC-02)
+          description: >
+            Açık ziyaret zaten var (EC-02). Normalde VISIT_ALREADY_OPEN döner;
+            eş zamanlı iki istekte (yarış durumu) DB seviyesindeki partial
+            unique index (idx_visits_active_pet) ikinciyi reddeder ve generic
+            CONFLICT döner. Frontend her iki durumda da aynı davranmalı:
+            mevcut açık ziyareti tekrar çek, otomatik retry yapma.
           content:
             application/json:
               schema:
@@ -1050,55 +1104,148 @@ components:
         user:
           $ref: '#/components/schemas/MeResponse'
 
+    OwnerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+          example: "Ayşe Yılmaz"
+        email:
+          type: string
+          format: email
+          example: "ayse@example.com"
+        phone:
+          type: string
+          nullable: true
+          example: "+905551234567"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ClinicMembershipResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [doctor, staff]
+          example: "doctor"
+        status:
+          type: string
+          enum: [invited, active, disabled]
+          example: "active"
+        isClinicAdmin:
+          type: boolean
+          example: false
+        joinedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
     MeResponse:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        authId:
-          type: string
-          format: uuid
         email:
           type: string
           format: email
-        name:
-          type: string
-        phone:
-          type: string
-          nullable: true
         role:
           type: string
           enum: [owner, vet_staff]
-        createdAt:
-          type: string
-          format: date-time
+        clinicMemberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicMembershipResponse'
+        profile:
+          $ref: '#/components/schemas/OwnerResponse'
 
     # -- Pets --
     PetCreateRequest:
       type: object
-      required: [name, gender]
+      required: [name, species, gender]
       properties:
         name:
           type: string
           minLength: 1
           maxLength: 100
           example: "Boncuk"
-        age:
-          type: integer
-          nullable: true
-          minimum: 0
-          maximum: 50
-          example: 3
-        gender:
+        species:
           type: string
-          enum: [male, female, unknown]
-          example: "male"
+          minLength: 1
+          example: "Kedi"
         breed:
           type: string
           nullable: true
           maxLength: 100
-          example: "Golden Retriever"
+          example: "Tekir"
+        gender:
+          type: string
+          enum: [male, female, unknown]
+          example: "male"
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2022-04-15"
+        estimatedBirthYear:
+          type: integer
+          nullable: true
+          example: 2022
+        photoUrl:
+          type: string
+          nullable: true
+          format: uri
+        weight:
+          type: number
+          format: double
+          nullable: true
+          example: 23.0
+        microchipNo:
+          type: string
+          nullable: true
+          example: "900215000123456"
+        isSpayedOrNeutered:
+          type: boolean
+          nullable: true
+          example: true
+        bloodType:
+          type: string
+          nullable: true
+          example: "DEA 1.1 (+)"
+        color:
+          type: string
+          nullable: true
+          example: "Golden"
+        allergies:
+          type: string
+          nullable: true
+          example: "Tavuk proteinine alerjik."
+        chronicIllnesses:
+          type: string
+          nullable: true
+          example: "Yok"
 
     PetUpdateRequest:
       type: object
@@ -1107,18 +1254,50 @@ components:
           type: string
           minLength: 1
           maxLength: 100
-        age:
-          type: integer
-          nullable: true
-          minimum: 0
-          maximum: 50
-        gender:
+        species:
           type: string
-          enum: [male, female, unknown]
+          minLength: 1
         breed:
           type: string
           nullable: true
           maxLength: 100
+        gender:
+          type: string
+          enum: [male, female, unknown]
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+        estimatedBirthYear:
+          type: integer
+          nullable: true
+        weight:
+          type: number
+          format: double
+          nullable: true
+          example: 23.0
+        microchipNo:
+          type: string
+          nullable: true
+          example: "900215000123456"
+        isSpayedOrNeutered:
+          type: boolean
+          nullable: true
+          example: true
+        bloodType:
+          type: string
+          nullable: true
+          example: "DEA 1.1 (+)"
+        color:
+          type: string
+          nullable: true
+          example: "Golden"
+        allergies:
+          type: string
+          nullable: true
+        chronicIllnesses:
+          type: string
+          nullable: true
 
     PetResponse:
       type: object
@@ -1131,28 +1310,113 @@ components:
           format: uuid
         name:
           type: string
-        age:
-          type: integer
-          nullable: true
-        gender:
+          example: "Boncuk"
+        species:
           type: string
-          enum: [male, female, unknown]
+          example: "Kedi"
         breed:
           type: string
           nullable: true
+          example: "Tekir"
+        gender:
+          type: string
+          enum: [male, female, unknown]
+          example: "male"
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2022-04-15"
+        estimatedBirthYear:
+          type: integer
+          nullable: true
+          example: 2022
+        photoUrl:
+          type: string
+          nullable: true
+          format: uri
+        weight:
+          type: number
+          format: double
+          nullable: true
+          example: 23.0
+        microchipNo:
+          type: string
+          nullable: true
+          example: "900215000123456"
+        isSpayedOrNeutered:
+          type: boolean
+          nullable: true
+          example: true
+        bloodType:
+          type: string
+          nullable: true
+          example: "DEA 1.1 (+)"
+        color:
+          type: string
+          nullable: true
+          example: "Golden"
+        allergies:
+          type: string
+          nullable: true
+          example: "Tavuk proteinine alerjik."
+        chronicIllnesses:
+          type: string
+          nullable: true
+          example: "Yok"
         uniqueCode:
           type: string
           minLength: 6
           maxLength: 6
           pattern: "^[A-HJ-KMN-Z2-9]{6}$"
           example: "7K4R9M"
-        photoUrl:
-          type: string
-          nullable: true
-          format: uri
         createdAt:
           type: string
           format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PetWeightHistoryResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2026-03-15"
+        weight:
+          type: number
+          format: double
+          example: 21.0
+
+    PagePetWeightHistoryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PetWeightHistoryResponse'
+        totalPages:
+          type: integer
+          example: 1
+        totalElements:
+          type: integer
+          example: 3
+        size:
+          type: integer
+          example: 20
+        number:
+          type: integer
+          example: 0
+        first:
+          type: boolean
+          example: true
+        last:
+          type: boolean
+          example: true
+        empty:
+          type: boolean
+          example: false
 
     PetWithVisitsResponse:
       allOf:

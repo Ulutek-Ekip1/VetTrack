@@ -6,7 +6,15 @@ class LoginWithEmailUseCase {
 
   LoginWithEmailUseCase(this.repository);
 
-  Future<UserEntity> call(String email, String password) async {
-    return await repository.loginWithEmail(email, password);
+  Future<UserEntity> call(
+    String email,
+    String password, {
+    bool rememberMe = false,
+  }) async {
+    return await repository.loginWithEmail(
+      email,
+      password,
+      rememberMe: rememberMe,
+    );
   }
 }

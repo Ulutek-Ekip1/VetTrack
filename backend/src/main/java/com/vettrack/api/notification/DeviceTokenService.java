@@ -1,5 +1,7 @@
 package com.vettrack.api.notification;
 
+import com.vettrack.api.common.exception.ApiException;
+import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.notification.dto.DeviceTokenRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,11 +54,14 @@ public class DeviceTokenService {
     }
 
     private Platform parsePlatform(String platformStr) {
-        if (platformStr == null) return Platform.android;
+        if (platformStr == null || platformStr.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Platform boş olamaz");
+        }
         try {
-            return Platform.valueOf(platformStr.toLowerCase());
+            return Platform.valueOf(platformStr.trim().toLowerCase(java.util.Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            return Platform.android;
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "Geçersiz platform: " + platformStr + ". İzin verilen değerler: ios, android, web");
         }
     }
 }

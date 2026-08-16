@@ -33,6 +33,7 @@ public class TreatmentController {
     private final TreatmentService treatmentService;
     private final VisitService visitService;
     private final PetService petService;
+    private final com.vettrack.api.clinic.ClinicAccessService clinicAccessService;
 
     private boolean isVetOrAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -55,13 +56,14 @@ public class TreatmentController {
         @ApiResponse(responseCode = "404", description = "Ziyaret bulunamadı"),
         @ApiResponse(responseCode = "409", description = "Ziyaret kapalı (VISIT_CLOSED)")
     })
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TreatmentEntry> createTreatment(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "Ziyaret UUID") @PathVariable UUID visitId,
             @Valid @RequestBody TreatmentCreateRequest request
     ) {
         UUID vetStaffId = UUID.fromString(jwt.getSubject());
+        clinicAccessService.requireVisitAccess(vetStaffId, visitId);
         TreatmentEntry entry = treatmentService.createTreatment(visitId, request, vetStaffId);
         return ResponseEntity.status(HttpStatus.CREATED).body(entry);
     }
@@ -92,7 +94,7 @@ public class TreatmentController {
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
         if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
-            throw new AccessDeniedException("Bu ziyaretin tedavi geçmişine erişim yetkiniz yok");
+            throw new AccessDeniedException("Bu ziyaretin tedavi kaydına erişim yetkiniz yok");
         }
 
         return ResponseEntity.ok(treatmentService.getTreatmentsByVisit(visitId, status));
@@ -127,13 +129,14 @@ public class TreatmentController {
         @ApiResponse(responseCode = "403", description = "Düzenleme süresi doldu (EDIT_WINDOW_EXPIRED) veya başkasının kaydı"),
         @ApiResponse(responseCode = "404", description = "Tedavi kaydı bulunamadı")
     })
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TreatmentEntry> updateTreatment(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "Tedavi UUID") @PathVariable UUID id,
             @RequestBody TreatmentUpdateRequest request
     ) {
         UUID vetStaffId = UUID.fromString(jwt.getSubject());
+        clinicAccessService.requireVisitAccess(vetStaffId, treatmentService.getVisitIdForTreatment(id));
         return ResponseEntity.ok(treatmentService.updateTreatment(id, request, vetStaffId));
     }
 
@@ -149,12 +152,13 @@ public class TreatmentController {
         @ApiResponse(responseCode = "403", description = "Düzenleme süresi doldu (EDIT_WINDOW_EXPIRED) veya başkasının kaydı"),
         @ApiResponse(responseCode = "404", description = "Tedavi kaydı bulunamadı")
     })
-    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteTreatment(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "Tedavi UUID") @PathVariable UUID id
     ) {
         UUID vetStaffId = UUID.fromString(jwt.getSubject());
+        clinicAccessService.requireVisitAccess(vetStaffId, treatmentService.getVisitIdForTreatment(id));
         treatmentService.deleteTreatment(id, vetStaffId);
         return ResponseEntity.noContent().build();
     }

@@ -9,8 +9,9 @@ import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
-import com.vettrack.api.vetstaff.VetStaff;
-import com.vettrack.api.vetstaff.VetStaffRepository;
+import com.vettrack.api.clinic.ClinicMembershipService;
+
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -20,6 +21,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -36,9 +39,13 @@ public class AuthService {
     private final String supabaseUrl;
     private final String supabaseServiceKey;
     private final OwnerRepository ownerRepository;
-    private final VetStaffRepository vetStaffRepository;
+    private final ClinicMembershipService clinicMembershipService;
+
     private final PetRepository petRepository;
     private final RestTemplate restTemplate;
+
+    @Value("${supabase.auth.email-redirect-url:vettrack://login-callback/}")
+    private String emailRedirectUrl;
 
     public AuthService(
             @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
@@ -54,21 +61,34 @@ public class AuthService {
             @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
             @Value("${supabase.service-key:${SUPABASE_SERVICE_KEY:}}") String supabaseServiceKey,
             OwnerRepository ownerRepository,
-            VetStaffRepository vetStaffRepository,
-            PetRepository petRepository,
+              ClinicMembershipService clinicMembershipService,
+              PetRepository petRepository,
             RestTemplate restTemplate
     ) {
         this.supabaseUrl = supabaseUrl;
         this.supabaseServiceKey = supabaseServiceKey;
         this.ownerRepository = ownerRepository;
-        this.vetStaffRepository = vetStaffRepository;
+        this.clinicMembershipService = clinicMembershipService;
         this.petRepository = petRepository;
         this.restTemplate = restTemplate;
     }
 
+    /**
+     * Supabase e-posta akışlarına (signup/recover/resend) mobil deep-link için redirect_to ekler.
+     * URL, Supabase Dashboard'daki Redirect URLs allowlist'inde birebir bulunmalıdır.
+     * Boşsa (ör. testlerde) URL değiştirilmeden döner.
+     */
+    private String withRedirect(String baseUrl) {
+        if (!StringUtils.hasText(emailRedirectUrl)) {
+            return baseUrl;
+        }
+        String separator = baseUrl.contains("?") ? "&" : "?";
+        return baseUrl + separator + "redirect_to=" + URLEncoder.encode(emailRedirectUrl, StandardCharsets.UTF_8);
+    }
+
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        String url = supabaseUrl + "/auth/v1/signup";
+        String url = withRedirect(supabaseUrl + "/auth/v1/signup");
 
         Map<String, Object> body = new HashMap<>();
         body.put("email", request.getEmail());
@@ -94,10 +114,10 @@ public class AuthService {
         } catch (HttpClientErrorException ex) {
             HttpStatusCode status = ex.getStatusCode();
             String responseBody = ex.getResponseBodyAsString();
-            if (status.value() == HttpStatus.CONFLICT.value() || 
-                status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value() || 
+            if (status.value() == HttpStatus.CONFLICT.value() ||
+                status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value() ||
                 status.value() == 422 ||
-                responseBody.contains("already_exists") || 
+                responseBody.contains("already_exists") ||
                 responseBody.contains("already registered") ||
                 responseBody.contains("user_already_exists")) {
                 throw new ConflictException("EMAIL_ALREADY_EXISTS");
@@ -146,7 +166,7 @@ public class AuthService {
     }
 
     public void resendVerification(String email) {
-        String url = supabaseUrl + "/auth/v1/resend";
+        String url = withRedirect(supabaseUrl + "/auth/v1/resend");
 
         Map<String, Object> body = new HashMap<>();
         body.put("type", "signup");
@@ -179,7 +199,7 @@ public class AuthService {
     }
 
     public void forgotPassword(String email) {
-        String url = supabaseUrl + "/auth/v1/recover";
+        String url = withRedirect(supabaseUrl + "/auth/v1/recover");
 
         Map<String, Object> body = new HashMap<>();
         body.put("email", email);
@@ -224,20 +244,11 @@ public class AuthService {
             log.info("Soft-deleted owner profile in database for userId={}", userId);
         }
 
-        if (vetStaffRepository != null) {
-            Optional<VetStaff> vetStaffOpt = vetStaffRepository.findByUserId(userId);
-            if (vetStaffOpt.isPresent()) {
-                VetStaff vetStaff = vetStaffOpt.get();
-                vetStaff.setIsActive(false);
-                vetStaff.setUpdatedAt(OffsetDateTime.now());
-                vetStaffRepository.save(vetStaff);
-                found = true;
-                log.info("Soft-deleted vet_staff profile in database for userId={}", userId);
-            }
-        }
 
-        if (!found) {
-            throw new ResourceNotFoundException("Kullanıcı profili bulunamadı: " + userId);
+
+        if (clinicMembershipService != null) {
+            clinicMembershipService.disableAllMemberships(userId);
+            log.info("Disabled all clinic memberships for userId={}", userId);
         }
 
         // Soft-delete all pets owned by the user according to API contract specification

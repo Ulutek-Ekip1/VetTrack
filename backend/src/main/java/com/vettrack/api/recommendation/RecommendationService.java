@@ -8,6 +8,8 @@ import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
 import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitRepository;
+import com.vettrack.api.clinic.ClinicAccessService;
+import com.vettrack.api.clinic.ClinicMembershipService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.core.Authentication;
@@ -26,6 +28,8 @@ public class RecommendationService {
     private final RecommendationRepository recommendationRepository;
     private final VisitRepository visitRepository;
     private final PetRepository petRepository;
+    private final ClinicAccessService clinicAccessService;
+    private final ClinicMembershipService clinicMembershipService;
 
     @Transactional
     public RecommendationResponse createRecommendation(UUID visitId, RecommendationCreateRequest request, UUID createdBy) {
@@ -69,6 +73,10 @@ public class RecommendationService {
     public List<RecommendationResponse> getRecommendationsByVisitId(UUID visitId, Jwt jwt) {
         Visit visit = visitRepository.findById(visitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadi ID: " + visitId));
+        UUID userId = UUID.fromString(jwt.getSubject());
+        if (clinicMembershipService.hasActiveMembership(userId)) {
+            clinicAccessService.requireVisitAccess(userId, visitId);
+        }
         return getRecommendationsByPetId(visit.getPetId(), jwt).stream()
                 .filter(r -> r.getVisitId().equals(visitId))
                 .toList();

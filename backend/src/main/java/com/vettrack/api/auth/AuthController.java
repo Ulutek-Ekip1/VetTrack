@@ -2,8 +2,8 @@ package com.vettrack.api.auth;
 
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerService;
-import com.vettrack.api.vetstaff.VetStaff;
-import com.vettrack.api.vetstaff.VetStaffService;
+
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -29,7 +29,8 @@ public class AuthController {
 
     private final AuthService authService;
     private final OwnerService ownerService;
-    private final VetStaffService vetStaffService;
+    private final com.vettrack.api.clinic.ClinicMembershipService clinicMembershipService;
+
 
     @GetMapping("/me")
     @Operation(summary = "Mevcut Kullanıcı Profilini Getir", security = @SecurityRequirement(name = "bearerAuth"))
@@ -39,25 +40,24 @@ public class AuthController {
         }
 
         UUID userId = UUID.fromString(jwt.getSubject());
-        String role = resolveRole(jwt);
+        var activeMemberships = clinicMembershipService.getMembershipsByUser(userId).stream()
+                .filter(m -> "active".equalsIgnoreCase(m.getStatus())).toList();
+        String role = activeMemberships.isEmpty() ? resolveRole(jwt) : "vet_staff";
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", jwt.getSubject());
         response.put("email", jwt.getClaimAsString("email"));
         response.put("role", role);
+        response.put("clinicMemberships", activeMemberships.stream()
+                .map(com.vettrack.api.clinic.dto.ClinicMembershipResponse::fromEntity)
+                .toList());
 
-        if ("vet_staff".equalsIgnoreCase(role)) {
-            VetStaff vetStaff = vetStaffService.getOrCreateByUserId(userId, jwt);
-            if (Boolean.FALSE.equals(vetStaff.getIsActive())) {
-                throw new com.vettrack.api.common.exception.UnauthorizedException("Kullanıcı hesabı pasife alınmıştır.");
-            }
-            response.put("profile", vetStaff);
-        } else {
+        {
             Owner owner = ownerService.getOwnerById(userId);
             if (Boolean.FALSE.equals(owner.getIsActive())) {
                 throw new com.vettrack.api.common.exception.UnauthorizedException("Kullanıcı hesabı pasife alınmıştır.");
             }
-            response.put("profile", owner);
+            response.put("profile", com.vettrack.api.owner.dto.OwnerResponse.fromEntity(owner));
         }
 
         return ResponseEntity.ok(response);

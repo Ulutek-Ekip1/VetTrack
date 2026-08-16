@@ -1,5 +1,6 @@
 package com.vettrack.api.owner;
 
+import com.vettrack.api.owner.dto.OwnerResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -32,9 +33,9 @@ public class OwnerController {
         @ApiResponse(responseCode = "401", description = "Yetkisiz erişim (JWT eksik veya geçersiz)"),
         @ApiResponse(responseCode = "404", description = "Kullanıcı bulunamadı")
     })
-    public ResponseEntity<Owner> getMe(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<OwnerResponse> getMe(@AuthenticationPrincipal Jwt jwt) {
         UUID ownerId = UUID.fromString(jwt.getSubject());
-        return ResponseEntity.ok(ownerService.getOwnerById(ownerId));
+        return ResponseEntity.ok(OwnerResponse.fromEntity(ownerService.getOwnerById(ownerId)));
     }
 
     @PutMapping("/me")
@@ -51,11 +52,11 @@ public class OwnerController {
         @ApiResponse(responseCode = "401", description = "Yetkisiz erişim (JWT eksik veya geçersiz)"),
         @ApiResponse(responseCode = "404", description = "Kullanıcı bulunamadı")
     })
-    public ResponseEntity<Owner> updateMe(
+    public ResponseEntity<OwnerResponse> updateMe(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody OwnerUpdateRequest request
     ) {
         UUID ownerId = UUID.fromString(jwt.getSubject());
-        return ResponseEntity.ok(ownerService.updateOwner(ownerId, request));
+        return ResponseEntity.ok(OwnerResponse.fromEntity(ownerService.updateOwner(ownerId, request)));
     }
 }

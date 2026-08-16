@@ -43,6 +43,17 @@ public class VisitService {
     }
 
     @Transactional
+    public Visit createVisit(UUID petId, UUID vetStaffId, UUID clinicId, String chiefComplaint) {
+        Pet pet = petService.getPetById(petId);
+        if (visitRepository.findByPetIdAndStatus(pet.getId(), "ongoing").isPresent()) {
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_OPEN, "Bu evcil hayvanın devam eden aktif bir muayenesi/ziyareti bulunmaktadır.");
+        }
+        return visitRepository.save(Visit.builder().petId(pet.getId()).vetStaffId(vetStaffId)
+                .clinicId(clinicId).chiefComplaint(chiefComplaint).status("ongoing")
+                .startedAt(OffsetDateTime.now()).build());
+    }
+
+    @Transactional
     public Visit createVisit(VisitCreateRequest request) {
         boolean hasActiveVisit = visitRepository.findByPetIdAndStatus(request.getPetId(), "ongoing").isPresent();
         if (hasActiveVisit) {
@@ -89,8 +100,18 @@ public class VisitService {
     }
 
     @Transactional(readOnly = true)
+    public List<Visit> getVisitsByPetIdAndClinicId(UUID petId, UUID clinicId) {
+        return visitRepository.findByPetIdAndClinicIdOrderByStartedAtDesc(petId, clinicId);
+    }
+
+    @Transactional(readOnly = true)
     public Page<Visit> getVisitsByPetIdPaginated(UUID petId, Pageable pageable) {
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Visit> getVisitsByPetIdAndClinicIdsPaginated(UUID petId, List<UUID> clinicIds, Pageable pageable) {
+        return visitRepository.findByPetIdAndClinicIdInOrderByStartedAtDesc(petId, clinicIds, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -112,16 +133,33 @@ public class VisitService {
         }
         String normalized = status.toLowerCase().trim();
 
+        if (!List.of("ongoing", "completed", "ended", "cancelled").contains(normalized)) {
+            throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status + ". İzin verilen durumlar: completed, cancelled.");
+        }
+
+        Visit visit = visitRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı ID: " + id));
+
+        if (!"ongoing".equalsIgnoreCase(visit.getStatus())) {
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_CLOSED,
+                    "Geçersiz durum geçişi: " + visit.getStatus() + " durumundaki bir ziyaret güncellenemez.");
+        }
+
+        if ("ongoing".equals(normalized)) {
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_OPEN,
+                    "Geçersiz durum geçişi: Ziyaret zaten devam etmektedir.");
+        }
+
         if ("completed".equals(normalized) || "ended".equals(normalized)) {
             return closeVisit(id);
         }
 
-        if (!List.of("ongoing", "completed", "cancelled").contains(normalized)) {
-            throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status + ". İzin verilen durumlar: ongoing, completed, cancelled.");
+        if ("cancelled".equals(normalized)) {
+            visit.setStatus("cancelled");
+            visit.setEndedAt(OffsetDateTime.now());
+            return visitRepository.save(visit);
         }
 
-        Visit visit = getVisitById(id);
-        visit.setStatus(normalized);
-        return visitRepository.save(visit);
+        throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status);
     }
 }

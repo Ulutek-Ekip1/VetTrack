@@ -69,7 +69,7 @@ class PetContextServiceTest {
         TreatmentEntry treatment = TreatmentEntry.builder()
                 .id(UUID.randomUUID())
                 .visitId(visitId)
-                .entryType("Aşı")
+                .type("Aşı")
                 .title("Kuduz Aşısı")
                 .description("Yıllık kuduz aşısı uygulandı")
                 .status(TreatmentStatus.COMPLETED)
