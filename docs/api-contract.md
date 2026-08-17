@@ -81,6 +81,7 @@
 | 12 | GET | `/visits/code/{code}` | Kod ile hasta bul | vet_staff |
 | 13 | POST | `/visits` | Yeni ziyaret başlat | vet_staff |
 | 14 | PUT | `/visits/{id}/close` | Ziyareti kapat | vet_staff |
+| 14a | GET | `/visits/vet` | Hekime atanmış tüm ziyaretler | vet_staff |
 | 15 | POST | `/visits/{visitId}/treatments` | Tedavi girişi ekle | vet_staff |
 | 16 | GET | `/visits/{visitId}/treatments` | Ziyaretin tedavileri | owner, vet_staff |
 | 17 | PUT | `/treatments/{id}` | Tedavi düzenle (15 dk) | vet_staff |
@@ -595,6 +596,18 @@ Zamana bağlı kilo geçmişini kronolojik (`date ASC`) olarak listeler. Paramet
 **Hatalar:** 401, 403, 404, 409 (`VISIT_ALREADY_CLOSED`)
 
 > Not: Kapatma anında sahibe FCM push bildirimi asenkron tetiklenir (FR-10).
+
+---
+
+### GET /visits/vet — Hekime atanmış tüm ziyaretler
+
+**Kim:** Giriş yapmış `vet_staff` (veya `admin`). **Amaç:** Hekimin iş takibi — geçmişte gerçekleştirdiği tüm muayene/ziyaretler tek listede.
+
+**Path/query param:** Yok. Hekim JWT subject'inden belirlenir.
+
+**Response (200):** `VisitResponse[]` — hekime atanmış (`vetStaffId` = JWT subject) tüm ziyaretler, `startedAt` DESC sıralı.
+
+> Not: Silinmiş/pasif petlerin ziyaretleri dahil edilmez (Değ.4). Kayıt yoksa `null` değil **boş dizi (`[]`)** döner (200). Sayfalama yok — düz liste. Sadece `VET_STAFF`/`ADMIN` erişebilir; `owner` rolü **403** alır.
 
 ---
 
