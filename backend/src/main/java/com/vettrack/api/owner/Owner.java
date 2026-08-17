@@ -29,6 +29,12 @@ public class Owner {
     @Column(nullable = false)
     private String role;
 
+    @Column(length = 100)
+    private String surname;
+
+    @Column(columnDefinition = "TEXT")
+    private String address;
+
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;
