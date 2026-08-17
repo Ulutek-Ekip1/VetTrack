@@ -29,6 +29,9 @@ public class StorageService {
     private static final Set<String> ALLOWED_TYPES = Set.of(
             "image/jpeg", "image/png", "image/webp"
     );
+    private static final Set<String> ALLOWED_ATTACHMENT_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/webp", "application/pdf"
+    );
 
     public StorageService(RestClient supabaseStorageClient,
                           @Value("${supabase.storage.url}") String storageUrl) {
@@ -82,7 +85,7 @@ public class StorageService {
         }
         
         String declaredType = normalizeMimeType(contentType);
-        if (declaredType == null || !ALLOWED_TYPES.contains(declaredType)) {
+        if (declaredType == null || !ALLOWED_ATTACHMENT_TYPES.contains(declaredType)) {
             throw new UnsupportedFileTypeException(
                     "Geçersiz dosya formatı. (Desteklenenler: JPEG, PNG, WebP, PDF)"
             );
