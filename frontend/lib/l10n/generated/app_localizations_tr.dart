@@ -261,4 +261,13 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get aiQuestionPrompt => 'Kafanıza takılan bir soru mu var?';
   @override String get aiChatDescription => 'AI Sohbet Asistanımız ile evcil hayvanınızın sağlığı hakkında her şeyi anında konuşabilirsiniz.';
   @override String get chatWithAiAssistant => 'AI Asistan ile Sohbet Et';
+  @override String get all => 'Tümü';
+  @override String get health => 'Sağlık';
+  @override String get general => 'Genel';
+  @override String get nutritionRecommendation => 'Beslenme Önerisi';
+  @override String get hygieneRecommendation => 'Kum & Hijyen Önerisi';
+  @override String get generalRecommendation => 'Genel Bakım & Diğer Öneriler';
+  @override String get recommendedFoods => 'Önerilen Mamalar';
+  @override String get askAiAssistant => "AI Asistan'a Sor";
+  @override String get details => 'Detaylar';
 }

@@ -304,6 +304,15 @@ abstract class AppLocalizations {
   String get aiQuestionPrompt;
   String get aiChatDescription;
   String get chatWithAiAssistant;
+  String get all;
+  String get health;
+  String get general;
+  String get nutritionRecommendation;
+  String get hygieneRecommendation;
+  String get generalRecommendation;
+  String get recommendedFoods;
+  String get askAiAssistant;
+  String get details;
 }
 
 class _AppLocalizationsDelegate

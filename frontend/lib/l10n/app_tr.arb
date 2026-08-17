@@ -173,4 +173,13 @@
   ,"aiQuestionPrompt": "Kafanıza takılan bir soru mu var?"
   ,"aiChatDescription": "AI Sohbet Asistanımız ile evcil hayvanınızın sağlığı hakkında her şeyi anında konuşabilirsiniz."
   ,"chatWithAiAssistant": "AI Asistan ile Sohbet Et"
+  ,"all": "Tümü"
+  ,"health": "Sağlık"
+  ,"general": "Genel"
+  ,"nutritionRecommendation": "Beslenme Önerisi"
+  ,"hygieneRecommendation": "Kum & Hijyen Önerisi"
+  ,"generalRecommendation": "Genel Bakım & Diğer Öneriler"
+  ,"recommendedFoods": "Önerilen Mamalar"
+  ,"askAiAssistant": "AI Asistan'a Sor"
+  ,"details": "Detaylar"
 }

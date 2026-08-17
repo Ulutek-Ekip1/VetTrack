@@ -24,37 +24,40 @@ class PetRecommendationScreen extends StatefulWidget {
 class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
   String _selectedCategory = 'Tümü';
 
-  Map<String, dynamic> _mapRecommendation(RecommendationEntity entity) {
+  Map<String, dynamic> _mapRecommendation(
+    RecommendationEntity entity,
+    AppLocalizations l10n,
+  ) {
     switch (entity.type) {
       case 'food':
         return {
-          'title': 'Beslenme Önerisi',
-          'category': 'Beslenme',
+          'title': l10n.nutritionRecommendation,
+          'category': l10n.nutrition,
           'icon': Icons.restaurant_menu_rounded,
           'color': Colors.orange,
           'bgColor': const Color(0xFFFFFAF0),
           'description': entity.description,
-          'actionLabel': 'Önerilen Mamalar',
+          'actionLabel': l10n.recommendedFoods,
         };
       case 'litter':
         return {
-          'title': 'Kum & Hijyen Önerisi',
-          'category': 'Sağlık',
+          'title': l10n.hygieneRecommendation,
+          'category': l10n.health,
           'icon': Icons.clean_hands_outlined,
           'color': Colors.blue,
           'bgColor': const Color(0xFFF0F9FF),
           'description': entity.description,
-          'actionLabel': 'AI Asistan\'a Sor',
+          'actionLabel': l10n.askAiAssistant,
         };
       default:
         return {
-          'title': 'Genel Bakım & Diğer Öneriler',
-          'category': 'Genel',
+          'title': l10n.generalRecommendation,
+          'category': l10n.general,
           'icon': Icons.add,
           'color': Colors.grey,
           'bgColor': Colors.grey.shade100,
           'description': entity.description,
-          'actionLabel': 'Detaylar',
+          'actionLabel': l10n.details,
         };
     }
   }
@@ -101,10 +104,11 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
             rawList = state.recommendations;
           }
           //Veritabanı önerilerini UI formatına dönüştür
-          final uiRecommendations = rawList.map(_mapRecommendation).toList();
+          final uiRecommendations =
+              rawList.map((item) => _mapRecommendation(item, l10n)).toList();
 
           //Filtreleme
-          final filteredList = _selectedCategory == 'Tümü'
+          final filteredList = _selectedCategory == l10n.all
               ? uiRecommendations
               : uiRecommendations
                   .where((r) => r['category'] == _selectedCategory)
@@ -176,7 +180,7 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
                       left: AppDimensions.containerMargin, bottom: 12),
                   child: Row(
                     children:
-                        ['Tümü', 'Beslenme', 'Sağlık', 'Genel'].map((category) {
+                        [l10n.all, l10n.nutrition, l10n.health, l10n.general].map((category) {
                       final isSelected = _selectedCategory == category;
                       return Padding(
                         padding: const EdgeInsets.only(
