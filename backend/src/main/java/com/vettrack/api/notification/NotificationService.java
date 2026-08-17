@@ -11,6 +11,7 @@ import com.vettrack.api.notification.dto.NotificationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,9 +71,12 @@ public class NotificationService {
     /**
      * Notification kaydını oluşturan transaction commit olduktan SONRA çalışır
      * (AFTER_COMMIT) — böylece transaction rollback olursa hiç push gitmemiş
-     * olur, ya da DB satırı hiç yokken push atılmış olmaz.
+     * olur, ya da DB satırı hiç yokken push atılmış olmaz. @Async ile ayrı bir
+     * thread'de çalışır — FCM ağ çağrısı ve retry/backoff'taki Thread.sleep,
+     * commit'i tetikleyen HTTP request'in yanıtını bloklamaz.
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    @Async("notificationTaskExecutor")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onNotificationCreated(NotificationCreatedEvent event) {
         if (FirebaseApp.getApps().isEmpty()) {

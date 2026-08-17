@@ -12,11 +12,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,15 +34,23 @@ import static org.mockito.Mockito.when;
 /**
  * Kart #18: FCM gönderimi artık VisitService.closeVisit() gibi çağıranların
  * @Transactional sınırının içinde değil, NotificationCreatedEvent üzerinden
- * @TransactionalEventListener(AFTER_COMMIT) ile tetikleniyor. Bu testler
- * gerçek bir Spring transaction'ı commit/rollback ederek bunu doğruluyor —
- * doğrudan metod çağrısıyla değil.
+ * @TransactionalEventListener(AFTER_COMMIT) + @Async ile tetikleniyor — HTTP
+ * request thread'i FCM ağ çağrısını beklemiyor. Bu testler gerçek bir Spring
+ * transaction'ı commit/rollback ederek bunu doğruluyor, doğrudan metod
+ * çağrısıyla değil.
+ *
+ * "notificationTaskExecutor" burada SyncTaskExecutor ile override edilir:
+ * Mockito.mockStatic() thread-scoped olduğu için, @Async gerçekten ayrı bir
+ * thread'e atlarsa test thread'indeki static mock'lar orada görünmez. Prod'da
+ * gerçek async (AsyncConfig) kullanılır — bu sadece testin static mock'ları
+ * görebilmesi için.
  */
 @SpringBootTest(properties = {
     "spring.datasource.url=jdbc:h2:mem:notificationaftercommitdb;DB_CLOSE_DELAY=-1",
     "spring.datasource.driver-class-name=org.h2.Driver",
     "spring.flyway.enabled=false",
     "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.main.allow-bean-definition-overriding=true",
     "SUPABASE_URL=https://localhost",
     "SUPABASE_JWKS_URL=https://localhost/auth/v1/.well-known/jwks.json",
     "SUPABASE_JWT_ISSUER=https://localhost/auth/v1",
@@ -49,6 +61,14 @@ import static org.mockito.Mockito.when;
     "FIREBASE_CREDENTIALS_PATH=mock-path"
 })
 class NotificationAfterCommitTest {
+
+    @TestConfiguration
+    static class SyncNotificationExecutorConfig {
+        @Bean(name = "notificationTaskExecutor")
+        public Executor notificationTaskExecutor() {
+            return new SyncTaskExecutor();
+        }
+    }
 
     @Autowired
     private NotificationService notificationService;
