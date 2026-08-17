@@ -59,32 +59,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("KVKK Aydınlatma Metni"),
-        content: const SingleChildScrollView(
-          child: Text(
-            """VETTRACK KİŞİSEL VERİLERİN İŞLENMESİ AYDINLATMA METNİ
-
-1. Veri Sorumlusunun Kimliği
-VetTrack ("Şirket/Geliştirici") olarak, 6698 sayılı Kişisel Verileri Koruma Kanunu (“KVKK”) uyarınca, veri sorumlusu sıfatıyla kişisel verilerinizi aşağıda açıklanan kapsamda işlemekteyiz.
-
-2. İşlenen Kişisel Verileriniz ve İşleme Amaçları
-VetTrack platformuna kayıt olmanız ve hizmetlerimizi kullanmanız kapsamında,
-- Kimlik Verileri: Ad, soyad
-- İletişim Verileri: E-posta adresi, telefon numarası
-- İşlem Güvenliği Verileri: Şifre, IP adresi, giriş kayıtları
-- Hizmet/Sistem Verileri: Evcil hayvan profilleri, aşı ve muayene takip takvimleri
-
-Bu veriler, üyelik kayıt süreçlerinin yürütülmesi, evcil hayvan sağlık ve bakım takibinin sağlanması, kullanıcı hesabının güvenliğinin temini ve sistem hatalarının giderilmesi amaçlarıyla işlenmektedir.
-
-3. Kişisel Verilerin Aktarılması
-Kişisel verileriniz, kanunen yetkili kamu kurum ve kuruluşları ile uygulamanın teknik altyapısını sağlayan güvenli sunucu (hosting/cloud) hizmet sağlayıcıları dışında üçüncü şahıslarla paylaşılmamaktadır.
-
-4. Toplama Yöntemi ve Hukuki Sebebi
-Verileriniz, elektronik ortamda kayıt formu aracılığıyla; "Bir sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması" ve "Veri sorumlusunun hukuki yükümlülüğünü yerine getirebilmesi" hukuki sebeplerine dayanarak toplanmaktadır.
-
-5. KVKK Madde 11 Kapsamındaki Haklarınız
-Veri sahibi olarak; verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, silinmesini veya düzeltilmesini isteme haklarına sahipsiniz. Haklarınızı kullanmak için destek@vettrack.com adresi üzerinden bizimle iletişime geçebilirsiniz.""",
-          ),
+        title: Text(AppLocalizations.of(context)!.kvkkTitle),
+        content: SingleChildScrollView(
+          child: Text(AppLocalizations.of(context)!.kvkkBody),
         ),
         actions: [
           ElevatedButton(
@@ -99,7 +76,7 @@ Veri sahibi olarak; verilerinizin işlenip işlenmediğini öğrenme, işlenmiş
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.onPrimary,
             ),
-            child: const Text("Okudum, Anladım"),
+            child: Text(AppLocalizations.of(context)!.acknowledge),
           ),
         ],
       ),
@@ -111,17 +88,9 @@ Veri sahibi olarak; verilerinizin işlenip işlenmediğini öğrenme, işlenmiş
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Açık Rıza Metni"),
-        content: const SingleChildScrollView(
-          child: Text(
-            """VETTRACK AÇIK RIZA METNİ
-
-VetTrack tarafından, sunulan hizmetlerin iyileştirilmesi, kampanya,
-bildirim ve hatırlatmaların (aşı günü, parazit takibi vb.) e-posta 
-veya mobil bildirim yoluyla tarafıma iletilmesi amacıyla iletişim 
-verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
-özgür irademle onay veriyorum.""",
-          ),
+        title: Text(AppLocalizations.of(context)!.explicitConsentTitle),
+        content: SingleChildScrollView(
+          child: Text(AppLocalizations.of(context)!.explicitConsentBody),
         ),
         actions: [
           ElevatedButton(
@@ -136,7 +105,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.onPrimary,
             ),
-            child: const Text("Okudum, Anladım"),
+            child: Text(AppLocalizations.of(context)!.acknowledge),
           ),
         ],
       ),
@@ -704,7 +673,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                 MainAxisAlignment.center,
                                             children: [
                                               Text(
-                                                'Kayıt Ol',
+                                                l10n.register,
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
@@ -735,7 +704,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Zaten hesabınız var mı?",
+                            l10n.alreadyHaveAccount,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: AppColors.onSurfaceVariant,
                             ),
@@ -745,7 +714,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                               context.push(AppRoutes.login);
                             },
                             child: Text(
-                              "Giriş Yap",
+                              l10n.signIn,
                               style: theme.textTheme.labelLarge?.copyWith(
                                 color: const Color(0xFF7B4832),
                                 fontWeight: FontWeight.bold,

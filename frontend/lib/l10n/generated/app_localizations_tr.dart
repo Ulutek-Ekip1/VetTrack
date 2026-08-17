@@ -113,4 +113,41 @@ class AppLocalizationsTr extends AppLocalizations {
   @override String get fullNameHint => 'Adınızı ve soyadınızı giriniz';
   @override String get phoneOptional => 'Telefon (Opsiyonel)';
   @override String get passwordRequirements => 'En az 8 karakter, harf ve rakam içermelidir';
+  @override String get kvkkTitle => 'KVKK Aydınlatma Metni';
+  @override String get explicitConsentTitle => 'Açık Rıza Metni';
+  @override String get acknowledge => 'Okudum, Anladım';
+  @override String get register => 'Kayıt Ol';
+  @override String get alreadyHaveAccount => 'Zaten hesabınız var mı?';
+  @override String get signIn => 'Giriş Yap';
+  @override
+  String get kvkkBody => '''VETTRACK KİŞİSEL VERİLERİN İŞLENMESİ AYDINLATMA METNİ
+
+1. Veri Sorumlusunun Kimliği
+VetTrack ("Şirket/Geliştirici") olarak, 6698 sayılı Kişisel Verileri Koruma Kanunu (“KVKK”) uyarınca, veri sorumlusu sıfatıyla kişisel verilerinizi aşağıda açıklanan kapsamda işlemekteyiz.
+
+2. İşlenen Kişisel Verileriniz ve İşleme Amaçları
+VetTrack platformuna kayıt olmanız ve hizmetlerimizi kullanmanız kapsamında,
+- Kimlik Verileri: Ad, soyad
+- İletişim Verileri: E-posta adresi, telefon numarası
+- İşlem Güvenliği Verileri: Şifre, IP adresi, giriş kayıtları
+- Hizmet/Sistem Verileri: Evcil hayvan profilleri, aşı ve muayene takip takvimleri
+
+Bu veriler, üyelik kayıt süreçlerinin yürütülmesi, evcil hayvan sağlık ve bakım takibinin sağlanması, kullanıcı hesabının güvenliğinin temini ve sistem hatalarının giderilmesi amaçlarıyla işlenmektedir.
+
+3. Kişisel Verilerin Aktarılması
+Kişisel verileriniz, kanunen yetkili kamu kurum ve kuruluşları ile uygulamanın teknik altyapısını sağlayan güvenli sunucu (hosting/cloud) hizmet sağlayıcıları dışında üçüncü şahıslarla paylaşılmamaktadır.
+
+4. Toplama Yöntemi ve Hukuki Sebebi
+Verileriniz, elektronik ortamda kayıt formu aracılığıyla; "Bir sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması" ve "Veri sorumlusunun hukuki yükümlülüğünü yerine getirebilmesi" hukuki sebeplerine dayanarak toplanmaktadır.
+
+5. KVKK Madde 11 Kapsamındaki Haklarınız
+Veri sahibi olarak; verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, silinmesini veya düzeltilmesini isteme haklarına sahipsiniz. Haklarınızı kullanmak için destek@vettrack.com adresi üzerinden bizimle iletişime geçebilirsiniz.''';
+  @override
+  String get explicitConsentBody => '''VETTRACK AÇIK RIZA METNİ
+
+VetTrack tarafından, sunulan hizmetlerin iyileştirilmesi, kampanya,
+bildirim ve hatırlatmaların (aşı günü, parazit takibi vb.) e-posta
+veya mobil bildirim yoluyla tarafıma iletilmesi amacıyla iletişim
+verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
+özgür irademle onay veriyorum.''';
 }

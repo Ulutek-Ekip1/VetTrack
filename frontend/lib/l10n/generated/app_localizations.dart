@@ -185,6 +185,14 @@ abstract class AppLocalizations {
   String get fullNameHint;
   String get phoneOptional;
   String get passwordRequirements;
+  String get kvkkTitle;
+  String get explicitConsentTitle;
+  String get acknowledge;
+  String get register;
+  String get alreadyHaveAccount;
+  String get signIn;
+  String get kvkkBody;
+  String get explicitConsentBody;
 }
 
 class _AppLocalizationsDelegate
