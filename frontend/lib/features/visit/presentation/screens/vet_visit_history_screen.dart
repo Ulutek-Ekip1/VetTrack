@@ -171,7 +171,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
 
                 // Hekim Notları
                 _buildDetailSection(
-                    'Hekim Notları )',
+                    'Hekim Notları',
                     visit.chiefComplaint ??
                         'Hekim tarafından girilen not bulunmamaktadır.',
                     Icons.note_alt_outlined),
@@ -356,7 +356,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 6.0),
                                   child: Text(
-                                    'Pet ID: ${visit.petId.toShortId()}\nŞikayet/Teşhis: ${visit.chiefComplaint ?? 'Belirtilmemiş'} • Tarih: ${visit.startedAt.toLocal().toString().substring(0, 16)}',
+                                    'Pet ID: ${visit.petId.toShortId()}\nŞikayet/Teşhis: ${visit.chiefComplaint ?? 'Belirtilmemiş'} • Tarih: ${visit.startedAt.toFormattedDateTime()}',
                                     style: const TextStyle(height: 1.3),
                                   ),
                                 ),

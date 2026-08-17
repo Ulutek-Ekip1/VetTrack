@@ -46,7 +46,7 @@ class OwnerVisitHistoryListScreen extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      '${visit.startedAt.toLocal().toString().substring(0, 16)} • ${visit.vetStaffName ?? 'Bilinmeyen Hekim'}',
+                      '${visit.startedAt.toFormattedDateTime()} • ${visit.vetStaffName ?? 'Bilinmeyen Hekim'}',
                     ),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

@@ -109,8 +109,13 @@ class PetModel extends PetEntity {
       if (allergies != null) 'allergies': allergies,
       if (chronicIllnesses != null) 'chronicIllnesses': chronicIllnesses,
       if (weightHistory != null)
-        'weightHistory':
-            weightHistory!.map((e) => (e as PetWeightModel).toJson()).toList(),
+        'weightHistory': weightHistory!.map((e) {
+          if (e is PetWeightModel) return e.toJson();
+          return {
+            'date': e.date.toIso8601String().split('T')[0],
+            'weight': e.weight,
+          };
+        }).toList(),
     };
   }
 }
