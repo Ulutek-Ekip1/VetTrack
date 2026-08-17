@@ -184,4 +184,17 @@
   ,"details": "Detaylar"
   ,"openPetProfile": "{name} profili"
   ,"@openPetProfile": {"placeholders": {"name": {"type": "String"}}}
+  ,"healthHistory": "Sağlık Geçmişi"
+  ,"notes": "Notlar"
+  ,"generalInformation": "Genel Bilgiler"
+  ,"uniqueCode": "Benzersiz Kod"
+  ,"species": "Türü"
+  ,"breed": "Cinsi / Irkı"
+  ,"age": "Yaş"
+  ,"gender": "Cinsiyet"
+  ,"unknown": "Bilinmiyor"
+  ,"male": "Erkek"
+  ,"female": "Dişi"
+  ,"weightChart": "Kilo Grafiği"
+  ,"recentActivity": "Son Aktivite"
 }

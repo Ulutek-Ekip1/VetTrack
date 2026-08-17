@@ -271,4 +271,17 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get askAiAssistant => "AI Asistan'a Sor";
   @override String get details => 'Detaylar';
   @override String openPetProfile(String name) => '$name profili';
+  @override String get healthHistory => 'Sağlık Geçmişi';
+  @override String get notes => 'Notlar';
+  @override String get generalInformation => 'Genel Bilgiler';
+  @override String get uniqueCode => 'Benzersiz Kod';
+  @override String get species => 'Türü';
+  @override String get breed => 'Cinsi / Irkı';
+  @override String get age => 'Yaş';
+  @override String get gender => 'Cinsiyet';
+  @override String get unknown => 'Bilinmiyor';
+  @override String get male => 'Erkek';
+  @override String get female => 'Dişi';
+  @override String get weightChart => 'Kilo Grafiği';
+  @override String get recentActivity => 'Son Aktivite';
 }

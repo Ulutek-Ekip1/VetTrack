@@ -231,7 +231,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildGenelTab(pet),
+                      _buildGenelTab(pet, l10n),
                       _buildSaglikTab(),
                       _buildNotlarTab(),
                     ],
@@ -252,9 +252,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
   }
 
   // 1. GENEL SEKMESİ
-  Widget _buildGenelTab(PetEntity pet) {
-    String speciesVal = 'Bilinmiyor';
-    String breedVal = pet.breed ?? 'Bilinmiyor';
+  Widget _buildGenelTab(PetEntity pet, AppLocalizations l10n) {
+    String speciesVal = l10n.unknown;
+    String breedVal = pet.breed ?? l10n.unknown;
     if (pet.breed != null && pet.breed!.contains(' / ')) {
       final parts = pet.breed!.split(' / ');
       speciesVal = parts[0];
@@ -266,19 +266,19 @@ class _PetDetailScreenState extends State<PetDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Genel Bilgiler',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(l10n.generalInformation,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          _buildInfoRow('Benzersiz Kod', pet.uniqueCode),
-          _buildInfoRow('Türü', speciesVal),
-          _buildInfoRow('Cinsi / Irkı', breedVal),
+          _buildInfoRow(l10n.uniqueCode, pet.uniqueCode),
+          _buildInfoRow(l10n.species, speciesVal),
+          _buildInfoRow(l10n.breed, breedVal),
           _buildInfoRow(
-              'Yaş', pet.age != null ? '${pet.age} Yaş' : 'Bilinmiyor'),
+              l10n.age, pet.age != null ? '${pet.age} ${l10n.age}' : l10n.unknown),
           _buildInfoRow(
-              'Cinsiyet',
+              l10n.gender,
               pet.gender == Gender.male
-                  ? 'Erkek'
-                  : (pet.gender == Gender.female ? 'Dişi' : 'Bilinmiyor')),
+                  ? l10n.male
+                  : (pet.gender == Gender.female ? l10n.female : l10n.unknown)),
           const Divider(height: 24),
           const Text('Ek Detaylar (Statik / Mock)',
               style: TextStyle(
@@ -298,8 +298,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Kilo Grafiği',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(l10n.weightChart,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               Text('Tümü',
                   style: TextStyle(
                       fontSize: 14,
@@ -410,8 +410,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             ),
           ),
           const SizedBox(height: 24),
-          const Text('Son Aktivite',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(l10n.recentActivity,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),

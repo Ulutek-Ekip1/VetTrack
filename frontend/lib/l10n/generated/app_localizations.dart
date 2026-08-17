@@ -314,6 +314,19 @@ abstract class AppLocalizations {
   String get askAiAssistant;
   String get details;
   String openPetProfile(String name);
+  String get healthHistory;
+  String get notes;
+  String get generalInformation;
+  String get uniqueCode;
+  String get species;
+  String get breed;
+  String get age;
+  String get gender;
+  String get unknown;
+  String get male;
+  String get female;
+  String get weightChart;
+  String get recentActivity;
 }
 
 class _AppLocalizationsDelegate
