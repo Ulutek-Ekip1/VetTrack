@@ -106,6 +106,17 @@ public class VisitController {
         return ResponseEntity.ok(visitService.getVisitsForOwner(ownerId));
     }
 
+    @GetMapping("/vet")
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
+    @Operation(summary = "Hekime Atanmış Tüm Ziyaretler",
+            description = "Giriş yapmış veteriner hekime atanmış tüm muayene/ziyaret kayıtlarını döner "
+                    + "(silinmiş/pasif petlerinki hariç). Kayıt yoksa 200 OK + boş dizi.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<List<Visit>> getVisitsForVet(@AuthenticationPrincipal Jwt jwt) {
+        UUID vetStaffId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(visitService.getVisitsForVet(vetStaffId));
+    }
+
     @GetMapping("/{visitId}/context")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ActiveVisitContextResponse> getActiveVisitContext(
