@@ -135,7 +135,6 @@ class _AIChatbotViewState extends State<AIChatbotView> {
             ],
           ),
           content: Text(l10n.deleteChatDescription),
-          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
@@ -197,7 +196,6 @@ class _AIChatbotViewState extends State<AIChatbotView> {
             ],
           ),
           content: Text(l10n.deleteAllHistoryDescription),
-          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),

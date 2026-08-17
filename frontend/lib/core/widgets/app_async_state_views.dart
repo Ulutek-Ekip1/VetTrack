@@ -167,7 +167,7 @@ class AppErrorStateView extends StatelessWidget {
                         label: Text(l10n.retry),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),

@@ -151,9 +151,11 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                             onSubmitted: (_) => _searchPatient(),
                             enabled: !isLoading,
                             textAlign: TextAlign.center,
-                            decoration: const InputDecoration(
-                              labelText: l10n.accessCodeLabel, hintText: l10n.accessCodeHint,
-                              prefixIcon: Icon(Icons.qr_code_scanner), border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.accessCodeLabel,
+                              hintText: l10n.accessCodeHint,
+                              prefixIcon: const Icon(Icons.qr_code_scanner),
+                              border: const OutlineInputBorder(),
                             ),
                           ),
                         ),

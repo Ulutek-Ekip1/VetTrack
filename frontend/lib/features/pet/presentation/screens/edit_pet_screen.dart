@@ -251,12 +251,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
                             : null,
                       ),
                       Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Semantics(
-                            button: true,
-                            label: l10n.petPhotoTitle,
-                            child: IconButton(
+                        bottom: 0,
+                        right: 0,
+                        child: Semantics(
+                          button: true,
+                          label: l10n.petPhotoTitle,
+                          child: IconButton(
                             onPressed: () {
                               showModalBottomSheet(
                                 context: context,
@@ -287,8 +287,11 @@ class _EditPetScreenState extends State<EditPetScreen> {
                             },
                             icon: const Icon(Icons.camera_alt_outlined),
                             color: Colors.white,
-                            style: IconButton.styleFrom(backgroundColor: primaryBlue),
-                          )),
+                            style: IconButton.styleFrom(
+                                backgroundColor: primaryBlue),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
