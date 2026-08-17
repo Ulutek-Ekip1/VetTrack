@@ -250,7 +250,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   autofillHints: const [AutofillHints.name],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    label: const Text.rich(
+                                    label: Text.rich(
                                       TextSpan(
                                         children: [
                                           TextSpan(text: l10n.fullName),
@@ -297,7 +297,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   autofillHints: const [AutofillHints.email],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    label: const Text.rich(
+                                    label: Text.rich(
                                       TextSpan(
                                         children: [
                                           TextSpan(text: l10n.emailAddress),
@@ -383,7 +383,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    label: const Text.rich(
+                                    label: Text.rich(
                                       TextSpan(
                                         children: [
                                           TextSpan(text: l10n.password),
