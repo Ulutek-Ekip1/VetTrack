@@ -24,7 +24,6 @@ dependencies:
   qr_flutter: ^4.1.0
   flutter_svg: ^2.0.10
   url_launcher: ^6.3.0 #magaza lnikini acmak icin
-  package_info_plus: ^10.0.0 #cihazdaki uygulama sürüm bilgilerini almak için
   fl_chart: ^0.68.0
   google_sign_in: ^6.2.1
   image_picker: ^1.2.3
