@@ -397,8 +397,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                     hintText: l10n.passwordHint,
-                                    helperText:
-                                        l10n.passwordRequirements,
+                                    helperText: l10n.passwordRequirements,
                                     helperStyle:
                                         theme.textTheme.bodySmall?.copyWith(
                                       color: AppColors.onSurfaceVariant,
@@ -491,16 +490,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                     label: l10n.kvkkTitle,
                                                     child: InkWell(
                                                       borderRadius:
-                                                          BorderRadius.circular(4),
+                                                          BorderRadius.circular(
+                                                              4),
                                                       onTap: _showKvkkDialog,
                                                       child: Padding(
-                                                        padding: const EdgeInsets.symmetric(
-                                                            vertical: 12),
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 12),
                                                         child: Text(
                                                           'Aydınlatma Metni',
-                                                          style: theme.textTheme.bodyMedium?.copyWith(
-                                                            color: const Color(0xFF7B4832),
-                                                            fontWeight: FontWeight.bold,
+                                                          style: theme.textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                            color: const Color(
+                                                                0xFF7B4832),
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
                                                         ),
                                                       ),
@@ -601,19 +607,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 children: [
                                                   Semantics(
                                                     button: true,
-                                                    label: l10n.explicitConsentTitle,
+                                                    label: l10n
+                                                        .explicitConsentTitle,
                                                     child: InkWell(
                                                       borderRadius:
-                                                          BorderRadius.circular(4),
-                                                      onTap: _showExplicitConsentDialog,
+                                                          BorderRadius.circular(
+                                                              4),
+                                                      onTap:
+                                                          _showExplicitConsentDialog,
                                                       child: Padding(
-                                                        padding: const EdgeInsets.symmetric(
-                                                            vertical: 12),
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 12),
                                                         child: Text(
                                                           'Açık Rıza Metni',
-                                                          style: theme.textTheme.bodyMedium?.copyWith(
-                                                            color: const Color(0xFF7B4832),
-                                                            fontWeight: FontWeight.bold,
+                                                          style: theme.textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                            color: const Color(
+                                                                0xFF7B4832),
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
                                                         ),
                                                       ),
