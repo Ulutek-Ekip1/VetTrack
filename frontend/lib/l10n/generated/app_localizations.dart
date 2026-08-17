@@ -293,6 +293,10 @@ abstract class AppLocalizations {
   String get treatmentInstructions;
   String get saveTreatment;
   String get savingTreatment;
+  String get treatmentsAndPrescriptions;
+  String get treatmentHistoryLoading;
+  String get treatmentHistoryLoadFailed;
+  String get noTreatmentRecords;
 }
 
 class _AppLocalizationsDelegate

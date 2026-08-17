@@ -162,4 +162,8 @@
   ,"treatmentInstructions": "Kullanım Talimatı ve Açıklama"
   ,"saveTreatment": "Tedaviyi Kaydet"
   ,"savingTreatment": "Tedavi Kaydediliyor..."
+  ,"treatmentsAndPrescriptions": "Tedaviler & Reçeteler"
+  ,"treatmentHistoryLoading": "Tedavi geçmişi yükleniyor"
+  ,"treatmentHistoryLoadFailed": "Tedavi geçmişi yüklenemedi."
+  ,"noTreatmentRecords": "Henüz tedavi kaydı yok."
 }

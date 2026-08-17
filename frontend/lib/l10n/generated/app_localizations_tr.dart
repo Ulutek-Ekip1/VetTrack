@@ -250,4 +250,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get treatmentInstructions => 'Kullanım Talimatı ve Açıklama';
   @override String get saveTreatment => 'Tedaviyi Kaydet';
   @override String get savingTreatment => 'Tedavi Kaydediliyor...';
+  @override String get treatmentsAndPrescriptions => 'Tedaviler & Reçeteler';
+  @override String get treatmentHistoryLoading => 'Tedavi geçmişi yükleniyor';
+  @override String get treatmentHistoryLoadFailed => 'Tedavi geçmişi yüklenemedi.';
+  @override String get noTreatmentRecords => 'Henüz tedavi kaydı yok.';
 }
