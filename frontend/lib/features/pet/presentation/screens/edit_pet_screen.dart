@@ -253,8 +253,11 @@ class _EditPetScreenState extends State<EditPetScreen> {
                       Positioned(
                           bottom: 0,
                           right: 0,
-                          child: GestureDetector(
-                            onTap: () {
+                          child: Semantics(
+                            button: true,
+                            label: l10n.petPhotoTitle,
+                            child: IconButton(
+                            onPressed: () {
                               showModalBottomSheet(
                                 context: context,
                                 backgroundColor: Colors.white,
@@ -282,18 +285,9 @@ class _EditPetScreenState extends State<EditPetScreen> {
                                 },
                               );
                             },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: primaryBlue,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt_outlined,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                            ),
+                            icon: const Icon(Icons.camera_alt_outlined),
+                            color: Colors.white,
+                            style: IconButton.styleFrom(backgroundColor: primaryBlue),
                           )),
                     ],
                   ),

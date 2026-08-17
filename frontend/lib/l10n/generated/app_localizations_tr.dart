@@ -230,4 +230,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get discardChangesTitle => 'Kaydetmeden Çık?';
   @override String get discardChangesDescription => 'Değişiklikleri kaydetmeden çıkmak istiyor musunuz?';
   @override String get exitWithoutSaving => 'Evet, Çık';
+  @override String get petPhotoTitle => 'Dost resmi';
+  @override String get camera => 'Kamera';
+  @override String get gallery => 'Galeri';
 }

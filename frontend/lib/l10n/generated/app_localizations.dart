@@ -273,6 +273,9 @@ abstract class AppLocalizations {
   String get discardChangesTitle;
   String get discardChangesDescription;
   String get exitWithoutSaving;
+  String get petPhotoTitle;
+  String get camera;
+  String get gallery;
 }
 
 class _AppLocalizationsDelegate

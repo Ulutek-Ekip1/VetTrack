@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:vettrack_frontend/core/utils/validators.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 
 import 'photo_options.dart';
 
@@ -60,6 +61,7 @@ class _PetProfilePhotoBottomSheetState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -86,11 +88,11 @@ class _PetProfilePhotoBottomSheetState
                     color: Color(0xFF131B2E),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Center(
                     child: Text(
-                      'Dost resmi',
-                      style: TextStyle(
+                      l10n.petPhotoTitle,
+                      style: const TextStyle(
                         color: Color(0xFF131B2E),
                         fontSize: 24,
                         fontWeight: FontWeight.w500,
@@ -116,7 +118,7 @@ class _PetProfilePhotoBottomSheetState
             // Kamera
             PhotoOption(
               icon: Icons.camera_alt_outlined,
-              title: 'Kamera',
+              title: l10n.camera,
               onTap: () {
                 _getPhotoFromCamera();
               },
@@ -125,7 +127,7 @@ class _PetProfilePhotoBottomSheetState
             // Galeri
             PhotoOption(
               icon: Icons.photo_outlined,
-              title: 'Galeri',
+              title: l10n.gallery,
               onTap: () {
                 _getPhotoFromGallery();
               },
