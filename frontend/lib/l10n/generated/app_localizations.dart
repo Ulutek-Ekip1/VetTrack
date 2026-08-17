@@ -327,6 +327,15 @@ abstract class AppLocalizations {
   String get female;
   String get weightChart;
   String get recentActivity;
+  String get deleteChat;
+  String get deleteChatDescription;
+  String get chatDeleted;
+  String get chatDeleteFailed;
+  String get deleteAllHistory;
+  String get deleteAllHistoryDescription;
+  String get deleteAllHistoryPermanently;
+  String get chatHistoryDeleted;
+  String get chatHistoryDeleteFailed;
 }
 
 class _AppLocalizationsDelegate

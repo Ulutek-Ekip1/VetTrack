@@ -6,6 +6,7 @@ import '../../../pet/domain/entities/pet_entity.dart';
 import 'package:vettrack_frontend/features/ai/presentation/cubit/ai_chat_cubit.dart';
 import 'package:vettrack_frontend/features/ai/presentation/cubit/ai_chat_state.dart';
 import 'package:vettrack_frontend/features/ai/presentation/cubit/ui_chat_message.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 
 class AIChatbotScreen extends StatelessWidget {
   final String? petId;
@@ -120,25 +121,25 @@ class _AIChatbotViewState extends State<AIChatbotView> {
   Future<void> _confirmAndDeleteConversation(
       BuildContext context, String conversationId) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final cubit = context.read<AiChatCubit>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.delete_outline, color: Colors.redAccent),
-              SizedBox(width: 8),
-              Text('Sohbeti Sil'),
+              const Icon(Icons.delete_outline, color: Colors.redAccent),
+              const SizedBox(width: 8),
+              Text(l10n.deleteChat),
             ],
           ),
-          content: const Text(
-            'Bu sohbet oturumunu ve tüm mesajlarını silmek istediğinize emin misiniz? Bu işlem geri alınamaz (KVKK).',
+          content: Text(l10n.deleteChatDescription),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Vazgeç'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(dialogContext, true),
@@ -146,7 +147,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                 backgroundColor: Colors.red.shade700,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Sohbeti Sil'),
+              child: Text(l10n.deleteChat),
             ),
           ],
         );
@@ -157,8 +158,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
       final success = await cubit.deleteConversation(conversationId);
       if (success) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Sohbet oturumu başarıyla silindi.'),
+          SnackBar(
+            content: Text(l10n.chatDeleted),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.green,
           ),
@@ -168,7 +169,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           SnackBar(
             content: Text(
               cubit.state.errorMessage ??
-                  'Sohbet silinirken bir hata oluştu.',
+                  l10n.chatDeleteFailed,
             ),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.red.shade700,
@@ -181,26 +182,26 @@ class _AIChatbotViewState extends State<AIChatbotView> {
   Future<void> _confirmAndDeleteAllHistory(
       BuildContext context, BuildContext bottomSheetContext) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(bottomSheetContext);
     final cubit = context.read<AiChatCubit>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
-              SizedBox(width: 8),
-              Text('Tüm Geçmişi Sil'),
+              const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+              const SizedBox(width: 8),
+              Text(l10n.deleteAllHistory),
             ],
           ),
-          content: const Text(
-            'Tüm AI sohbet geçmişinizi kalıcı olarak silmek istediğinize emin misiniz? Tüm konuşmalarınız temizlenecek ve bu işlem geri alınamayacaktır (KVKK Unutulma Hakkı).',
+          content: Text(l10n.deleteAllHistoryDescription),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Vazgeç'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(dialogContext, true),
@@ -208,7 +209,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                 backgroundColor: Colors.red.shade800,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Tüm Geçmişi Kalıcı Olarak Sil'),
+              child: Text(l10n.deleteAllHistoryPermanently),
             ),
           ],
         );
@@ -222,8 +223,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           navigator.pop();
         }
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Tüm AI sohbet geçmişiniz kalıcı olarak silindi.'),
+          SnackBar(
+            content: Text(l10n.chatHistoryDeleted),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.green,
           ),
@@ -233,7 +234,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           SnackBar(
             content: Text(
               cubit.state.errorMessage ??
-                  'Geçmiş silinirken bir hata oluştu.',
+                  l10n.chatHistoryDeleteFailed,
             ),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.red.shade700,

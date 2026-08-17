@@ -284,4 +284,13 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get female => 'Dişi';
   @override String get weightChart => 'Kilo Grafiği';
   @override String get recentActivity => 'Son Aktivite';
+  @override String get deleteChat => 'Sohbeti Sil';
+  @override String get deleteChatDescription => 'Bu sohbet oturumunu ve tüm mesajlarını silmek istediğinize emin misiniz? Bu işlem geri alınamaz (KVKK).';
+  @override String get chatDeleted => 'Sohbet oturumu başarıyla silindi.';
+  @override String get chatDeleteFailed => 'Sohbet silinirken bir hata oluştu.';
+  @override String get deleteAllHistory => 'Tüm Geçmişi Sil';
+  @override String get deleteAllHistoryDescription => 'Tüm AI sohbet geçmişinizi kalıcı olarak silmek istediğinize emin misiniz? Tüm konuşmalarınız temizlenecek ve bu işlem geri alınamayacaktır (KVKK Unutulma Hakkı).';
+  @override String get deleteAllHistoryPermanently => 'Tüm Geçmişi Kalıcı Olarak Sil';
+  @override String get chatHistoryDeleted => 'Tüm AI sohbet geçmişiniz kalıcı olarak silindi.';
+  @override String get chatHistoryDeleteFailed => 'Geçmiş silinirken bir hata oluştu.';
 }

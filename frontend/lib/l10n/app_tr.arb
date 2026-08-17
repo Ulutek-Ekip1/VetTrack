@@ -197,4 +197,13 @@
   ,"female": "Dişi"
   ,"weightChart": "Kilo Grafiği"
   ,"recentActivity": "Son Aktivite"
+  ,"deleteChat": "Sohbeti Sil"
+  ,"deleteChatDescription": "Bu sohbet oturumunu ve tüm mesajlarını silmek istediğinize emin misiniz? Bu işlem geri alınamaz (KVKK)."
+  ,"chatDeleted": "Sohbet oturumu başarıyla silindi."
+  ,"chatDeleteFailed": "Sohbet silinirken bir hata oluştu."
+  ,"deleteAllHistory": "Tüm Geçmişi Sil"
+  ,"deleteAllHistoryDescription": "Tüm AI sohbet geçmişinizi kalıcı olarak silmek istediğinize emin misiniz? Tüm konuşmalarınız temizlenecek ve bu işlem geri alınamayacaktır (KVKK Unutulma Hakkı)."
+  ,"deleteAllHistoryPermanently": "Tüm Geçmişi Kalıcı Olarak Sil"
+  ,"chatHistoryDeleted": "Tüm AI sohbet geçmişiniz kalıcı olarak silindi."
+  ,"chatHistoryDeleteFailed": "Geçmiş silinirken bir hata oluştu."
 }
