@@ -22,4 +22,6 @@ abstract class AuthRepository {
   Future<void> forgotPassword(String email);
   Future<void> resendVerificationEmail(String email);
   Future<void> deleteAccount();
+  Future<String> updateProfilePhoto(String filePath);
+  Future<void> deleteProfilePhoto();
 }
