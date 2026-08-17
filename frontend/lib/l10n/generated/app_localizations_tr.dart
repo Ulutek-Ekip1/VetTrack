@@ -203,4 +203,16 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get profileEditDescription => 'Aşağıdaki alanları güncelleyerek profilinizi güncel tutabilirsiniz.';
   @override String get editInformation => 'Bilgileri Düzenle';
   @override String get saveChanges => 'Değişiklikleri Kaydet';
+  @override String get myProfile => 'Profilim';
+  @override String get petOwner => 'Hayvan Sahibi';
+  @override String get accountSettings => 'Hesap Ayarları';
+  @override String get myPets => 'Evcil Hayvanlarım';
+  @override String get myPetsDescription => 'Kayıtlı evcil hayvanların listesi';
+  @override String get personalInformationDescription => 'Ad soyad, telefon ve e-posta ayarları';
+  @override String get supportAndInformation => 'Destek ve Bilgi';
+  @override String get frequentlyAskedQuestions => 'Sıkça Sorulan Sorular';
+  @override String get frequentlyAskedQuestionsDescription => 'Uygulama kullanımı hakkında yardımlar';
+  @override String get privacyAndSecurity => 'Gizlilik ve Güvenlik Sözleşmesi';
+  @override String get privacyAndSecurityDescription => 'Verilerin korunması ve yasal maddeler';
+  @override String get signOut => 'Hesaptan Çıkış Yap';
 }

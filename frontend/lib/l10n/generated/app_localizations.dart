@@ -246,6 +246,18 @@ abstract class AppLocalizations {
   String get profileEditDescription;
   String get editInformation;
   String get saveChanges;
+  String get myProfile;
+  String get petOwner;
+  String get accountSettings;
+  String get myPets;
+  String get myPetsDescription;
+  String get personalInformationDescription;
+  String get supportAndInformation;
+  String get frequentlyAskedQuestions;
+  String get frequentlyAskedQuestionsDescription;
+  String get privacyAndSecurity;
+  String get privacyAndSecurityDescription;
+  String get signOut;
 }
 
 class _AppLocalizationsDelegate

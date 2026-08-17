@@ -5,6 +5,7 @@ import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class OwnerProfileScreen extends StatelessWidget {
   const OwnerProfileScreen({super.key});
@@ -12,6 +13,7 @@ class OwnerProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     const primaryBlue = Color(0xFF004AC6);
 
     return Scaffold(
@@ -20,8 +22,8 @@ class OwnerProfileScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 1,
         shadowColor: Colors.black12,
-        title: const Text(
-          'Profilim',
+        title: Text(
+          l10n.myProfile,
           style: TextStyle(
             color: primaryBlue,
             fontWeight: FontWeight.bold,
@@ -88,8 +90,8 @@ class OwnerProfileScreen extends StatelessWidget {
                                   color: const Color(0xFFECFDF5),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: const Text(
-                                  'Hayvan Sahibi',
+                                child: Text(
+                                  l10n.petOwner,
                                   style: TextStyle(
                                     color: Color(0xFF047857),
                                     fontSize: 12,
@@ -108,7 +110,7 @@ class OwnerProfileScreen extends StatelessWidget {
                 const SizedBox(height: AppDimensions.spacingLg),
 
                 // Hesap Ayarları Grubu
-                _buildSectionHeader(context, 'Hesap Ayarları'),
+                _buildSectionHeader(context, l10n.accountSettings),
                 const SizedBox(height: AppDimensions.spacingSm),
                 Card(
                   elevation: 0,
@@ -122,16 +124,16 @@ class OwnerProfileScreen extends StatelessWidget {
                       _buildProfileTile(
                         context,
                         icon: Icons.person_outline,
-                        title: 'Kişisel Bilgiler',
-                        subtitle: 'Ad soyad, telefon ve e-posta ayarları',
+                        title: l10n.personalInformation,
+                        subtitle: l10n.personalInformationDescription,
                         onTap: () => context.push(AppRoutes.editProfile),
                       ),
                       _buildDivider(),
                       _buildProfileTile(
                         context,
                         icon: Icons.pets_outlined,
-                        title: 'Evcil Hayvanlarım',
-                        subtitle: 'Kayıtlı evcil hayvanların listesi',
+                        title: l10n.myPets,
+                        subtitle: l10n.myPetsDescription,
                         onTap: () => context.push('/owner/pets'),
                       ),
                     ],
@@ -141,7 +143,7 @@ class OwnerProfileScreen extends StatelessWidget {
                 const SizedBox(height: AppDimensions.spacingLg),
 
                 // Bilgi ve Destek Grubu
-                _buildSectionHeader(context, 'Destek ve Bilgi'),
+                _buildSectionHeader(context, l10n.supportAndInformation),
                 const SizedBox(height: AppDimensions.spacingSm),
                 Card(
                   elevation: 0,
@@ -155,16 +157,16 @@ class OwnerProfileScreen extends StatelessWidget {
                       _buildProfileTile(
                         context,
                         icon: Icons.help_outline,
-                        title: 'Sıkça Sorulan Sorular',
-                        subtitle: 'Uygulama kullanımı hakkında yardımlar',
+                        title: l10n.frequentlyAskedQuestions,
+                        subtitle: l10n.frequentlyAskedQuestionsDescription,
                         onTap: () {},
                       ),
                       _buildDivider(),
                       _buildProfileTile(
                         context,
                         icon: Icons.security_outlined,
-                        title: 'Gizlilik ve Güvenlik Sözleşmesi',
-                        subtitle: 'Verilerin korunması ve yasal maddeler',
+                        title: l10n.privacyAndSecurity,
+                        subtitle: l10n.privacyAndSecurityDescription,
                         onTap: () {},
                       ),
                     ],
@@ -189,8 +191,8 @@ class OwnerProfileScreen extends StatelessWidget {
                     ),
                   ),
                   icon: const Icon(Icons.logout),
-                  label: const Text(
-                    'Hesaptan Çıkış Yap',
+                  label: Text(
+                    l10n.signOut,
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
