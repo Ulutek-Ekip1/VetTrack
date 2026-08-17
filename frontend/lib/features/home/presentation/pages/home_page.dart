@@ -192,14 +192,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   const SizedBox(height: 8), // Boşluk daraltıldı (12 -> 8)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppDimensions.containerMargin),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1.35,
-                      children: [
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final useSingleColumn = constraints.maxWidth < 360;
+                        return GridView.count(
+                          crossAxisCount: useSingleColumn ? 1 : 2,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: useSingleColumn ? 3.2 : 1.35,
+                          children: [
                         _buildQuickActionCard(
                           context,
                           title: 'AI Asistan',
@@ -243,7 +246,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           iconColor: const Color(0xFFDB2777),
                           onTap: () => context.push('/owner/visits'),
                         ),
-                      ],
+                          ],
+                        );
+                      },
                     ),
                   ),
 
