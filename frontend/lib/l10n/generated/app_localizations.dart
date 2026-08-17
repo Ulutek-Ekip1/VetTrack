@@ -222,6 +222,17 @@ abstract class AppLocalizations {
   String get passwordMustDiffer;
   String get passwordResetLinkExpired;
   String get passwordUpdateGenericError;
+  String get signInBlocked;
+  String welcomeUser(String name);
+  String get vetStaffLogin;
+  String get signInDescription;
+  String get vetLoginDescription;
+  String get enterPassword;
+  String get rememberMe;
+  String get forgotPasswordQuestion;
+  String get or;
+  String get signInWithGoogle;
+  String get noAccount;
 }
 
 class _AppLocalizationsDelegate

@@ -88,4 +88,16 @@
   ,"passwordMustDiffer": "Yeni şifreniz eski şifrenizle aynı olamaz."
   ,"passwordResetLinkExpired": "Şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir bağlantı talep ediniz."
   ,"passwordUpdateGenericError": "Şifre güncellenirken bir sorun oluştu. Lütfen tekrar deneyin."
+  ,"signInBlocked": "Giriş Engellendi"
+  ,"welcomeUser": "Hoş geldiniz, {name}"
+  ,"@welcomeUser": {"placeholders": {"name": {"type": "String"}}}
+  ,"vetStaffLogin": "Veteriner Personel Girişi"
+  ,"signInDescription": "Devam etmek için e-posta ve şifrenizle giriş yapın"
+  ,"vetLoginDescription": "Klinik yönetim paneline erişmek için personel hesabınızı kullanın."
+  ,"enterPassword": "Lütfen şifrenizi girin"
+  ,"rememberMe": "Beni Hatırla"
+  ,"forgotPasswordQuestion": "Şifremi Unuttum?"
+  ,"or": "veya"
+  ,"signInWithGoogle": "Google ile Giriş Yap"
+  ,"noAccount": "Hesabınız yok mu?"
 }

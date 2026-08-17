@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     } else {
                       AppSnackBar.showError(
                         context,
-                        title: "Giriş Engellendi",
+                        title: l10n.signInBlocked,
                         message: error,
                       );
                     }
@@ -98,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (state is Authenticated) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Hoşgeldiniz, ${state.user.name}'),
+                        content: Text(l10n.welcomeUser(state.user.name)),
                       ),
                     );
                     context.go(
@@ -176,8 +176,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 // Başlıklar
                                 Text(
                                   AppPlatform.isVetWebExperience
-                                      ? "Veteriner Personel Girişi"
-                                      : "Giriş Yap",
+                                      ? l10n.vetStaffLogin
+                                      : l10n.signIn,
                                   style:
                                       theme.textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -188,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SizedBox(height: 8),
 
                                 Text(
-                                  "Devam etmek için e-posta ve şifrenizle giriş yapın",
+                                  l10n.signInDescription,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: AppColors.onSurfaceVariant,
                                   ),
@@ -196,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (AppPlatform.isVetWebExperience) ...[
                                   const SizedBox(height: 8),
                                   Text(
-                                    "Klinik yönetim paneline erişmek için personel hesabınızı kullanın.",
+                                    l10n.vetLoginDescription,
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: AppColors.primary,
                                       fontWeight: FontWeight.w600,
@@ -286,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return 'Lütfen şifrenizi girin';
+                                      return l10n.enterPassword;
                                     }
                                     return null;
                                   },
@@ -322,7 +322,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         });
                                       },
                                       child: Text(
-                                        "Beni Hatırla",
+                                        l10n.rememberMe,
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
                                           color: AppColors.onSurface,
@@ -340,7 +340,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             MaterialTapTargetSize.shrinkWrap,
                                       ),
                                       child: Text(
-                                        'Şifremi Unuttum?',
+                                        l10n.forgotPasswordQuestion,
                                         style: theme.textTheme.labelMedium
                                             ?.copyWith(
                                           color: const Color(0xFF14B8A6),
@@ -380,7 +380,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 MainAxisAlignment.center,
                                             children: [
                                               Text(
-                                                'Giriş Yap',
+                                                l10n.signIn,
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
@@ -413,7 +413,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Padding(
                                       padding: const EdgeInsets.symmetric(horizontal: 16),
                                       child: Text(
-                                        "veya",
+                                        l10n.or,
                                         style: theme.textTheme.bodyMedium?.copyWith(
                                           color: AppColors.onSurfaceVariant,
                                         ),
@@ -457,7 +457,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                         const SizedBox(width: 12),
                                         Text(
-                                          'Google ile Giriş Yap',
+                                          l10n.signInWithGoogle,
                                           style: theme.textTheme.titleMedium?.copyWith(
                                             color: AppColors.onSurface,
                                             fontWeight: FontWeight.bold,
@@ -480,7 +480,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              "Hesabınız yok mu?",
+                              l10n.noAccount,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: AppColors.onSurfaceVariant,
                               ),
@@ -490,7 +490,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 context.push(AppRoutes.register);
                               },
                               child: Text(
-                                "Kayıt Ol",
+                                l10n.register,
                                 style: theme.textTheme.labelLarge?.copyWith(
                                   color: const Color(0xFF14B8A6),
                                   fontWeight: FontWeight.bold,
@@ -503,7 +503,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Footer
                       Text(
-                        "© 2026 VetTrack Health Systems. All rights reserved.",
+                        l10n.copyright,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: AppColors.outline,
                         ),

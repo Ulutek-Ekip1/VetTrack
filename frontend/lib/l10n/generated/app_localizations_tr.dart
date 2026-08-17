@@ -179,4 +179,15 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get passwordMustDiffer => 'Yeni şifreniz eski şifrenizle aynı olamaz.';
   @override String get passwordResetLinkExpired => 'Şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir bağlantı talep ediniz.';
   @override String get passwordUpdateGenericError => 'Şifre güncellenirken bir sorun oluştu. Lütfen tekrar deneyin.';
+  @override String get signInBlocked => 'Giriş Engellendi';
+  @override String welcomeUser(String name) => 'Hoş geldiniz, $name';
+  @override String get vetStaffLogin => 'Veteriner Personel Girişi';
+  @override String get signInDescription => 'Devam etmek için e-posta ve şifrenizle giriş yapın';
+  @override String get vetLoginDescription => 'Klinik yönetim paneline erişmek için personel hesabınızı kullanın.';
+  @override String get enterPassword => 'Lütfen şifrenizi girin';
+  @override String get rememberMe => 'Beni Hatırla';
+  @override String get forgotPasswordQuestion => 'Şifremi Unuttum?';
+  @override String get or => 'veya';
+  @override String get signInWithGoogle => 'Google ile Giriş Yap';
+  @override String get noAccount => 'Hesabınız yok mu?';
 }
