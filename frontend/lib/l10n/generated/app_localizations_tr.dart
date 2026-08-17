@@ -150,4 +150,18 @@ bildirim ve hatırlatmaların (aşı günü, parazit takibi vb.) e-posta
 veya mobil bildirim yoluyla tarafıma iletilmesi amacıyla iletişim
 verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
 özgür irademle onay veriyorum.''';
+  @override String get forgotPasswordTitle => 'Şifremi Unuttum';
+  @override String get forgotPasswordDescription => 'E-posta adresinizi girin, size bir şifre sıfırlama bağlantısı gönderelim.';
+  @override String get sendResetLink => 'Sıfırlama Bağlantısı Gönder';
+  @override String get backToLogin => 'Giriş Ekranına Dön';
+  @override String passwordResetEmailSent(String email) => '$email adresine şifre sıfırlama bağlantısı gönderildi!';
+  @override String get copyright => '© 2026 VetTrack Health Systems. Tüm hakları saklıdır.';
+  @override String get verificationEmailResent => 'Doğrulama e-postası tekrar gönderildi.';
+  @override String get verifyEmailTitle => 'Lütfen e-postanızı doğrulayın';
+  @override String get verifyEmailDescription => 'Hesabınızı aktifleştirmek için gelen kutunuzu kontrol edin.';
+  @override String get checkSpamTitle => 'Spam klasörüne bakın';
+  @override String get checkSpamDescription => 'Eğer e-posta 2 dakika içinde gelmezse lütfen gereksiz (spam) klasörünüzü kontrol edin.';
+  @override String get returnToLogin => 'Giriş ekranına dön';
+  @override String get emailNotReceived => 'E-postayı almadınız mı?';
+  @override String get resendVerificationEmail => 'E-postayı tekrar gönder';
 }

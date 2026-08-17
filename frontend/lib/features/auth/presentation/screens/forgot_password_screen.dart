@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -34,6 +35,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Container(
@@ -65,7 +67,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          '${state.email} adresine şifre sıfırlama bağlantısı gönderildi!',
+                          l10n.passwordResetEmailSent(state.email),
                         ),
                         backgroundColor: AppColors.primary,
                       ),
@@ -137,7 +139,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Şifremi Unuttum",
+                                  l10n.forgotPasswordTitle,
                                   style:
                                       theme.textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -148,7 +150,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 const SizedBox(height: 8),
 
                                 Text(
-                                  "E-posta adresinizi girin, size bir şifre sıfırlama bağlantısı gönderelim.",
+                                  l10n.forgotPasswordDescription,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: AppColors.onSurfaceVariant,
                                   ),
@@ -163,7 +165,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   autofillHints: const [AutofillHints.email],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    labelText: "E-posta Adresi",
+                                    labelText: l10n.emailAddress,
                                     prefixIcon: const Icon(
                                       Icons.mail_outline,
                                       color: AppColors.outline,
@@ -219,7 +221,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                                 MainAxisAlignment.center,
                                             children: [
                                               Text(
-                                                'Sıfırlama Bağlantısı Gönder',
+                                                l10n.sendResetLink,
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
@@ -256,7 +258,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           color: AppColors.primary,
                         ),
                         label: Text(
-                          "Giriş Ekranına Dön",
+                          l10n.backToLogin,
                           style: theme.textTheme.labelLarge?.copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
@@ -268,7 +270,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                       // Footer
                       Text(
-                        "© 2026 VetTrack Health Systems. All rights reserved.",
+                        l10n.copyright,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: AppColors.outline,
                         ),

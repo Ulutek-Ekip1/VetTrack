@@ -7,6 +7,7 @@ import 'package:vettrack_frontend/features/auth/widgets/verification.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../cubit/auth_cubit.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class EmailVerificationScreen extends StatelessWidget {
   const EmailVerificationScreen({super.key});
@@ -14,6 +15,7 @@ class EmailVerificationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -32,8 +34,8 @@ class EmailVerificationScreen extends StatelessWidget {
                   );
                 } else if (state is VerificationEmailSent) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Doğrulama e-postası tekrar gönderildi.'),
+                    SnackBar(
+                      content: Text(l10n.verificationEmailResent),
                       backgroundColor: AppColors.primary,
                     ),
                   );
@@ -95,7 +97,7 @@ class EmailVerificationScreen extends StatelessWidget {
 
                     // Başlık ve Açıklama
                     Text(
-                      "Lütfen e-postanızı doğrulayın",
+                      l10n.verifyEmailTitle,
                       style: theme.textTheme.headlineMedium?.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -107,7 +109,7 @@ class EmailVerificationScreen extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     Text(
-                      "Hesabınızı aktifleştirmek için gelen kutunuzu kontrol edin.",
+                      l10n.verifyEmailDescription,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: AppColors.onSurfaceVariant,
                       ),
@@ -147,7 +149,7 @@ class EmailVerificationScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Spam klasörüne bakın",
+                                  l10n.checkSpamTitle,
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.onSurface,
@@ -155,7 +157,7 @@ class EmailVerificationScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  "Eğer e-posta 2 dakika içinde gelmezse lütfen gereksiz (spam) klasörünüzü kontrol edin.",
+                                  l10n.checkSpamDescription,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: AppColors.onSurfaceVariant,
                                     height: 1.3,
@@ -187,7 +189,7 @@ class EmailVerificationScreen extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          "Giriş ekranına dön",
+                          l10n.returnToLogin,
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: AppColors.onPrimary,
                             fontWeight: FontWeight.w600,
@@ -200,7 +202,7 @@ class EmailVerificationScreen extends StatelessWidget {
 
                     // E-postayı tekrar gönder Link / Buton
                     Text(
-                      "E-postayı almadınız mı?",
+                      l10n.emailNotReceived,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.onSurfaceVariant,
                       ),
@@ -231,7 +233,7 @@ class EmailVerificationScreen extends StatelessWidget {
                               color: AppColors.secondary,
                             ),
                       label: Text(
-                        "E-postayı tekrar gönder",
+                        l10n.resendVerificationEmail,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: AppColors.secondary,
                           fontWeight: FontWeight.bold,
@@ -243,7 +245,7 @@ class EmailVerificationScreen extends StatelessWidget {
 
                     // Footer
                     Text(
-                      "© 2026 VetTrack Health Systems. All rights reserved.",
+                      l10n.copyright,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: AppColors.outline,
                       ),

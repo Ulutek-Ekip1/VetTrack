@@ -193,6 +193,20 @@ abstract class AppLocalizations {
   String get signIn;
   String get kvkkBody;
   String get explicitConsentBody;
+  String get forgotPasswordTitle;
+  String get forgotPasswordDescription;
+  String get sendResetLink;
+  String get backToLogin;
+  String passwordResetEmailSent(String email);
+  String get copyright;
+  String get verificationEmailResent;
+  String get verifyEmailTitle;
+  String get verifyEmailDescription;
+  String get checkSpamTitle;
+  String get checkSpamDescription;
+  String get returnToLogin;
+  String get emailNotReceived;
+  String get resendVerificationEmail;
 }
 
 class _AppLocalizationsDelegate
