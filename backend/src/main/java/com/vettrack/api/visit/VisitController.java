@@ -95,6 +95,17 @@ public class VisitController {
         return ResponseEntity.ok(new PatientSearchResponse(pet, visits));
     }
 
+    @GetMapping("/owner")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Sahibin Tüm Aktif Petlerinin Ziyaret Geçmişi",
+            description = "Giriş yapmış hasta sahibinin sahip olduğu tüm aktif (silinmemiş) petlerin muayene "
+                    + "geçmişini tek listede döner. Kayıt yoksa 200 OK + boş dizi.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<List<Visit>> getVisitsForOwner(@AuthenticationPrincipal Jwt jwt) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(visitService.getVisitsForOwner(ownerId));
+    }
+
     @GetMapping("/{visitId}/context")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ActiveVisitContextResponse> getActiveVisitContext(

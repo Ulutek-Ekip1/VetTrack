@@ -76,6 +76,7 @@
 | 9 | POST | `/pets/{id}/photo` | Fotoğraf yükle | owner |
 | 9a | DELETE | `/pets/{id}/photo` | Fotoğraf sil | owner |
 | 10 | GET | `/pets/{id}/visits` | Hayvanın ziyaret geçmişi | owner |
+| 10a | GET | `/visits/owner` | Sahibin tüm aktif petlerinin ziyaret geçmişi | owner |
 | 11 | GET | `/pets/{id}/recommendations` | Hayvanın önerileri | owner |
 | 12 | GET | `/visits/code/{code}` | Kod ile hasta bul | vet_staff |
 | 13 | POST | `/visits` | Yeni ziyaret başlat | vet_staff |
@@ -548,6 +549,18 @@ Zamana bağlı kilo geçmişini kronolojik (`date ASC`) olarak listeler. Paramet
 **Kim:** Sadece hayvanın sahibi (`owner`). **PRD:** US-04.
 
 **Response (200):** `VisitDetailResponse[]` — yeniden eskiye sıralı, tedaviler ve öneriler dahil
+
+---
+
+### GET /visits/owner — Sahibin tüm aktif petlerinin ziyaret geçmişi
+
+**Kim:** Giriş yapmış `owner`. **Amaç:** Genel ziyaret geçmişi ekranı (tüm hayvanlar tek listede) — N+1 istek önleme.
+
+**Path/query param:** Yok. Sahip JWT subject'inden belirlenir.
+
+**Response (200):** `VisitResponse[]` — sahibin **aktif** (soft-delete edilmemiş, `isActive=true`) tüm petlerinin ziyaretleri, `startedAt` DESC sıralı.
+
+> Not: Silinmiş/pasif petlerin ziyaretleri dahil edilmez. Kayıt yoksa `null` değil **boş dizi (`[]`)** döner (200). Sayfalama yok — düz liste.
 
 ---
 
