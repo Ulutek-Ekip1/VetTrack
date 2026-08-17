@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/pet_entity.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
-import '../widgets/pet_profile_photo_bottom_sheet.dart';
+import '../../../../core/widgets/image_picker_bottom_sheet.dart';
 
 class AddPetScreen extends StatefulWidget {
   const AddPetScreen({super.key});
@@ -197,28 +197,13 @@ class _AddPetScreenState extends State<AddPetScreen> {
                             right: 0,
                             child: GestureDetector(
                               onTap: () {
-                                showModalBottomSheet(
+                                showImagePickerBottomSheet(
                                   context: context,
-                                  backgroundColor: Colors.white,
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(28),
-                                    ),
-                                  ),
-                                  builder: (context) {
-                                    return PetProfilePhotoBottomSheet(
-                                      getPhotoUrl: (url) {
-                                        setState(() {
-                                          if (url == null) {
-                                            // Fotoğraf silindi
-                                            _localPhotoUrl = null;
-                                          } else {
-                                            // Yeni fotoğraf eklendi
-                                            _localPhotoUrl = url;
-                                          }
-                                        });
-                                      },
-                                    );
+                                  title: 'Dost resmi',
+                                  onPhotoSelected: (url) {
+                                    setState(() {
+                                      _localPhotoUrl = url;
+                                    });
                                   },
                                 );
                               },

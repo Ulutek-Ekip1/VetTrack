@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/image_picker_bottom_sheet.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
@@ -51,16 +53,10 @@ class OwnerProfileScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(20.0),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundColor: const Color(0xFFDBEAFE),
-                          child: Text(
-                            userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: primaryBlue,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        _OwnerProfileAvatar(
+                          userName: userName,
+                          theme: theme,
+                          primaryBlue: primaryBlue,
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -83,7 +79,8 @@ class OwnerProfileScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFECFDF5),
                                   borderRadius: BorderRadius.circular(20),
@@ -104,7 +101,7 @@ class OwnerProfileScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: AppDimensions.spacingLg),
 
                 // Hesap Ayarları Grubu
@@ -185,7 +182,8 @@ class OwnerProfileScreen extends StatelessWidget {
                     minimumSize: const Size.fromHeight(56),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLg),
                     ),
                   ),
                   icon: const Icon(Icons.logout),
@@ -268,6 +266,81 @@ class OwnerProfileScreen extends StatelessWidget {
       ),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    );
+  }
+}
+
+class _OwnerProfileAvatar extends StatefulWidget {
+  final String userName;
+  final ThemeData theme;
+  final Color primaryBlue;
+
+  const _OwnerProfileAvatar({
+    required this.userName,
+    required this.theme,
+    required this.primaryBlue,
+  });
+
+  @override
+  State<_OwnerProfileAvatar> createState() => _OwnerProfileAvatarState();
+}
+
+class _OwnerProfileAvatarState extends State<_OwnerProfileAvatar> {
+  String? _localPhotoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        showImagePickerBottomSheet(
+          context: context,
+          title: 'Profil Fotoğrafı',
+          onPhotoSelected: (url) {
+            setState(() {
+              _localPhotoUrl = url;
+            });
+          },
+        );
+      },
+      child: Stack(
+        children: [
+          CircleAvatar(
+            radius: 36,
+            backgroundColor: const Color(0xFFDBEAFE),
+            backgroundImage: _localPhotoUrl != null
+                ? FileImage(File(_localPhotoUrl!))
+                : null,
+            child: _localPhotoUrl == null
+                ? Text(
+                    widget.userName.isNotEmpty
+                        ? widget.userName[0].toUpperCase()
+                        : 'U',
+                    style: widget.theme.textTheme.headlineMedium?.copyWith(
+                      color: widget.primaryBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: widget.primaryBlue,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: const Icon(
+                Icons.camera_alt,
+                color: Colors.white,
+                size: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

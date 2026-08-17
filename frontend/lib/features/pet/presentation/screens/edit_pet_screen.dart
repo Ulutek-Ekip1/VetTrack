@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:vettrack_frontend/features/pet/presentation/widgets/pet_profile_photo_bottom_sheet.dart';
+import 'package:vettrack_frontend/core/widgets/image_picker_bottom_sheet.dart';
 import '../../domain/entities/pet_entity.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
@@ -251,30 +251,19 @@ class _EditPetScreenState extends State<EditPetScreen> {
                           right: 0,
                           child: GestureDetector(
                             onTap: () {
-                              showModalBottomSheet(
+                              showImagePickerBottomSheet(
                                 context: context,
-                                backgroundColor: Colors.white,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(28),
-                                  ),
-                                ),
-                                builder: (context) {
-                                  return PetProfilePhotoBottomSheet(
-                                    getPhotoUrl: (url) {
-                                      setState(() {
-                                        if (url == null) {
-                                          // Fotoğraf silindi
-                                          isDeleted = true;
-                                          _localPhotoUrl = _photoUrl = null;
-                                        } else {
-                                          // Yeni fotoğraf eklendi
-                                          _localPhotoUrl = url;
-                                          isDeleted = false;
-                                        }
-                                      });
-                                    },
-                                  );
+                                title: 'Dost resmi',
+                                onPhotoSelected: (url) {
+                                  setState(() {
+                                    if (url == null) {
+                                      isDeleted = true;
+                                      _localPhotoUrl = _photoUrl = null;
+                                    } else {
+                                      _localPhotoUrl = url;
+                                      isDeleted = false;
+                                    }
+                                  });
                                 },
                               );
                             },
