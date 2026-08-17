@@ -8,6 +8,7 @@ import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/pet/presentation/cubit/pet_cubit.dart';
 import 'core/services/top_notification.dart';
 import 'core/services/firebase_messaging_service.dart';
+import 'l10n/generated/app_localizations.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -30,10 +31,12 @@ class VetTrackApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp.router(
-        title: 'VetTrack',
+        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
         routerConfig: AppRouter.createRouter(authCubit),
         builder: (context, child) {
           return Stack(
