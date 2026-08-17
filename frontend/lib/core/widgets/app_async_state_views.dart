@@ -39,30 +39,36 @@ class AppEmptyStateView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.spacingLg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: AppDimensions.spacingMd),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.grey.shade600,
+    return Semantics(
+      liveRegion: true,
+      label: description == null ? title : '$title. $description',
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.spacingLg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ExcludeSemantics(
+                child: Icon(icon, size: 64, color: Colors.grey.shade400),
               ),
-            ),
-            if (description != null) ...[
-              const SizedBox(height: AppDimensions.spacingSm),
-              Text(description!, textAlign: TextAlign.center),
-            ],
-            if (action != null) ...[
               const SizedBox(height: AppDimensions.spacingMd),
-              action!,
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              if (description != null) ...[
+                const SizedBox(height: AppDimensions.spacingSm),
+                Text(description!, textAlign: TextAlign.center),
+              ],
+              if (action != null) ...[
+                const SizedBox(height: AppDimensions.spacingMd),
+                action!,
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -105,50 +111,61 @@ class AppErrorStateView extends StatelessWidget {
             ),
           ),
         Expanded(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppDimensions.spacingLg),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.cloud_off_outlined,
-                    size: 64,
-                    color: AppColors.outline,
-                  ),
-                  const SizedBox(height: AppDimensions.spacingMd),
-                  const Text(
-                    'Bağlantı Hatası',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: AppDimensions.spacingSm),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: AppDimensions.spacingLg),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryContainer,
-                      foregroundColor: AppColors.onPrimary,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+          child: Semantics(
+            liveRegion: true,
+            label: 'Bağlantı hatası. $message',
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppDimensions.spacingLg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const ExcludeSemantics(
+                      child: Icon(
+                        Icons.cloud_off_outlined,
+                        size: 64,
+                        color: AppColors.outline,
                       ),
                     ),
-                    onPressed: onRetry,
-                    icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('Tekrar Dene'),
+                    const SizedBox(height: AppDimensions.spacingMd),
+                    const Text(
+                      'Bağlantı Hatası',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingSm),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppColors.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingLg),
+                    Semantics(
+                      button: true,
+                      label: 'Bağlantıyı tekrar dene',
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryContainer,
+                          foregroundColor: AppColors.onPrimary,
+                          minimumSize: const Size(44, 44),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        onPressed: onRetry,
+                        icon: const Icon(Icons.refresh, size: 18),
+                        label: const Text('Tekrar Dene'),
+                      ),
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
           ),

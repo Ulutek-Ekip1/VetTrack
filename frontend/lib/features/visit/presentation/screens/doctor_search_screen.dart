@@ -130,29 +130,41 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                         const Text('Hasta sahibinin paylaştığı erişim kodunu giriniz.',
                             textAlign: TextAlign.center),
                         const SizedBox(height: 28),
-                        TextField(
-                          controller: _codeController,
-                          focusNode: _codeFocusNode,
-                          textCapitalization: TextCapitalization.characters,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
-                            LengthLimitingTextInputFormatter(6),
-                            TextInputFormatter.withFunction((oldValue, newValue) => TextEditingValue(
-                                  text: newValue.text.toUpperCase(), selection: newValue.selection)),
-                          ],
-                          onSubmitted: (_) => _searchPatient(),
-                          enabled: !isLoading,
-                          textAlign: TextAlign.center,
-                          decoration: const InputDecoration(
-                            labelText: 'Geçici Erişim Kodu', hintText: 'Örn: A8X23J',
-                            prefixIcon: Icon(Icons.qr_code_scanner), border: OutlineInputBorder(),
+                        Semantics(
+                          textField: true,
+                          label: 'Altı karakterli hasta erişim kodu',
+                          hint: 'Yalnızca harf ve rakam kullanın. Örnek: A8X23J',
+                          child: TextField(
+                            controller: _codeController,
+                            focusNode: _codeFocusNode,
+                            textCapitalization: TextCapitalization.characters,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                              LengthLimitingTextInputFormatter(6),
+                              TextInputFormatter.withFunction((oldValue, newValue) => TextEditingValue(
+                                    text: newValue.text.toUpperCase(), selection: newValue.selection)),
+                            ],
+                            onSubmitted: (_) => _searchPatient(),
+                            enabled: !isLoading,
+                            textAlign: TextAlign.center,
+                            decoration: const InputDecoration(
+                              labelText: 'Geçici Erişim Kodu', hintText: 'Örn: A8X23J',
+                              prefixIcon: Icon(Icons.qr_code_scanner), border: OutlineInputBorder(),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 20),
-                        ElevatedButton.icon(
-                          onPressed: isLoading ? null : _searchPatient,
-                          icon: isLoading ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search),
-                          label: const Text('Hastayı Ara'),
+                        Semantics(
+                          button: true,
+                          label: 'Hasta ara',
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(44, 44),
+                            ),
+                            onPressed: isLoading ? null : _searchPatient,
+                            icon: isLoading ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search),
+                            label: const Text('Hastayı Ara'),
+                          ),
                         ),
                         if (_searchResult != null && _searchResult!.result.activeVisit != null) ...[
                           const Divider(height: 36),

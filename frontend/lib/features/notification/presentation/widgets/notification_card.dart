@@ -80,11 +80,15 @@ class NotificationCard extends StatelessWidget {
             context.push('/owner/pets/${notification.petId}/treatments');
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Semantics(
+          button: true,
+          label: '${notification.title}. ${notification.body}.${isRead ? ' Okundu.' : ' Okunmadı.'}',
+          child: ExcludeSemantics(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -153,7 +157,9 @@ class NotificationCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
