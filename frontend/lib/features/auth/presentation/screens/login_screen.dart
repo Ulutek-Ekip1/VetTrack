@@ -10,6 +10,7 @@ import '../cubit/auth_state.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/utils/app_platform.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -211,8 +213,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   autofillHints: const [AutofillHints.email],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    labelText: "E-posta Adresi",
-                                    hintText: "E-posta adresinizi giriniz",
+                                    labelText: l10n.emailAddress,
+                                    hintText: l10n.emailHint,
                                     prefixIcon: const Icon(
                                       Icons.mail_outline,
                                       color: AppColors.outline,
@@ -246,8 +248,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   autofillHints: const [AutofillHints.password],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    labelText: 'Şifre',
-                                    hintText: 'Şifrenizi giriniz',
+                                    labelText: l10n.password,
+                                    hintText: l10n.passwordHint,
                                     prefixIcon: const Icon(
                                       Icons.lock_outline,
                                       color: AppColors.outline,

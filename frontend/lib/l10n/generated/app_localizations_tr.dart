@@ -105,4 +105,8 @@ class AppLocalizationsTr extends AppLocalizations {
   @override String get save => 'Kaydet';
   @override String get updating => 'Güncelleniyor...';
   @override String get update => 'Güncelle';
+  @override String get emailAddress => 'E-posta Adresi';
+  @override String get emailHint => 'E-posta adresinizi giriniz';
+  @override String get password => 'Şifre';
+  @override String get passwordHint => 'Şifrenizi giriniz';
 }

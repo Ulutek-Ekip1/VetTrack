@@ -177,6 +177,10 @@ abstract class AppLocalizations {
   String get save;
   String get updating;
   String get update;
+  String get emailAddress;
+  String get emailHint;
+  String get password;
+  String get passwordHint;
 }
 
 class _AppLocalizationsDelegate

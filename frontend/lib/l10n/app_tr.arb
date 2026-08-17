@@ -42,4 +42,8 @@
   ,"save": "Kaydet"
   ,"updating": "Güncelleniyor..."
   ,"update": "Güncelle"
+  ,"emailAddress": "E-posta Adresi"
+  ,"emailHint": "E-posta adresinizi giriniz"
+  ,"password": "Şifre"
+  ,"passwordHint": "Şifrenizi giriniz"
 }
