@@ -233,6 +233,19 @@ abstract class AppLocalizations {
   String get or;
   String get signInWithGoogle;
   String get noAccount;
+  String get personalInformation;
+  String get profileUpdated;
+  String get profileLoadFailed;
+  String get firstName;
+  String get lastName;
+  String get emailReadOnly;
+  String get phoneNumber;
+  String get phoneHint;
+  String get address;
+  String get profileViewDescription;
+  String get profileEditDescription;
+  String get editInformation;
+  String get saveChanges;
 }
 
 class _AppLocalizationsDelegate

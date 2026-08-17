@@ -7,6 +7,7 @@ import '../../domain/entities/owner_entity.dart';
 import '../../../../core/utils/validators.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -77,6 +78,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surfaceDim,
@@ -84,8 +86,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         shadowColor: Colors.black12,
-        title: const Text(
-          'Kişisel Bilgiler',
+        title: Text(
+          l10n.personalInformation,
           style: TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
@@ -97,8 +99,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         listener: (context, state) {
           if (state is ProfileUpdateSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Profiliniz başarıyla güncellendi!'),
+              SnackBar(
+                content: Text(l10n.profileUpdated),
                 backgroundColor: Color(0xFF10B981),
                 behavior: SnackBarBehavior.floating,
               ),
@@ -136,11 +138,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Profil bilgileri yüklenemedi.'),
+                  Text(l10n.profileLoadFailed),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => context.read<ProfileCubit>().fetchProfile(),
-                    child: const Text('Tekrar Dene'),
+                    child: Text(l10n.retry),
                   ),
                 ],
               ),
@@ -174,7 +176,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              "Kişisel Bilgiler",
+                              l10n.personalInformation,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF131B2E),
@@ -183,8 +185,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             const SizedBox(height: 4),
                             Text(
                               _isEditable
-                                  ? "Aşağıdaki alanları güncelleyerek profilinizi güncel tutabilirsiniz."
-                                  : "Kişisel profil bilgilerinizi aşağıdan inceleyebilirsiniz. Değişiklik yapmak için aşağıdaki 'Bilgileri Düzenle' butonuna tıklayın.",
+                                  ? l10n.profileEditDescription
+                                  : l10n.profileViewDescription,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: AppColors.onSurfaceVariant,
                               ),
@@ -197,7 +199,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               enabled: _isEditable,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
-                                labelText: "Ad",
+                                labelText: l10n.firstName,
                                 prefixIcon: const Icon(
                                   Icons.person_outline,
                                   color: AppColors.outline,
@@ -236,7 +238,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               enabled: _isEditable,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
-                                labelText: "Soyad",
+                                labelText: l10n.lastName,
                                 prefixIcon: const Icon(
                                   Icons.person_outline,
                                   color: AppColors.outline,
@@ -276,7 +278,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               ),
                               enabled: false,
                               decoration: InputDecoration(
-                                labelText: "E-posta Adresi (Değiştirilemez)",
+                                labelText: l10n.emailReadOnly,
                                 prefixIcon: const Icon(
                                   Icons.mail_outline,
                                   color: AppColors.outlineVariant,
@@ -302,8 +304,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               keyboardType: TextInputType.phone,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
-                                labelText: "Telefon Numarası",
-                                hintText: "05XX XXX XX XX",
+                                labelText: l10n.phoneNumber,
+                                hintText: l10n.phoneHint,
                                 prefixIcon: const Icon(
                                   Icons.phone_outlined,
                                   color: AppColors.outline,
@@ -343,7 +345,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               maxLines: 3,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
-                                labelText: "Adres",
+                                labelText: l10n.address,
                                 prefixIcon: const Icon(
                                   Icons.location_on_outlined,
                                   color: AppColors.outline,
@@ -413,8 +415,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         children: [
                                           Text(
                                             _isEditable
-                                                ? 'Değişiklikleri Kaydet'
-                                                : 'Bilgileri Düzenle',
+                                                ? l10n.saveChanges
+                                                : l10n.editInformation,
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
                                               color: Colors.white,

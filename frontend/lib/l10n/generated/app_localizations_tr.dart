@@ -190,4 +190,17 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get or => 'veya';
   @override String get signInWithGoogle => 'Google ile Giriş Yap';
   @override String get noAccount => 'Hesabınız yok mu?';
+  @override String get personalInformation => 'Kişisel Bilgiler';
+  @override String get profileUpdated => 'Profiliniz başarıyla güncellendi!';
+  @override String get profileLoadFailed => 'Profil bilgileri yüklenemedi.';
+  @override String get firstName => 'Ad';
+  @override String get lastName => 'Soyad';
+  @override String get emailReadOnly => 'E-posta Adresi (Değiştirilemez)';
+  @override String get phoneNumber => 'Telefon Numarası';
+  @override String get phoneHint => '05XX XXX XX XX';
+  @override String get address => 'Adres';
+  @override String get profileViewDescription => "Kişisel profil bilgilerinizi aşağıdan inceleyebilirsiniz. Değişiklik yapmak için aşağıdaki 'Bilgileri Düzenle' butonuna tıklayın.";
+  @override String get profileEditDescription => 'Aşağıdaki alanları güncelleyerek profilinizi güncel tutabilirsiniz.';
+  @override String get editInformation => 'Bilgileri Düzenle';
+  @override String get saveChanges => 'Değişiklikleri Kaydet';
 }
