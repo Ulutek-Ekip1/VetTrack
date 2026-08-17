@@ -348,7 +348,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   if (record.weight < minW) minW = record.weight;
                   if (record.weight > maxW) maxW = record.weight;
                 }
-                minYVal = (minW - 2).clamp(0, double.infinity);
+                minYVal = (minW - 2).clamp(0, double.infinity).toDouble();
                 maxYVal = maxW + 2;
                 maxXVal = (spots.length - 1).toDouble();
                 if (maxXVal == 0) maxXVal = 1.0;
