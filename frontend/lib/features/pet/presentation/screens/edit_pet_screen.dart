@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/core/utils/validators.dart';
 import 'package:vettrack_frontend/features/pet/presentation/widgets/pet_profile_photo_bottom_sheet.dart';
 import '../../domain/entities/pet_entity.dart';
 import '../cubit/pet_cubit.dart';
@@ -304,9 +305,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
-                  validator: (val) => val == null || val.trim().isEmpty
-                      ? 'Lütfen bir ad girin'
-                      : null,
+                  validator: Validators.validatePetName,
                   onFieldSubmitted: (_) => _speciesFocusNode.requestFocus(),
                 ),
                 const SizedBox(height: 16),
@@ -340,9 +339,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
-                  validator: (val) => val == null || val.trim().isEmpty
-                      ? 'Lütfen hayvan türünü girin'
-                      : null,
+                  validator: Validators.validatePetSpecies,
                   onFieldSubmitted: (_) => _breedFocusNode.requestFocus(),
                 ),
                 const SizedBox(height: 16),
@@ -355,6 +352,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
+                  validator: Validators.validatePetBreed,
                   onFieldSubmitted: (_) => _ageFocusNode.requestFocus(),
                 ),
                 const SizedBox(height: 16),
@@ -373,16 +371,9 @@ class _EditPetScreenState extends State<EditPetScreen> {
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8)),
                         ),
-                        validator: (val) {
-                          if (_ageUnknown) return null;
-                          if (val != null && val.isNotEmpty) {
-                            final ageVal = int.tryParse(val);
-                            if (ageVal == null || ageVal < 0 || ageVal > 30) {
-                              return 'Lütfen 0-30 arası bir yaş girin';
-                            }
-                          }
-                          return null;
-                        },
+                        validator: _ageUnknown
+                            ? (_) => null
+                            : Validators.validatePetAge,
                         onFieldSubmitted: (_) =>
                             FocusManager.instance.primaryFocus?.unfocus(),
                       ),

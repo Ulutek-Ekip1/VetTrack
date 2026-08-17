@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:vettrack_frontend/core/utils/validators.dart';
 
 import 'photo_options.dart';
 
@@ -25,28 +26,7 @@ class _PetProfilePhotoBottomSheetState
 
     if (image == null) return;
 
-    final file = File(image.path);
-    final fileSizeInBytes = file.lengthSync();
-    final extension = image.path.toLowerCase();
-
-    final isSizeValid = fileSizeInBytes <= (15 * 1024 * 1024);
-    final isExtensionValid = extension.endsWith('.jpg') ||
-        extension.endsWith('.jpeg') ||
-        extension.endsWith('.png') ||
-        extension.endsWith('.webp');
-
-    if (isSizeValid && isExtensionValid) {
-      widget.getPhotoUrl(image.path);
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Hatalı format veya dosya boyutu çok büyük (Max 15MB)'),
-          backgroundColor: Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
+    _handleSelectedImage(image);
   }
 
   Future<void> _getPhotoFromCamera() async {
@@ -56,28 +36,26 @@ class _PetProfilePhotoBottomSheetState
 
     if (image == null) return;
 
-    final file = File(image.path);
-    final fileSizeInBytes = file.lengthSync();
-    final extension = image.path.toLowerCase();
+    _handleSelectedImage(image);
+  }
 
-    final isSizeValid = fileSizeInBytes <= (15 * 1024 * 1024);
-    final isExtensionValid = extension.endsWith('.jpg') ||
-        extension.endsWith('.jpeg') ||
-        extension.endsWith('.png') ||
-        extension.endsWith('.webp');
-
-    if (isSizeValid && isExtensionValid) {
+  void _handleSelectedImage(XFile image) {
+    final validationMessage = Validators.validatePetPhoto(
+      fileName: image.name,
+      sizeInBytes: File(image.path).lengthSync(),
+    );
+    if (validationMessage == null) {
       widget.getPhotoUrl(image.path);
       Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Hatalı format veya dosya boyutu çok büyük (Max 15MB)'),
-          backgroundColor: Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      return;
     }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(validationMessage),
+        backgroundColor: const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override

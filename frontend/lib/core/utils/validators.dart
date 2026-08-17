@@ -2,6 +2,8 @@
 // VetTrack API Sözleşmesi (docs/api-contract.md) kuralları temel alınmıştır.
 
 class Validators {
+  static const int maxPetPhotoSizeInBytes = 15 * 1024 * 1024;
+
   /// E-posta doğrulama (Zorunlu, geçerli e-posta formatı)
   static String? validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -56,6 +58,60 @@ class Validators {
   static String? validateUniqueCode(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Hasta benzersiz kodu zorunludur';
+    }
+    if (!RegExp(r'^[A-Z0-9]{6}$').hasMatch(value.trim().toUpperCase())) {
+      return 'Erişim kodu 6 karakterden oluşmalı; yalnızca harf ve rakam içermelidir';
+    }
+    return null;
+  }
+
+  static String? validatePetName(String? value) =>
+      _validateRequiredText(value, fieldName: 'Evcil hayvan adı');
+
+  static String? validatePetSpecies(String? value) =>
+      _validateRequiredText(value, fieldName: 'Hayvan türü');
+
+  static String? validatePetBreed(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    if (value.trim().length > 100) {
+      return 'Irk bilgisi en fazla 100 karakter olabilir';
+    }
+    return null;
+  }
+
+  static String? validatePetAge(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final age = int.tryParse(value.trim());
+    if (age == null || age < 0 || age > 30) {
+      return 'Lütfen 0-30 arasında bir yaş girin';
+    }
+    return null;
+  }
+
+  static String? validatePetPhoto({
+    required String fileName,
+    required int sizeInBytes,
+  }) {
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+    final normalizedName = fileName.toLowerCase();
+    if (!allowedExtensions.any(normalizedName.endsWith)) {
+      return 'Yalnızca JPG, PNG veya WEBP formatında fotoğraf yükleyebilirsiniz';
+    }
+    if (sizeInBytes > maxPetPhotoSizeInBytes) {
+      return 'Fotoğraf boyutu en fazla 15 MB olabilir';
+    }
+    return null;
+  }
+
+  static String? _validateRequiredText(
+    String? value, {
+    required String fieldName,
+  }) {
+    if (value == null || value.trim().isEmpty) {
+      return '$fieldName zorunludur';
+    }
+    if (value.trim().length > 100) {
+      return '$fieldName en fazla 100 karakter olabilir';
     }
     return null;
   }

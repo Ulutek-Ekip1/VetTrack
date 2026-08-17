@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vettrack_frontend/core/utils/validators.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_cubit.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_state.dart';
@@ -25,8 +26,9 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
 
   void _searchPatient() {
     final code = _codeController.text.trim();
-    if (code.isEmpty) {
-      _showMessage('Lütfen geçerli bir hasta erişim kodu girin.', isError: true);
+    final validationMessage = Validators.validateUniqueCode(code);
+    if (validationMessage != null) {
+      _showMessage(validationMessage, isError: true);
       return;
     }
     context.read<VisitCubit>().searchByCode(code);
@@ -107,6 +109,8 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                           controller: _codeController,
                           textCapitalization: TextCapitalization.characters,
                           inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                            LengthLimitingTextInputFormatter(6),
                             TextInputFormatter.withFunction((oldValue, newValue) => TextEditingValue(
                                   text: newValue.text.toUpperCase(), selection: newValue.selection)),
                           ],
