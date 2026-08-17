@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../router/notification_navigation.dart';
 import 'package:vettrack_frontend/core/services/top_notification.dart';
 import '../../features/notification/domain/usecases/unregister_device_token_usecase.dart';
 import '../di/injection_container.dart';
@@ -61,7 +62,7 @@ class FirebaseMessagingService {
   void _handleNotificationClick(RemoteMessage message) {
     final notificationId = message.data['notificationId'];
     if (notificationId != null) sl<MarkAsReadUseCase>()(notificationId.toString());
-    _navigateToPetTimeline(message.data);
+    _navigateToNotificationDestination(message.data);
   }
 
   void _setupForegroundListener() {
@@ -88,10 +89,14 @@ class FirebaseMessagingService {
     });
   }
 
-  void _navigateToPetTimeline(Map<String, dynamic> data) {
+  void _navigateToNotificationDestination(Map<String, dynamic> data) {
     final petId = data['petId']?.toString();
-    if (petId == null || petId.isEmpty) return;
-    _pendingPetTimelinePath = '/owner/pets/$petId/treatments';
+    final destination = NotificationNavigation.destinationFor(
+      type: data['type']?.toString() ?? 'SYSTEM',
+      petId: petId,
+    );
+    if (destination == null) return;
+    _pendingPetTimelinePath = destination;
     flushPendingNavigation();
   }
 

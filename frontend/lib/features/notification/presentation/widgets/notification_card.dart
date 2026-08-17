@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vettrack_frontend/core/router/notification_navigation.dart';
 import 'package:vettrack_frontend/features/notification/domain/entities/notification_entity.dart';
 
 import '../../../../core/constants/app_dimensions.dart';
@@ -20,6 +21,10 @@ class NotificationCard extends StatelessWidget {
     const primaryBlue = Color(0xFF004AC6);
 
     final bool isRead = notification.isRead;
+    final destination = NotificationNavigation.destinationFor(
+      type: notification.type,
+      petId: notification.petId,
+    );
 
     final (iconData, iconColor, iconBgColor) = switch (notification.type) {
       "SYSTEM" => (
@@ -76,8 +81,8 @@ class NotificationCard extends StatelessWidget {
         ),
         onTap: () {
           context.read<NotificationCubit>().markAsRead(notification.id);
-          if (notification.petId != null) {
-            context.push('/owner/pets/${notification.petId}/treatments');
+          if (destination != null) {
+            context.push(destination);
           }
         },
         child: Semantics(
