@@ -135,12 +135,15 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                pet.name,
-                                style: const TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF131B2E),
+                              Flexible(
+                                child: Text(
+                                  pet.name,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF131B2E),
+                                  ),
                                 ),
                               ),
                               IconButton(

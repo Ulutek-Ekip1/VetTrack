@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../constants/app_dimensions.dart';
+import '../utils/app_breakpoints.dart';
 
 // URL segmentlerini Türkçe isimlere eşlemek için bir sözlük
 const Map<String, String> _routeNames = {
@@ -148,47 +149,60 @@ class VetShellScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: Row(
-        children: [
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = AppBreakpoints.isCompact(constraints.maxWidth);
+        final useExpandedNavigation =
+            AppBreakpoints.usesExpandedNavigation(constraints.maxWidth);
+
+        return Scaffold(
+          body: Row(
+            children: [
           // Sol Menü (Sidebar) - Sadece Web için tasarlanmış geniş yapı
           NavigationRail(
-            extended: true,
-            minExtendedWidth: 220,
+            extended: useExpandedNavigation,
+            minExtendedWidth: useExpandedNavigation ? 220 : 72,
             selectedIndex: navigationShell.currentIndex,
             onDestinationSelected: _onTap,
             indicatorColor: theme.colorScheme.secondaryContainer,
             backgroundColor: theme.colorScheme.surfaceContainerLowest,
             elevation: 1,
-            leading: Column(
-              children: [
-                const SizedBox(height: AppDimensions.spacingLg),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.pets, color: Colors.teal.shade700, size: 28),
-                    const SizedBox(width: 8),
-                    Text(
-                      'VETTRACK',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                        color: theme.colorScheme.secondary,
+            leading: useExpandedNavigation
+                ? Column(
+                    children: [
+                      const SizedBox(height: AppDimensions.spacingLg),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.pets, color: Colors.teal.shade700, size: 28),
+                          const SizedBox(width: 8),
+                          Text(
+                            'VETTRACK',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                              color: theme.colorScheme.secondary,
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: AppDimensions.spacingSm),
+                      Text(
+                        'Web Klinik Paneli',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: AppDimensions.spacingLg),
+                    ],
+                  )
+                : Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppDimensions.spacingLg,
                     ),
-                  ],
-                ),
-                const SizedBox(height: AppDimensions.spacingSm),
-                Text(
-                  'Web Klinik Paneli',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
+                    child: Icon(Icons.pets, color: Colors.teal.shade700, size: 28),
                   ),
-                ),
-                const SizedBox(height: AppDimensions.spacingLg),
-              ],
-            ),
             destinations: [
               NavigationRailDestination(
                 icon: const Icon(Icons.search_outlined, size: 22),
@@ -238,8 +252,13 @@ class VetShellScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Sol Taraf: Dinamik Breadcrumbs
-                      Row(
-                        children: _buildBreadcrumbs(context),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: _buildBreadcrumbs(context),
+                          ),
+                        ),
                       ),
                       // Sağ Taraf: Hızlı İşlemler & Profil
                       Row(
@@ -249,34 +268,36 @@ class VetShellScreen extends StatelessWidget {
                             onPressed: () => context.push('/notifications'),
                             tooltip: 'Bildirimler',
                           ),
-                          const SizedBox(width: AppDimensions.spacingMd),
-                          VerticalDivider(
-                            width: 1,
-                            thickness: 1,
-                            indent: 16,
-                            endIndent: 16,
-                            color: theme.colorScheme.outlineVariant,
-                          ),
-                          const SizedBox(width: AppDimensions.spacingMd),
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundColor: theme.colorScheme.secondary,
-                            child: Text(
-                              'V',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSecondary,
-                                fontWeight: FontWeight.bold,
+                          if (!isCompact) ...[
+                            const SizedBox(width: AppDimensions.spacingMd),
+                            VerticalDivider(
+                              width: 1,
+                              thickness: 1,
+                              indent: 16,
+                              endIndent: 16,
+                              color: theme.colorScheme.outlineVariant,
+                            ),
+                            const SizedBox(width: AppDimensions.spacingMd),
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: theme.colorScheme.secondary,
+                              child: Text(
+                                'V',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: theme.colorScheme.onSecondary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: AppDimensions.spacingSm),
-                          Text(
-                            'Klinik Hekimi',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface,
+                            const SizedBox(width: AppDimensions.spacingSm),
+                            Text(
+                              'Klinik Hekimi',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ],
@@ -293,8 +314,10 @@ class VetShellScreen extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
