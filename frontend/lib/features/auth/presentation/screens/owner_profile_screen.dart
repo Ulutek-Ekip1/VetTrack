@@ -192,6 +192,31 @@ class OwnerProfileScreen extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
+
+                TextButton(
+                    onPressed: () {
+                      context.push(AppRoutes.deleteAccount);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.delete_outline_outlined,
+                          size: 24,
+                          color: theme.colorScheme.onErrorContainer,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Hesabımı sil',
+                          style: TextStyle(
+                              color: theme.colorScheme.onErrorContainer,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        ),
+                      ],
+                    )),
+
                 const SizedBox(height: AppDimensions.spacingLg),
               ],
             ),

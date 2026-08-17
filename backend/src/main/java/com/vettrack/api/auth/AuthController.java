@@ -11,12 +11,16 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.vettrack.api.common.exception.ErrorCode;
+import com.vettrack.api.common.exception.UnauthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -63,15 +67,22 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    private static final Duration REAUTH_WINDOW = Duration.ofMinutes(5);
+
     @DeleteMapping("/me")
-    @Operation(summary = "Kullanıcı Hesabını Sil (Soft Delete)", description = "Oturum açmış kullanıcının hesabını ve pet'lerini pasife alır (soft-delete), ilişkisel verileri korur ve aktif oturumunu geçersiz kılar.", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Kullanıcı Hesabını Sil (Soft Delete)", description = "Oturum açmış kullanıcının hesabını ve pet'lerini pasife alır (soft-delete), ilişkisel verileri korur ve aktif oturumunu geçersiz kılar. Yakın zamanda (son 5 dakika) alınmış bir JWT gerektirir — istemci şifreyi tekrar doğrulatıp taze bir token almalıdır.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Hesap ve bağlı tüm pet'ler başarıyla pasife alındı"),
-        @ApiResponse(responseCode = "401", description = "Yetkisiz erişim")
+        @ApiResponse(responseCode = "401", description = "Yetkisiz erişim veya token yeterince taze değil (REAUTHENTICATION_REQUIRED)")
     })
     public ResponseEntity<Void> deleteMyAccount(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Instant issuedAt = jwt.getIssuedAt();
+        if (issuedAt == null || issuedAt.isBefore(Instant.now().minus(REAUTH_WINDOW))) {
+            throw new UnauthorizedException(ErrorCode.REAUTHENTICATION_REQUIRED,
+                    "Bu işlem için yakın zamanda tekrar giriş yapmış olmanız gerekir.");
         }
         UUID userId = UUID.fromString(jwt.getSubject());
         authService.softDeleteUserAccount(userId);

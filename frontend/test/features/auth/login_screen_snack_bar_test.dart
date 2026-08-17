@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/forgot_password_usecase.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/resend_verification_email_usecase.dart';
 import 'package:vettrack_frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_state.dart';
@@ -51,7 +53,7 @@ class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   Future<void> resetPassword(String email) async {}
 
   @override
-  Future<void> resendVerificationEmail() async {}
+  Future<void> resendVerificationEmail(String email) async {}
 
   @override
   Future<void> handleSessionExpired() async {}
@@ -68,6 +70,15 @@ class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   @override
   // TODO: implement unregisterDeviceTokenUseCase
   UnregisterDeviceTokenUseCase get unregisterDeviceTokenUseCase =>
+      throw UnimplementedError();
+
+  @override
+  // TODO: implement forgotPasswordUseCase
+  ForgotPasswordUseCase get forgotPasswordUseCase => throw UnimplementedError();
+
+  @override
+  // TODO: implement resendVerificationEmailUsecase
+  ResendVerificationEmailUsecase get resendVerificationEmailUsecase =>
       throw UnimplementedError();
 }
 

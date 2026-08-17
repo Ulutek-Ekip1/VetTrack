@@ -11,7 +11,6 @@ abstract class AuthRepository {
       String email, String password, String name, String? phone, UserRole role);
   Future<void> logout();
   Future<UserEntity?> getCurrentUser();
-  Future<void> resendVerificationEmail();
   Future<OwnerEntity> getOwnerProfile();
   Future<OwnerEntity> updateOwnerProfile({
     String? name,
@@ -20,4 +19,7 @@ abstract class AuthRepository {
     String? address,
   });
   Future<UserEntity> signInWithGoogle();
+  Future<void> forgotPassword(String email);
+  Future<void> resendVerificationEmail(String email);
+  Future<void> deleteAccount();
 }
