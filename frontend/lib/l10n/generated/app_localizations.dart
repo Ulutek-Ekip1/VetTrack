@@ -117,6 +117,20 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Çevrimdışısınız'**
   String get offline;
+
+  String get offlineMode;
+
+  String get connectionErrorTitle;
+
+  String get retryConnection;
+
+  String get notificationsTitle;
+
+  String get notificationsLoading;
+
+  String get noNotifications;
+
+  String get markAllNotificationsRead;
 }
 
 class _AppLocalizationsDelegate

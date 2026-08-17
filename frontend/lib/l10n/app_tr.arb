@@ -3,5 +3,12 @@
   "appTitle": "VetTrack",
   "loading": "Yükleniyor",
   "retry": "Tekrar Dene",
-  "offline": "Çevrimdışısınız"
+  "offline": "Çevrimdışısınız",
+  "offlineMode": "Çevrimdışı moddasınız",
+  "connectionErrorTitle": "Bağlantı Hatası",
+  "retryConnection": "Bağlantıyı tekrar dene",
+  "notificationsTitle": "Bildirimler",
+  "notificationsLoading": "Bildirimler yükleniyor",
+  "noNotifications": "Henüz bildiriminiz yok",
+  "markAllNotificationsRead": "Tümünü Okundu Yap"
 }

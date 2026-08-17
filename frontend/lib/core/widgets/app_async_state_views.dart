@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_dimensions.dart';
 import '../theme/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 /// Ortak asenkron ekran durumları. Mevcut pet listesi ve bildirim ekranının
 /// renk, ikon ve buton dilini korur.
@@ -12,9 +13,10 @@ class AppLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loadingLabel = label ?? AppLocalizations.of(context)!.loading;
     return Center(
       child: Semantics(
-        label: label ?? 'Yükleniyor',
+        label: loadingLabel,
         liveRegion: true,
         child: const CircularProgressIndicator(),
       ),
@@ -89,19 +91,20 @@ class AppErrorStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         if (isOffline)
           Container(
             color: AppColors.warning,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.wifi_off, color: Colors.white, size: 18),
                 SizedBox(width: 8),
                 Text(
-                  'Çevrimdışı moddasınız',
+                  l10n.offlineMode,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -113,7 +116,7 @@ class AppErrorStateView extends StatelessWidget {
         Expanded(
           child: Semantics(
             liveRegion: true,
-            label: 'Bağlantı hatası. $message',
+            label: '${l10n.connectionErrorTitle}. $message',
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(AppDimensions.spacingLg),
@@ -128,9 +131,9 @@ class AppErrorStateView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppDimensions.spacingMd),
-                    const Text(
-                      'Bağlantı Hatası',
-                      style: TextStyle(
+                    Text(
+                      l10n.connectionErrorTitle,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: AppColors.onSurface,
@@ -145,7 +148,7 @@ class AppErrorStateView extends StatelessWidget {
                     const SizedBox(height: AppDimensions.spacingLg),
                     Semantics(
                       button: true,
-                      label: 'Bağlantıyı tekrar dene',
+                      label: l10n.retryConnection,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryContainer,
@@ -161,7 +164,7 @@ class AppErrorStateView extends StatelessWidget {
                         ),
                         onPressed: onRetry,
                         icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text('Tekrar Dene'),
+                        label: Text(l10n.retry),
                       ),
                     ),
                   ),

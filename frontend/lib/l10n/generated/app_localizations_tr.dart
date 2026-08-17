@@ -19,4 +19,25 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get offline => 'Çevrimdışısınız';
+
+  @override
+  String get offlineMode => 'Çevrimdışı moddasınız';
+
+  @override
+  String get connectionErrorTitle => 'Bağlantı Hatası';
+
+  @override
+  String get retryConnection => 'Bağlantıyı tekrar dene';
+
+  @override
+  String get notificationsTitle => 'Bildirimler';
+
+  @override
+  String get notificationsLoading => 'Bildirimler yükleniyor';
+
+  @override
+  String get noNotifications => 'Henüz bildiriminiz yok';
+
+  @override
+  String get markAllNotificationsRead => 'Tümünü Okundu Yap';
 }

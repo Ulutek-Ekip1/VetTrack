@@ -6,6 +6,7 @@ import 'package:vettrack_frontend/features/notification/presentation/cubit/notif
 import 'package:vettrack_frontend/features/notification/presentation/cubit/notification_state.dart';
 
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../widgets/notification_card.dart';
 
 class NotificationListScreen extends StatefulWidget {
@@ -25,6 +26,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     const primaryBlue = Color(0xFF004AC6);
 
     return Scaffold(
@@ -32,9 +34,9 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         shadowColor: Colors.black12,
-        title: const Text(
-          'Bildirimler',
-          style: TextStyle(
+        title: Text(
+          l10n.notificationsTitle,
+          style: const TextStyle(
             color: primaryBlue,
             fontWeight: FontWeight.bold,
             fontSize: 28,
@@ -44,7 +46,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
           IconButton(
             icon: const Icon(Icons.mark_chat_read_outlined,
                 color: Color(0xFF434655)),
-            tooltip: 'Tümünü Okundu Yap',
+            tooltip: l10n.markAllNotificationsRead,
             onPressed: context.read<NotificationCubit>().markAllAsRead,
           ),
         ],
@@ -52,7 +54,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
       body: BlocBuilder<NotificationCubit, NotificationState>(
         builder: (context, state) {
           if (state is NotificationLoading) {
-            return const AppLoadingView(label: 'Bildirimler yükleniyor');
+            return AppLoadingView(label: l10n.notificationsLoading);
           } else if (state is NotificationError) {
             return AppErrorStateView(
               message: state.message,
@@ -62,9 +64,9 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
             final notifications = List.of(state.notificationList.notifications);
 
             if (notifications.isEmpty) {
-              return const AppEmptyStateView(
+              return AppEmptyStateView(
                 icon: Icons.notifications_off_outlined,
-                title: 'Henüz bildiriminiz yok',
+                title: l10n.noNotifications,
               );
             }
 
