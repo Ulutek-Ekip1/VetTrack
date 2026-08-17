@@ -1,13 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vettrack_frontend/features/auth/data/datasources/token_local_data_source.dart';
 import 'package:vettrack_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/delete_account_state.dart';
 
 class DeleteAccountCubit extends Cubit<DeleteAccountState> {
   final AuthRepository authRepository;
+  final TokenLocalDataSource localDataSource;
 
-  DeleteAccountCubit({required this.authRepository})
-      : super(DeleteAccountInitial());
+  DeleteAccountCubit({
+    required this.authRepository,
+    required this.localDataSource,
+  }) : super(DeleteAccountInitial());
 
   Future<void> deleteAccount(String password) async {
     emit(DeleteAccountLoading());
@@ -20,13 +24,17 @@ class DeleteAccountCubit extends Cubit<DeleteAccountState> {
         return;
       }
 
-      // 1. Şifreyi Supabase'e doğrulat
-      await Supabase.instance.client.auth.signInWithPassword(
+      final authResponse =
+          await Supabase.instance.client.auth.signInWithPassword(
         email: user.email!,
         password: password,
       );
 
-      // 2. Şifre doğruysa backend'e sadece JWT ile git
+      final newToken = authResponse.session?.accessToken;
+      if (newToken != null) {
+        await localDataSource.cacheToken(newToken);
+      }
+
       await authRepository.deleteAccount();
 
       emit(DeleteAccountSuccess());
