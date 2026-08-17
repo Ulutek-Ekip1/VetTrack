@@ -114,9 +114,19 @@ public class NotificationService {
             } catch (FirebaseMessagingException e) {
                 MessagingErrorCode errorCode = e.getMessagingErrorCode();
 
-                if (errorCode == MessagingErrorCode.UNREGISTERED || errorCode == MessagingErrorCode.INVALID_ARGUMENT) {
+                if (errorCode == MessagingErrorCode.UNREGISTERED) {
                     log.warn("Geçersiz FCM token, siliniyor. Token: {}, hata: {}", deviceToken.getFcmToken(), errorCode);
                     deviceTokenRepository.delete(deviceToken);
+                    return;
+                }
+
+                if (errorCode == MessagingErrorCode.INVALID_ARGUMENT) {
+                    // Token'a özel değil — bozuk payload, aşırı büyük alan vb. istek
+                    // seviyesindeki sebeplerden de gelebilir. Token'ı silmek burada
+                    // yanlış olur: aynı payload sorunu tüm kullanıcılar için aynı hatayı
+                    // üretebilir ve geçerli tüm token'lar kalıcı olarak silinebilir.
+                    log.error("FCM isteği reddedildi (INVALID_ARGUMENT), token silinmedi. Token: {}, hata: {}",
+                            deviceToken.getFcmToken(), e.getMessage());
                     return;
                 }
 

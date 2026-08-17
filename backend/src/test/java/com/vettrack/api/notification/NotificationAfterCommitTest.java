@@ -126,4 +126,22 @@ class NotificationAfterCommitTest {
         verify(firebaseMessaging, times(1)).send(any(Message.class));
         assertTrue(deviceTokenRepository.findById(saved.getId()).isEmpty());
     }
+
+    @Test
+    @DisplayName("FCM INVALID_ARGUMENT derse token silinmez (token'a ozel olmayabilir)")
+    void doesNotDeleteTokenWhenFcmReportsInvalidArgument() throws Exception {
+        UUID ownerId = UUID.randomUUID();
+        DeviceToken saved = deviceTokenRepository.save(DeviceToken.builder()
+                .userId(ownerId).fcmToken("token-" + UUID.randomUUID()).platform(Platform.android).build());
+
+        FirebaseMessagingException invalidArgumentError = mock(FirebaseMessagingException.class);
+        when(invalidArgumentError.getMessagingErrorCode()).thenReturn(MessagingErrorCode.INVALID_ARGUMENT);
+        when(invalidArgumentError.getMessage()).thenReturn("Bad payload");
+        when(firebaseMessaging.send(any(Message.class))).thenThrow(invalidArgumentError);
+
+        notificationService.sendVisitClosedNotification(ownerId, UUID.randomUUID(), UUID.randomUUID());
+
+        verify(firebaseMessaging, times(1)).send(any(Message.class));
+        assertTrue(deviceTokenRepository.findById(saved.getId()).isPresent());
+    }
 }
