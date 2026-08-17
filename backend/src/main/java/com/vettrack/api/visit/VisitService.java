@@ -99,6 +99,18 @@ public class VisitService {
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId);
     }
 
+    /** Sahibin tüm aktif (soft-delete edilmemiş) petlerinin ziyaret geçmişi — tek sorgu. */
+    @Transactional(readOnly = true)
+    public List<Visit> getVisitsForOwner(UUID ownerId) {
+        return visitRepository.findVisitsForOwner(ownerId);
+    }
+
+    /** Veteriner hekime atanmış tüm ziyaretler (silinmiş/pasif petlerinki hariç). */
+    @Transactional(readOnly = true)
+    public List<Visit> getVisitsForVet(UUID vetStaffId) {
+        return visitRepository.findVisitsForVet(vetStaffId);
+    }
+
     @Transactional(readOnly = true)
     public List<Visit> getVisitsByPetIdAndClinicId(UUID petId, UUID clinicId) {
         return visitRepository.findByPetIdAndClinicIdOrderByStartedAtDesc(petId, clinicId);
@@ -133,16 +145,33 @@ public class VisitService {
         }
         String normalized = status.toLowerCase().trim();
 
+        if (!List.of("ongoing", "completed", "ended", "cancelled").contains(normalized)) {
+            throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status + ". İzin verilen durumlar: completed, cancelled.");
+        }
+
+        Visit visit = visitRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı ID: " + id));
+
+        if (!"ongoing".equalsIgnoreCase(visit.getStatus())) {
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_CLOSED,
+                    "Geçersiz durum geçişi: " + visit.getStatus() + " durumundaki bir ziyaret güncellenemez.");
+        }
+
+        if ("ongoing".equals(normalized)) {
+            throw new ConflictException(ErrorCode.VISIT_ALREADY_OPEN,
+                    "Geçersiz durum geçişi: Ziyaret zaten devam etmektedir.");
+        }
+
         if ("completed".equals(normalized) || "ended".equals(normalized)) {
             return closeVisit(id);
         }
 
-        if (!List.of("ongoing", "completed", "cancelled").contains(normalized)) {
-            throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status + ". İzin verilen durumlar: ongoing, completed, cancelled.");
+        if ("cancelled".equals(normalized)) {
+            visit.setStatus("cancelled");
+            visit.setEndedAt(OffsetDateTime.now());
+            return visitRepository.save(visit);
         }
 
-        Visit visit = getVisitById(id);
-        visit.setStatus(normalized);
-        return visitRepository.save(visit);
+        throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status);
     }
 }

@@ -30,6 +30,13 @@ class PetResponseTest {
                 .birthDate(birthDate)
                 .estimatedBirthYear((short) 2021)
                 .photoUrl("https://example.com/photo.jpg")
+                .weight(4.5)
+                .microchipNo("900215000123456")
+                .isSpayedOrNeutered(true)
+                .bloodType("DEA 1.1 (+)")
+                .color("Golden")
+                .allergies("Tavuk alerjisi")
+                .chronicIllnesses("Yok")
                 .uniqueCode("ABC123")
                 .isActive(true)
                 .createdAt(now)
@@ -49,6 +56,13 @@ class PetResponseTest {
         assertEquals(birthDate, response.getBirthDate());
         assertEquals((short) 2021, response.getEstimatedBirthYear());
         assertEquals("https://example.com/photo.jpg", response.getPhotoUrl());
+        assertEquals(4.5, response.getWeight());
+        assertEquals("900215000123456", response.getMicrochipNo());
+        assertEquals(true, response.getIsSpayedOrNeutered());
+        assertEquals("DEA 1.1 (+)", response.getBloodType());
+        assertEquals("Golden", response.getColor());
+        assertEquals("Tavuk alerjisi", response.getAllergies());
+        assertEquals("Yok", response.getChronicIllnesses());
         assertEquals("ABC123", response.getUniqueCode());
         assertEquals(now, response.getCreatedAt());
         assertEquals(now, response.getUpdatedAt());

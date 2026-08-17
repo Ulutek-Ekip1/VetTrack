@@ -95,6 +95,28 @@ public class VisitController {
         return ResponseEntity.ok(new PatientSearchResponse(pet, visits));
     }
 
+    @GetMapping("/owner")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Sahibin Tüm Aktif Petlerinin Ziyaret Geçmişi",
+            description = "Giriş yapmış hasta sahibinin sahip olduğu tüm aktif (silinmemiş) petlerin muayene "
+                    + "geçmişini tek listede döner. Kayıt yoksa 200 OK + boş dizi.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<List<Visit>> getVisitsForOwner(@AuthenticationPrincipal Jwt jwt) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(visitService.getVisitsForOwner(ownerId));
+    }
+
+    @GetMapping("/vet")
+    @PreAuthorize("hasRole('VET_STAFF') or hasRole('ADMIN')")
+    @Operation(summary = "Hekime Atanmış Tüm Ziyaretler",
+            description = "Giriş yapmış veteriner hekime atanmış tüm muayene/ziyaret kayıtlarını döner "
+                    + "(silinmiş/pasif petlerinki hariç). Kayıt yoksa 200 OK + boş dizi.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<List<Visit>> getVisitsForVet(@AuthenticationPrincipal Jwt jwt) {
+        UUID vetStaffId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(visitService.getVisitsForVet(vetStaffId));
+    }
+
     @GetMapping("/{visitId}/context")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ActiveVisitContextResponse> getActiveVisitContext(
@@ -114,9 +136,12 @@ public class VisitController {
 
         Owner owner = ownerService.getOwnerById(pet.getOwnerId());
 
-        // Tüm vet_staff tüm kliniklerin ziyaret geçmişini okuyabilir (ürün kuralı).
-        // Klinik filtresi yalnızca yazma işlemlerinde (createVisit, closeVisit vb.) uygulanır.
-        List<Visit> allVisits = visitService.getVisitsByPetId(pet.getId());
+        List<Visit> allVisits;
+        if (isVetOrAdmin()) {
+            allVisits = visitService.getVisitsByPetId(pet.getId());
+        } else {
+            allVisits = visitService.getVisitsByPetId(pet.getId());
+        }
 
         return ResponseEntity.ok(new ActiveVisitContextResponse(
                 visit, pet, owner, allVisits
@@ -134,11 +159,16 @@ public class VisitController {
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isVetOrAdmin = auth != null && auth.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()) || "ROLE_ADMIN".equals(a.getAuthority()));
+        boolean isAdmin = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        boolean isVet = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_VET_STAFF".equals(a.getAuthority()));
 
-        // Tüm vet_staff/admin tüm kliniklerin ziyaret geçmişini okuyabilir (ürün kuralı).
-        if (isVetOrAdmin) {
+        if (isAdmin) {
+            return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
+        }
+
+        if (isVet) {
             return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
         }
 
