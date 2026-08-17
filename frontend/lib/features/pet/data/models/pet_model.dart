@@ -123,7 +123,7 @@ class PetWeightModel extends PetWeightEntity {
 
   factory PetWeightModel.fromJson(Map<String, dynamic> json) {
     return PetWeightModel(
-      date: DateTime.parse(json['date'] as String),
+      date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
       weight: (json['weight'] as num).toDouble(),
     );
   }

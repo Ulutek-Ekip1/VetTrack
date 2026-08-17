@@ -38,3 +38,9 @@ class Formatters {
     return months[month - 1];
   }
 }
+
+extension StringExtension on String {
+  String toShortId() {
+    return length >= 8 ? substring(0, 8) : this;
+  }
+}
