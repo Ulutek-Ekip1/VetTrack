@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping({"/api/ai/chat", "/ai/chat"})
+@RequestMapping({"/api/v1/ai", "/api/v1/ai/chat", "/api/ai/chat", "/ai/chat"})
 @RequiredArgsConstructor
 @Tag(name = "AI Chat Asistanı", description = "Google Gemini tabanlı veteriner yapay zeka sohbet ve danışmanlık API'si")
 public class AiChatController {
 
     private final AiChatService aiChatService;
 
-    @PostMapping
+    @PostMapping({"", "/message"})
     @Operation(summary = "Yapay Zeka Asistanı İle Sohbet Et", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Yapay zeka yanıtı başarıyla üretildi"),
@@ -88,6 +88,23 @@ public class AiChatController {
     public ResponseEntity<Void> deleteAllChatHistory(@AuthenticationPrincipal Jwt jwt) {
         UUID ownerId = UUID.fromString(jwt.getSubject());
         aiChatService.deleteUserHistory(ownerId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping({"/messages/{id}", "/chat/messages/{id}"})
+    @Operation(summary = "Tekil Sohbet Mesajını Sil", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Mesaj başarıyla silindi"),
+        @ApiResponse(responseCode = "401", description = "Yetkisiz erişim"),
+        @ApiResponse(responseCode = "403", description = "Bu mesajı silme yetkiniz yok"),
+        @ApiResponse(responseCode = "404", description = "Mesaj bulunamadı")
+    })
+    public ResponseEntity<Void> deleteMessage(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        aiChatService.deleteSingleMessage(ownerId, id);
         return ResponseEntity.noContent().build();
     }
 }

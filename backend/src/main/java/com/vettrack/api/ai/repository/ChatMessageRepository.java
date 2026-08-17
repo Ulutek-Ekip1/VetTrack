@@ -41,4 +41,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
     void deleteByConversationIdAndOwnerId(UUID conversationId, UUID ownerId);
 
     void deleteByOwnerId(UUID ownerId);
+
+    Optional<ChatMessage> findByIdAndOwnerId(UUID id, UUID ownerId);
+
+    void deleteByIdAndOwnerId(UUID id, UUID ownerId);
 }
