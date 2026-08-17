@@ -205,6 +205,26 @@ public class AiChatService {
         log.info("All chat history deleted for ownerId: {}", ownerId);
     }
 
+    @Transactional
+    public void deleteSingleMessage(UUID ownerId, UUID messageId) {
+        if (ownerId == null || messageId == null) {
+            throw new IllegalArgumentException("Kullanıcı ve mesaj kimliği boş olamaz.");
+        }
+
+        Optional<ChatMessage> messageOpt = chatMessageRepository.findById(messageId);
+        if (messageOpt.isEmpty()) {
+            throw new IllegalArgumentException("Silinmek istenen mesaj bulunamadı: " + messageId);
+        }
+
+        ChatMessage message = messageOpt.get();
+        if (!message.getOwnerId().equals(ownerId)) {
+            throw new AccessDeniedException("Bu mesajı silme yetkiniz bulunmamaktadır.");
+        }
+
+        chatMessageRepository.deleteByIdAndOwnerId(messageId, ownerId);
+        log.info("Chat message deleted successfully. messageId: {} by ownerId: {}", messageId, ownerId);
+    }
+
     private boolean isStaffRole(String role) {
         if (role == null) return false;
         String lowerRole = role.toLowerCase();
