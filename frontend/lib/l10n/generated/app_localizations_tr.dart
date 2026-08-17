@@ -233,4 +233,13 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get petPhotoTitle => 'Dost resmi';
   @override String get camera => 'Kamera';
   @override String get gallery => 'Galeri';
+  @override String addRecommendation(String visitId) => 'Öneri Ekle ($visitId)';
+  @override String get recommendationType => 'Öneri Türü';
+  @override String get recommendationDescription => 'Öneri Detayı ve Açıklaması';
+  @override String get recommendationRequired => 'Lütfen öneri detayını yazın';
+  @override String get saveRecommendation => 'Öneriyi Kaydet';
+  @override String get saving => 'Kaydediliyor...';
+  @override String get nutrition => 'Beslenme / Mama';
+  @override String get hygiene => 'Kum / Hijyen';
+  @override String get generalCare => 'Genel Bakım & Diğer';
 }

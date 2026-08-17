@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vettrack_frontend/features/recommendation/presentation/cubit/recommendation_cubit.dart';
 import 'package:vettrack_frontend/features/recommendation/presentation/cubit/recommendation_state.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 
 class AddRecommendationScreen extends StatefulWidget {
   final String visitId;
@@ -39,6 +40,7 @@ class _AddRecommendationScreenState extends State<AddRecommendationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocListener<RecommendationCubit, RecommendationState>(
       listener: (context, state) {
         if (state is RecommendationActionSuccess) {
@@ -60,7 +62,7 @@ class _AddRecommendationScreenState extends State<AddRecommendationScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Öneri Ekle (#${widget.visitId})'),
+          title: Text(l10n.addRecommendation(widget.visitId)),
           backgroundColor: Colors.teal,
           foregroundColor: Colors.white,
         ),
@@ -73,18 +75,18 @@ class _AddRecommendationScreenState extends State<AddRecommendationScreen> {
               children: [
                 DropdownButtonFormField<String>(
                   initialValue: _selectedType,
-                  decoration: const InputDecoration(
-                    labelText: 'Öneri Türü',
-                    prefixIcon: Icon(Icons.category),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.recommendationType,
+                    prefixIcon: const Icon(Icons.category),
+                    border: const OutlineInputBorder(),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
-                        value: 'food', child: Text('Beslenme / Mama')),
+                        value: 'food', child: Text(l10n.nutrition)),
                     DropdownMenuItem(
-                        value: 'litter', child: Text('Kum / Hijyen')),
+                        value: 'litter', child: Text(l10n.hygiene)),
                     DropdownMenuItem(
-                        value: 'other', child: Text('Genel Bakım & Diğer')),
+                        value: 'other', child: Text(l10n.generalCare)),
                   ],
                   onChanged: (val) {
                     if (val != null) {
@@ -98,13 +100,13 @@ class _AddRecommendationScreenState extends State<AddRecommendationScreen> {
                 TextFormField(
                   controller: _descriptionController,
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Öneri Detayı ve Açıklaması',
-                    prefixIcon: Icon(Icons.comment_bank_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.recommendationDescription,
+                    prefixIcon: const Icon(Icons.comment_bank_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (val) => val == null || val.isEmpty
-                      ? 'Lütfen öneri detayını yazın'
+                      ? l10n.recommendationRequired
                       : null,
                 ),
                 const SizedBox(height: 24),
@@ -130,7 +132,7 @@ class _AddRecommendationScreenState extends State<AddRecommendationScreen> {
                             )
                           : const Icon(Icons.save),
                       label: Text(
-                        isLoading ? 'Kaydediliyor...' : 'Öneriyi Kaydet',
+                        isLoading ? l10n.saving : l10n.saveRecommendation,
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),

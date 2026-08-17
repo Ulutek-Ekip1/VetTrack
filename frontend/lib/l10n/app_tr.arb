@@ -143,4 +143,14 @@
   ,"petPhotoTitle": "Dost resmi"
   ,"camera": "Kamera"
   ,"gallery": "Galeri"
+  ,"addRecommendation": "Öneri Ekle ({visitId})"
+  ,"@addRecommendation": {"placeholders": {"visitId": {"type": "String"}}}
+  ,"recommendationType": "Öneri Türü"
+  ,"recommendationDescription": "Öneri Detayı ve Açıklaması"
+  ,"recommendationRequired": "Lütfen öneri detayını yazın"
+  ,"saveRecommendation": "Öneriyi Kaydet"
+  ,"saving": "Kaydediliyor..."
+  ,"nutrition": "Beslenme / Mama"
+  ,"hygiene": "Kum / Hijyen"
+  ,"generalCare": "Genel Bakım & Diğer"
 }

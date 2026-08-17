@@ -276,6 +276,15 @@ abstract class AppLocalizations {
   String get petPhotoTitle;
   String get camera;
   String get gallery;
+  String addRecommendation(String visitId);
+  String get recommendationType;
+  String get recommendationDescription;
+  String get recommendationRequired;
+  String get saveRecommendation;
+  String get saving;
+  String get nutrition;
+  String get hygiene;
+  String get generalCare;
 }
 
 class _AppLocalizationsDelegate
