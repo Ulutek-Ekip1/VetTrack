@@ -5,6 +5,7 @@ import 'package:vettrack_frontend/features/recommendation/domain/entities/recomm
 import 'package:vettrack_frontend/features/recommendation/presentation/cubit/recommendation_cubit.dart';
 import 'package:vettrack_frontend/features/recommendation/presentation/cubit/recommendation_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../core/widgets/app_async_state_views.dart';
 
 class PetRecommendationScreen extends StatefulWidget {
   final String petId;
@@ -83,18 +84,14 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
       body: BlocBuilder<RecommendationCubit, RecommendationState>(
         builder: (context, state) {
           if (state is RecommendationLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const AppLoadingView(label: 'Öneriler yükleniyor');
           }
           if (state is RecommendationError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  state.message,
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+            return AppErrorStateView(
+              message: state.message,
+              onRetry: () => context
+                  .read<RecommendationCubit>()
+                  .loadRecommendations(widget.petId),
             );
           }
           List<RecommendationEntity> rawList = [];
