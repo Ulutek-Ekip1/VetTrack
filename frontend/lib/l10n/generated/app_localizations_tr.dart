@@ -164,4 +164,19 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get returnToLogin => 'Giriş ekranına dön';
   @override String get emailNotReceived => 'E-postayı almadınız mı?';
   @override String get resendVerificationEmail => 'E-postayı tekrar gönder';
+  @override String get resetPasswordTitle => 'Yeni Şifre Belirle';
+  @override String get resetPasswordDescription => 'Hesabınızı güvende tutmak için lütfen güçlü ve benzersiz bir şifre seçin.';
+  @override String get newPassword => 'Yeni Şifre';
+  @override String get newPasswordHint => 'Yeni şifrenizi giriniz';
+  @override String get confirmNewPassword => 'Yeni Şifre (Tekrar)';
+  @override String get confirmNewPasswordHint => 'Yeni şifrenizi tekrar giriniz';
+  @override String get updatePassword => 'Şifreyi Güncelle';
+  @override String get passwordsDoNotMatch => 'Şifreler eşleşmiyor';
+  @override String get success => 'Başarılı';
+  @override String get passwordUpdateErrorTitle => 'Şifre Güncelleme Hatası';
+  @override String get passwordUpdatedMessage => 'Şifreniz başarıyla güncellendi. Yeni şifrenizle giriş yapabilirsiniz.';
+  @override String get passwordResetSessionMissing => 'Geçerli bir şifre yenileme oturumu bulunamadı. Lütfen e-postanıza gönderilen sıfırlama bağlantısına tıklayarak tekrar deneyiniz.';
+  @override String get passwordMustDiffer => 'Yeni şifreniz eski şifrenizle aynı olamaz.';
+  @override String get passwordResetLinkExpired => 'Şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir bağlantı talep ediniz.';
+  @override String get passwordUpdateGenericError => 'Şifre güncellenirken bir sorun oluştu. Lütfen tekrar deneyin.';
 }

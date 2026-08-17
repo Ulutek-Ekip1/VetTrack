@@ -6,6 +6,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -31,21 +32,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.dispose();
   }
 
-  String _translateAuthError(String message) {
+  String _translateAuthError(String message, AppLocalizations l10n) {
     if (message.contains('Auth session missing') ||
         message.contains('Geçerli bir şifre yenileme oturumu bulunamadı')) {
-      return 'Geçerli bir şifre yenileme oturumu bulunamadı. Lütfen e-postanıza gönderilen sıfırlama bağlantısına tıklayarak tekrar deneyiniz.';
+      return l10n.passwordResetSessionMissing;
     }
     if (message.contains('same password') ||
         message.contains('should be different')) {
-      return 'Yeni şifreniz eski şifrenizle aynı olamaz.';
+      return l10n.passwordMustDiffer;
     }
     if (message.contains('Password should be')) {
-      return 'Şifreniz en az 8 karakter olmalı, harf ve rakam içermelidir.';
+      return l10n.passwordRequirements;
     }
     if (message.contains('Token has expired') ||
         message.contains('expired')) {
-      return 'Şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir bağlantı talep ediniz.';
+      return l10n.passwordResetLinkExpired;
     }
     
     // Eğer mesaj zaten Türkçe ise doğrudan döndür, aksi halde genel Türkçe hata mesajı göster
@@ -53,11 +54,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return message;
     }
     
-    return 'Şifre güncellenirken bir sorun oluştu. Lütfen tekrar deneyin.';
+    return l10n.passwordUpdateGenericError;
   }
 
   Future<void> _handleResetPassword() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context)!;
 
     setState(() {
       _isLoading = true;
@@ -66,8 +68,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     try {
       final session = Supabase.instance.client.auth.currentSession;
       if (session == null) {
-        throw const AuthException(
-            'Geçerli bir şifre yenileme oturumu bulunamadı. Lütfen e-postanıza gönderilen sıfırlama bağlantısına tıklayarak tekrar deneyiniz.');
+        throw AuthException(l10n.passwordResetSessionMissing);
       }
 
       await Supabase.instance.client.auth.updateUser(
@@ -80,9 +81,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
       AppSnackBar.showSuccess(
         context,
-        title: "Başarılı",
-        message:
-            "Şifreniz başarıyla güncellendi. Yeni şifrenizle giriş yapabilirsiniz.",
+        title: l10n.success,
+        message: l10n.passwordUpdatedMessage,
       );
 
       // Başarılı olduğunda giriş ekranına yönlendir
@@ -91,16 +91,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       if (!mounted) return;
       AppSnackBar.showError(
         context,
-        title: "Şifre Güncelleme Hatası",
-        message: _translateAuthError(error.message),
+        title: l10n.passwordUpdateErrorTitle,
+        message: _translateAuthError(error.message, l10n),
       );
     } catch (error) {
       if (!mounted) return;
       AppSnackBar.showError(
         context,
-        title: "Şifre Güncelleme Hatası",
-        message:
-            "Şifre güncellenirken bir sorun oluştu. Lütfen tekrar deneyin.",
+        title: l10n.passwordUpdateErrorTitle,
+        message: l10n.passwordUpdateGenericError,
       );
     } finally {
       if (mounted) {
@@ -114,6 +113,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Container(
@@ -191,7 +191,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              "Yeni Şifre Belirle",
+                              l10n.resetPasswordTitle,
                               style: theme.textTheme.headlineMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
@@ -199,7 +199,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              "Hesabınızı güvende tutmak için lütfen güçlü ve benzersiz bir şifre seçin.",
+                              l10n.resetPasswordDescription,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: AppColors.onSurfaceVariant,
                               ),
@@ -212,10 +212,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               obscureText: _obscurePassword,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
-                                label: const Text.rich(
+                                label: Text.rich(
                                   TextSpan(
                                     children: [
-                                      TextSpan(text: "Yeni Şifre"),
+                                      TextSpan(text: l10n.newPassword),
                                       TextSpan(
                                         text: " *",
                                         style: TextStyle(
@@ -226,9 +226,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                     ],
                                   ),
                                 ),
-                                hintText: "Yeni şifrenizi giriniz",
-                                helperText:
-                                    "En az 8 karakter, harf ve rakam içermelidir",
+                                hintText: l10n.newPasswordHint,
+                                helperText: l10n.passwordRequirements,
                                 helperStyle:
                                     theme.textTheme.bodySmall?.copyWith(
                                   color: AppColors.onSurfaceVariant,
@@ -278,10 +277,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               obscureText: _obscureConfirmPassword,
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
-                                label: const Text.rich(
+                                label: Text.rich(
                                   TextSpan(
                                     children: [
-                                      TextSpan(text: "Yeni Şifre (Tekrar)"),
+                                      TextSpan(text: l10n.confirmNewPassword),
                                       TextSpan(
                                         text: " *",
                                         style: TextStyle(
@@ -292,7 +291,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                     ],
                                   ),
                                 ),
-                                hintText: "Yeni şifrenizi tekrar giriniz",
+                                hintText: l10n.confirmNewPasswordHint,
                                 prefixIcon: const Icon(
                                   Icons.lock_outline,
                                   color: AppColors.outline,
@@ -335,7 +334,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                   return passValidation;
                                 }
                                 if (value != _passwordController.text) {
-                                  return 'Şifreler eşleşmiyor';
+                                  return l10n.passwordsDoNotMatch;
                                 }
                                 return null;
                               },
@@ -371,7 +370,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                             MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            'Şifreyi Güncelle',
+                                            l10n.updatePassword,
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
                                               color: AppColors.onPrimary,
@@ -402,7 +401,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       context.go(AppRoutes.login);
                     },
                     child: Text(
-                      "Giriş Ekranına Dön",
+                      l10n.backToLogin,
                       style: theme.textTheme.labelLarge?.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -414,7 +413,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                   // Footer
                   Text(
-                    "© 2026 VetTrack Health Systems. All rights reserved.",
+                    l10n.copyright,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.outline,
                     ),

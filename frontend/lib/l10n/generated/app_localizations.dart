@@ -207,6 +207,21 @@ abstract class AppLocalizations {
   String get returnToLogin;
   String get emailNotReceived;
   String get resendVerificationEmail;
+  String get resetPasswordTitle;
+  String get resetPasswordDescription;
+  String get newPassword;
+  String get newPasswordHint;
+  String get confirmNewPassword;
+  String get confirmNewPasswordHint;
+  String get updatePassword;
+  String get passwordsDoNotMatch;
+  String get success;
+  String get passwordUpdateErrorTitle;
+  String get passwordUpdatedMessage;
+  String get passwordResetSessionMissing;
+  String get passwordMustDiffer;
+  String get passwordResetLinkExpired;
+  String get passwordUpdateGenericError;
 }
 
 class _AppLocalizationsDelegate
