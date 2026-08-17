@@ -230,15 +230,21 @@ class _ActiveVisitScreenState extends State<ActiveVisitScreen> {
                           ConnectionState.done) {
                         return const Padding(
                             padding: EdgeInsets.all(12),
-                            child: Center(child: CircularProgressIndicator()));
+                            child: AppLoadingView());
                       }
                       if (treatmentSnapshot.hasError) {
-                        return const Text('Tedavi kayıtları yüklenemedi.');
+                        return AppInlineErrorStateView(
+                          message: 'Tedavi kayıtları yüklenemedi.',
+                          onRetry: _reload,
+                        );
                       }
 
                       final treatments = treatmentSnapshot.data ?? const [];
                       if (treatments.isEmpty) {
-                        return const Text('Henüz tedavi kaydı yok.');
+                        return const AppEmptyStateView(
+                          icon: Icons.medication_outlined,
+                          title: 'Henüz tedavi kaydı yok.',
+                        );
                       }
 
                       return Column(
@@ -290,16 +296,22 @@ class _ActiveVisitScreenState extends State<ActiveVisitScreen> {
                           ConnectionState.done) {
                         return const Padding(
                             padding: EdgeInsets.all(12),
-                            child: Center(child: CircularProgressIndicator()));
+                            child: AppLoadingView());
                       }
                       if (recommendationSnapshot.hasError) {
-                        return const Text('Öneriler yüklenemedi.');
+                        return AppInlineErrorStateView(
+                          message: 'Öneriler yüklenemedi.',
+                          onRetry: _reload,
+                        );
                       }
 
                       final recommendations =
                           recommendationSnapshot.data ?? const [];
                       if (recommendations.isEmpty) {
-                        return const Text('Henüz öneri kaydı yok.');
+                        return const AppEmptyStateView(
+                          icon: Icons.lightbulb_outline,
+                          title: 'Henüz öneri kaydı yok.',
+                        );
                       }
 
                       return Column(

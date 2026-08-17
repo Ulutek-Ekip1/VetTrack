@@ -177,3 +177,41 @@ class AppErrorStateView extends StatelessWidget {
     );
   }
 }
+
+/// Listeler ve form bölümleri için, sınırlı alanda kullanılabilen hata/tekrar
+/// görünümü. Tam ekran görünümündeki [AppErrorStateView] ile aynı eylem dilini
+/// kullanır ancak Expanded içermez.
+class AppInlineErrorStateView extends StatelessWidget {
+  const AppInlineErrorStateView({
+    super.key,
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Semantics(
+      liveRegion: true,
+      label: '${l10n.connectionErrorTitle}. $message',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMd),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: AppDimensions.spacingSm),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: Text(l10n.retry),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
