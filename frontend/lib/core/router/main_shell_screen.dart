@@ -238,8 +238,13 @@ class VetShellScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Sol Taraf: Dinamik Breadcrumbs
-                      Row(
-                        children: _buildBreadcrumbs(context),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: _buildBreadcrumbs(context),
+                          ),
+                        ),
                       ),
                       // Sağ Taraf: Hızlı İşlemler & Profil
                       Row(
