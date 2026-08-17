@@ -269,6 +269,7 @@ abstract class AppLocalizations {
   String get addNewPet;
   String get noPetsYet;
   String get noPetsDescription;
+  String get petNotFound;
 }
 
 class _AppLocalizationsDelegate

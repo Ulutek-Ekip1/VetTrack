@@ -136,4 +136,5 @@
   ,"addNewPet": "Yeni Hayvan Ekle"
   ,"noPetsYet": "Henüz bir evcil hayvan eklemedin"
   ,"noPetsDescription": "Aşağıdaki 'Yeni Hayvan Ekle' butonuna basarak ilk evcil hayvanınızın profilini oluşturun."
+  ,"petNotFound": "Pet bulunamadı."
 }

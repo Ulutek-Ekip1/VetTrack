@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../../domain/entities/pet_entity.dart';
+import '../../../../core/widgets/app_async_state_views.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final String petId;
@@ -97,6 +99,16 @@ class _PetDetailScreenState extends State<PetDetailScreen>
       ),
       body: BlocBuilder<PetCubit, PetState>(
         builder: (context, state) {
+          if (state is PetLoading) {
+            return const AppLoadingView();
+          }
+          if (state is PetError) {
+            return AppErrorStateView(
+              message: state.message,
+              onRetry: () => context.read<PetCubit>().fetchPets(),
+              isOffline: true,
+            );
+          }
           if (state is PetLoaded) {
             try {
               final pet = state.pets.firstWhere((p) => p.id == widget.petId);
@@ -227,10 +239,13 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                 ),
               );
             } catch (_) {
-              return const Center(child: Text('Pet bulunamadı.'));
+              return AppErrorStateView(
+                message: AppLocalizations.of(context)!.petNotFound,
+                onRetry: () => context.read<PetCubit>().fetchPets(),
+              );
             }
           }
-          return const Center(child: CircularProgressIndicator());
+          return const AppLoadingView();
         },
       ),
     );

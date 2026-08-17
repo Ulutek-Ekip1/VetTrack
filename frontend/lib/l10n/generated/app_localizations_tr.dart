@@ -226,4 +226,5 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get addNewPet => 'Yeni Hayvan Ekle';
   @override String get noPetsYet => 'Henüz bir evcil hayvan eklemedin';
   @override String get noPetsDescription => "Aşağıdaki 'Yeni Hayvan Ekle' butonuna basarak ilk evcil hayvanınızın profilini oluşturun.";
+  @override String get petNotFound => 'Pet bulunamadı.';
 }
