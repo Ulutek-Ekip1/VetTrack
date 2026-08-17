@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vettrack_frontend/features/auth/presentation/screens/delete_account/delete_account_screen.dart';
+import 'package:vettrack_frontend/features/auth/presentation/screens/delete_account/delete_account_verify_screen.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/cubit/auth_state.dart';
@@ -97,6 +99,9 @@ abstract class AppRoutes {
 
   // AI Chatbot Rotası
   static const String chatbot = '/chatbot';
+
+  static const String deleteAccount = '/delete-account';
+  static const String deleteAccountVerify = '/delete-account/verify';
 }
 
 class AppRouter {
@@ -144,7 +149,7 @@ class AppRouter {
         // kontrol derin bağlantılarda ikinci koruma katmanıdır.
         final hasInvalidPlatformRole =
             (AppPlatform.isVetWebExperience && user.role == UserRole.owner) ||
-            (AppPlatform.isMobileExperience && user.role == UserRole.vet);
+                (AppPlatform.isMobileExperience && user.role == UserRole.vet);
         if (hasInvalidPlatformRole) {
           return location == AppRoutes.welcome ? null : AppRoutes.welcome;
         }
@@ -189,7 +194,10 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.ownerEmailVerification,
           name: 'ownerEmailVerification',
-          builder: (context, state) => const EmailVerificationScreen(),
+          builder: (context, state) {
+            final passedEmail = state.extra as String? ?? '';
+            return EmailVerificationScreen(email: passedEmail);
+          },
         ),
         GoRoute(
           path: AppRoutes.resetPassword,
@@ -262,7 +270,8 @@ class AppRouter {
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
                             return BlocProvider<RecommendationCubit>(
-                              create: (context) => sl<RecommendationCubit>()..loadRecommendations(petId),
+                              create: (context) => sl<RecommendationCubit>()
+                                ..loadRecommendations(petId),
                               child: PetRecommendationScreen(petId: petId),
                             );
                           },
@@ -384,10 +393,24 @@ class AppRouter {
           path: AppRoutes.chatbot,
           name: 'chatbot',
           builder: (context, state) {
-            final pet = state.extra is PetEntity ? state.extra as PetEntity : null;
+            final pet =
+                state.extra is PetEntity ? state.extra as PetEntity : null;
             final petId = state.uri.queryParameters['petId'] ?? pet?.id;
             return AIChatbotScreen(petId: petId, pet: pet);
           },
+        ),
+
+        /// Delete Account
+        GoRoute(
+          path: AppRoutes.deleteAccount,
+          name: 'deleteAccount',
+          builder: (context, state) => const DeleteAccountScreen(),
+        ),
+
+        GoRoute(
+          path: AppRoutes.deleteAccountVerify,
+          name: 'deleteAccountVerify',
+          builder: (context, state) => const DeleteAccountVerifyScreen(),
         ),
       ],
     );
@@ -402,6 +425,9 @@ class AppRouter {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.passwordRecovery) {
         _router?.go(AppRoutes.resetPassword);
+      } else if (event == AuthChangeEvent.signedIn) {
+        final authCubit = sl<AuthCubit>();
+        authCubit.checkAuthStatus();
       }
     });
   }
