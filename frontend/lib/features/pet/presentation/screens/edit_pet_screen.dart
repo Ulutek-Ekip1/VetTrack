@@ -131,7 +131,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
           ],
         ),
         content: const Text(
-          'Bu evcil hayvanı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+          'Bu evcil hayvan uygulama listelerinden kaldırılacak. Bu işlemi uygulama içinde geri alamazsınız. Sağlık geçmişi güvenli biçimde soft-delete olarak saklanır.',
           textAlign: TextAlign.center,
         ),
         actions: [

@@ -214,7 +214,7 @@ class _PetListScreenState extends State<PetListScreen> {
                                     builder: (dialogContext) => AlertDialog(
                                       title: const Text('Evcil Hayvanı Sil'),
                                       content: Text(
-                                          '${pet.name} isimli evcil hayvanı silmek istediğinize emin misiniz?'),
+                                          '${pet.name} adlı evcil hayvan uygulama listelerinden kaldırılacak. Bu işlemi uygulama içinde geri alamazsınız. Sağlık geçmişi güvenli biçimde soft-delete olarak saklanır.'),
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.of(dialogContext).pop(),
@@ -229,7 +229,7 @@ class _PetListScreenState extends State<PetListScreen> {
                                             deleteConfirmed = true;
                                             Navigator.of(dialogContext).pop();
                                           },
-                                          child: const Text('Sil'),
+                                          child: const Text('Evet, Sil'),
                                         ),
                                       ],
                                     ),
