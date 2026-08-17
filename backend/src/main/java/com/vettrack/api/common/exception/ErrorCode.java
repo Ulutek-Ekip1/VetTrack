@@ -11,6 +11,7 @@ public enum ErrorCode {
     // 400 Bad Request
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST),
     MALFORMED_JSON(HttpStatus.BAD_REQUEST),
+    AI_SAFETY_VIOLATION(HttpStatus.BAD_REQUEST),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED),
@@ -22,6 +23,7 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN),
     ROLE_MISMATCH(HttpStatus.FORBIDDEN),
     EDIT_WINDOW_EXPIRED(HttpStatus.FORBIDDEN),
+    AI_CONSENT_REQUIRED(HttpStatus.FORBIDDEN),
 
     // 404 Not Found
     NOT_FOUND(HttpStatus.NOT_FOUND),
