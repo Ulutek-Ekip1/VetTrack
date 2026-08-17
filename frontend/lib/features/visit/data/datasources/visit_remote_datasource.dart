@@ -22,14 +22,18 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   @override
   Future<PatientSearchResultModel> searchByCode(String code) async {
     try {
-      final response = await dio.get('/visits/code/${Uri.encodeComponent(code)}');
-      return PatientSearchResultModel.fromJson(response.data as Map<String, dynamic>);
+      final response =
+          await dio.get('/visits/code/${Uri.encodeComponent(code)}');
+      return PatientSearchResultModel.fromJson(
+          response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        throw const ServerException('Kod bulunamadı. Lütfen erişim kodunu kontrol edin.');
+        throw const ServerException(
+            'Kod bulunamadı. Lütfen erişim kodunu kontrol edin.');
       }
       final data = e.response?.data;
-      final message = data is Map<String, dynamic> ? data['message'] as String? : null;
+      final message =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
       throw ServerException(message ?? e.message);
     }
   }
@@ -78,7 +82,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   @override
   Future<List<VisitModel>> getPetVisitHistory(String petId) async {
     try {
-      final response = await dio.get('/pets/$petId/visits');
+      final response = await dio.get('/visits/pets/$petId/visits');
       final List<dynamic> list = response.data;
       return list.map((json) => VisitModel.fromJson(json)).toList();
     } on DioException catch (e) {
@@ -90,9 +94,12 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   Future<ActiveVisitContextModel> getActiveVisitContext(String visitId) async {
     try {
       final response = await dio.get('/visits/$visitId/context');
-      return ActiveVisitContextModel.fromJson(response.data as Map<String, dynamic>);
+      return ActiveVisitContextModel.fromJson(
+          response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw ServerException(e.response?.data is Map ? (e.response!.data['message'] as String?) : e.message);
+      throw ServerException(e.response?.data is Map
+          ? (e.response!.data['message'] as String?)
+          : e.message);
     }
   }
 }

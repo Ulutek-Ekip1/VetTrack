@@ -9,15 +9,32 @@ abstract class PetRemoteDataSource {
     required Gender gender,
     int? age,
     String? breed,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   });
   Future<List<PetEntity>> getPets();
   Future<PetEntity> getPetById(String id);
+  Future<List<PetWeightEntity>> getWeightHistory(String petId);
   Future<PetEntity> updatePet({
     required String id,
     String? name,
     Gender? gender,
     int? age,
     String? breed,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   });
   Future<String> updatePetPhoto(String id, String photoFilePath);
   Future<void> deletePetPhoto(String id);
@@ -35,6 +52,14 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
     required Gender gender,
     int? age,
     String? breed,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   }) async {
     try {
       String speciesVal = 'Bilinmiyor';
@@ -58,6 +83,16 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
           'species': speciesVal,
           if (breedVal != null) 'breed': breedVal,
           if (age != null) 'estimatedBirthYear': DateTime.now().year - age,
+          if (birthDate != null)
+            'birthDate': birthDate.toIso8601String().split('T')[0],
+          if (weight != null) 'weight': weight,
+          if (microchipNo != null) 'microchipNo': microchipNo,
+          if (isSpayedOrNeutered != null)
+            'isSpayedOrNeutered': isSpayedOrNeutered,
+          if (bloodType != null) 'bloodType': bloodType,
+          if (color != null) 'color': color,
+          if (allergies != null) 'allergies': allergies,
+          if (chronicIllnesses != null) 'chronicIllnesses': chronicIllnesses,
         },
       );
       return PetModel.fromJson(response.data);
@@ -94,6 +129,14 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
     Gender? gender,
     int? age,
     String? breed,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   }) async {
     try {
       String? speciesVal;
@@ -117,6 +160,16 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
           if (speciesVal != null) 'species': speciesVal,
           if (breedVal != null) 'breed': breedVal,
           if (age != null) 'estimatedBirthYear': DateTime.now().year - age,
+          if (birthDate != null)
+            'birthDate': birthDate.toIso8601String().split('T')[0],
+          if (weight != null) 'weight': weight,
+          if (microchipNo != null) 'microchipNo': microchipNo,
+          if (isSpayedOrNeutered != null)
+            'isSpayedOrNeutered': isSpayedOrNeutered,
+          if (bloodType != null) 'bloodType': bloodType,
+          if (color != null) 'color': color,
+          if (allergies != null) 'allergies': allergies,
+          if (chronicIllnesses != null) 'chronicIllnesses': chronicIllnesses,
         },
       );
       return PetModel.fromJson(response.data);
@@ -155,6 +208,17 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
   Future<void> deletePet(String id) async {
     try {
       await dio.delete('/pets/$id');
+    } on DioException catch (e) {
+      throw ServerException(e.message);
+    }
+  }
+
+  @override
+  Future<List<PetWeightEntity>> getWeightHistory(String petId) async {
+    try {
+      final response = await dio.get('/pets/$petId/weight-history');
+      final List<dynamic> historyJson = response.data;
+      return historyJson.map((json) => PetWeightModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(e.message);
     }

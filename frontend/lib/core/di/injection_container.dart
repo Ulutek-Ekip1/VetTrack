@@ -24,6 +24,8 @@ import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_photo_
 import 'package:vettrack_frontend/features/pet/domain/usecases/delete_pet_photo_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_usecase.dart';
 import 'package:vettrack_frontend/features/pet/presentation/cubit/pet_cubit.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/get_weight_history_usecase.dart';
+import 'package:vettrack_frontend/features/pet/presentation/cubit/weight_history_cubit.dart';
 
 // Visit Imports
 import 'package:vettrack_frontend/features/visit/data/datasources/visit_remote_datasource.dart';
@@ -168,6 +170,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdatePetPhotoUseCase(sl()));
   sl.registerLazySingleton(() => DeletePetPhotoUseCase(sl()));
   sl.registerLazySingleton(() => DeletePetUseCase(sl()));
+  sl.registerLazySingleton(() => GetWeightHistoryUseCase(sl()));
+  sl.registerFactory(() => WeightHistoryCubit(getWeightHistoryUseCase: sl()));
 
   sl.registerFactory(
     () => PetCubit(
@@ -223,6 +227,7 @@ Future<void> init() async {
       addTreatmentUseCase: sl(),
       deleteTreatmentUseCase: sl(),
       getTreatmentUseCase: sl(),
+      repository: sl(),
     ),
   );
 

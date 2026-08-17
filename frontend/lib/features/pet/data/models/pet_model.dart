@@ -13,6 +13,15 @@ class PetModel extends PetEntity {
     required super.uniqueCode,
     super.photoUrl,
     required super.createdAt,
+    super.birthDate,
+    super.weight,
+    super.microchipNo,
+    super.isSpayedOrNeutered,
+    super.bloodType,
+    super.color,
+    super.allergies,
+    super.chronicIllnesses,
+    super.weightHistory,
   });
 
   factory PetModel.fromJson(Map<String, dynamic> json) {
@@ -27,7 +36,8 @@ class PetModel extends PetEntity {
 
     int? calculatedAge;
     if (json['birthDate'] != null) {
-      calculatedAge = DateTime.now().year - DateTime.parse(json['birthDate'] as String).year;
+      calculatedAge = DateTime.now().year -
+          DateTime.parse(json['birthDate'] as String).year;
     } else if (json['estimatedBirthYear'] != null) {
       calculatedAge = DateTime.now().year - (json['estimatedBirthYear'] as int);
     } else if (json['age'] != null) {
@@ -40,6 +50,22 @@ class PetModel extends PetEntity {
         ? (breed != null && breed.isNotEmpty ? "$species / $breed" : species)
         : breed;
 
+    final birthDateStr = json['birthDate'] as String?;
+    final DateTime? parsedBirthDate =
+        birthDateStr != null ? DateTime.parse(birthDateStr) : null;
+
+    final double? parsedWeight =
+        json['weight'] != null ? (json['weight'] as num).toDouble() : null;
+
+    final bool? parsedSpayed =
+        json['isSpayedOrNeutered'] as bool? ?? json['neutered'] as bool?;
+
+    final List<dynamic>? weightHistoryJson =
+        json['weightHistory'] as List<dynamic>?;
+    final List<PetWeightModel>? parsedWeightHistory = weightHistoryJson
+        ?.map((e) => PetWeightModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     return PetModel(
       id: json['id'] as String,
       ownerId: json['ownerId'] as String,
@@ -50,6 +76,15 @@ class PetModel extends PetEntity {
       uniqueCode: json['uniqueCode'] as String,
       photoUrl: json['photoUrl'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      birthDate: parsedBirthDate,
+      weight: parsedWeight,
+      microchipNo: json['microchipNo'] as String?,
+      isSpayedOrNeutered: parsedSpayed,
+      bloodType: json['bloodType'] as String?,
+      color: json['color'] as String?,
+      allergies: json['allergies'] as String?,
+      chronicIllnesses: json['chronicIllnesses'] as String?,
+      weightHistory: parsedWeightHistory,
     );
   }
 
@@ -64,6 +99,44 @@ class PetModel extends PetEntity {
       'uniqueCode': uniqueCode,
       if (photoUrl != null) 'photoUrl': photoUrl,
       'createdAt': createdAt.toIso8601String(),
+      if (birthDate != null)
+        'birthDate': birthDate!.toIso8601String().split('T')[0],
+      if (weight != null) 'weight': weight,
+      if (microchipNo != null) 'microchipNo': microchipNo,
+      if (isSpayedOrNeutered != null) 'isSpayedOrNeutered': isSpayedOrNeutered,
+      if (bloodType != null) 'bloodType': bloodType,
+      if (color != null) 'color': color,
+      if (allergies != null) 'allergies': allergies,
+      if (chronicIllnesses != null) 'chronicIllnesses': chronicIllnesses,
+      if (weightHistory != null)
+        'weightHistory': weightHistory!.map((e) {
+          if (e is PetWeightModel) return e.toJson();
+          return {
+            'date': e.date.toIso8601String().split('T')[0],
+            'weight': e.weight,
+          };
+        }).toList(),
+    };
+  }
+}
+
+class PetWeightModel extends PetWeightEntity {
+  const PetWeightModel({
+    required super.date,
+    required super.weight,
+  });
+
+  factory PetWeightModel.fromJson(Map<String, dynamic> json) {
+    return PetWeightModel(
+      date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
+      weight: (json['weight'] as num).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'date': date.toIso8601String().split('T')[0],
+      'weight': weight,
     };
   }
 }

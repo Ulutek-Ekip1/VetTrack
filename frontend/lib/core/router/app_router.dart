@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vettrack_frontend/features/pet/presentation/cubit/weight_history_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/screens/delete_account/delete_account_screen.dart';
 import 'package:vettrack_frontend/features/auth/presentation/screens/delete_account/delete_account_verify_screen.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -237,7 +238,27 @@ class AppRouter {
                       name: 'petDetail',
                       builder: (context, state) {
                         final petId = state.pathParameters['petId'] ?? '';
-                        return PetDetailScreen(petId: petId);
+                        return MultiBlocProvider(
+                          providers: [
+                            BlocProvider<VisitCubit>(
+                              create: (context) =>
+                                  sl<VisitCubit>()..fetchPetVisitHistory(petId),
+                            ),
+                            BlocProvider<TreatmentCubit>(
+                              create: (context) => sl<TreatmentCubit>()
+                                ..loadPetTreatments(petId),
+                            ),
+                            BlocProvider<RecommendationCubit>(
+                              create: (context) => sl<RecommendationCubit>()
+                                ..loadRecommendations(petId),
+                            ),
+                            BlocProvider<WeightHistoryCubit>(
+                              create: (context) => sl<WeightHistoryCubit>()
+                                ..fetchWeightHistory(petId),
+                            ),
+                          ],
+                          child: PetDetailScreen(petId: petId),
+                        );
                       },
                       routes: [
                         GoRoute(
@@ -253,7 +274,11 @@ class AppRouter {
                           name: 'petVisitHistory',
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
-                            return PetVisitHistoryScreen(petId: petId);
+                            return BlocProvider<VisitCubit>(
+                              create: (context) =>
+                                  sl<VisitCubit>()..fetchPetVisitHistory(petId),
+                              child: PetVisitHistoryScreen(petId: petId),
+                            );
                           },
                         ),
                         GoRoute(
@@ -261,7 +286,11 @@ class AppRouter {
                           name: 'petTreatments',
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
-                            return PetTreatmentHistoryScreen(petId: petId);
+                            return BlocProvider<TreatmentCubit>(
+                              create: (context) => sl<TreatmentCubit>()
+                                ..loadPetTreatments(petId),
+                              child: PetTreatmentHistoryScreen(petId: petId),
+                            );
                           },
                         ),
                         GoRoute(
@@ -327,7 +356,11 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.vetVisitHistory,
                   name: 'vetVisitHistory',
-                  builder: (context, state) => const VetVisitHistoryScreen(),
+                  builder: (context, state) => BlocProvider<VisitCubit>(
+                    create: (context) =>
+                        sl<VisitCubit>()..fetchVetVisitHistory(),
+                    child: const VetVisitHistoryScreen(),
+                  ),
                 ),
               ],
             ),
@@ -387,8 +420,12 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.ownerVisitHistoryList,
           name: 'ownerVisits',
-          builder: (context, state) => const OwnerVisitHistoryListScreen(),
+          builder: (context, state) => BlocProvider<VisitCubit>(
+            create: (context) => sl<VisitCubit>()..fetchOwnerVisitHistory(),
+            child: const OwnerVisitHistoryListScreen(),
+          ),
         ),
+
         GoRoute(
           path: AppRoutes.chatbot,
           name: 'chatbot',
