@@ -11,6 +11,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/services/firebase_messaging_service.dart';
 import '../../../../features/notification/presentation/cubit/notification_cubit.dart';
 import '../../../../features/notification/presentation/widgets/notification_badge_button.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -64,15 +65,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Bildirimleri açın'),
-        content: const Text(
-          'Cihaz ayarlarından VetTrack uygulamasını açıp Bildirimler iznini etkinleştirin. '
-          'İzin vermeseniz de güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz.',
-        ),
+        title: Text(AppLocalizations.of(context)!.enableNotifications),
+        content: Text(AppLocalizations.of(context)!.enableNotificationsDescription),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Tamam'),
+            child: Text(AppLocalizations.of(context)!.ok),
           ),
         ],
       ),
@@ -82,6 +80,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surfaceDim,
@@ -163,15 +162,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       child: Card(
                         child: ListTile(
                           leading: const Icon(Icons.notifications_active_outlined),
-                          title: const Text('Muayene güncellemelerini kaçırmayın'),
-                          subtitle: Text(_notificationPermission == AuthorizationStatus.denied ? 'İzin reddedildi. Güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz.' : 'Tedavi ve muayene güncellemeleri için bildirim izni verin.'),
+                          title: Text(l10n.doNotMissVisitUpdates),
+                          subtitle: Text(_notificationPermission == AuthorizationStatus.denied ? l10n.notificationPermissionDenied : l10n.notificationPermissionPrompt),
                           trailing: TextButton(
                             onPressed: _notificationPermission == AuthorizationStatus.denied
                                 ? _openNotificationSettings
                                 : _requestNotificationPermission,
                             child: Text(_notificationPermission == AuthorizationStatus.denied
-                                ? 'Ayarları Aç'
-                                : 'Etkinleştir'),
+                                ? l10n.openSettings
+                                : l10n.enable),
                           ),
                         ),
                       ),

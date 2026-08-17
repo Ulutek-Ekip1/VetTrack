@@ -336,6 +336,14 @@ abstract class AppLocalizations {
   String get deleteAllHistoryPermanently;
   String get chatHistoryDeleted;
   String get chatHistoryDeleteFailed;
+  String get enableNotifications;
+  String get enableNotificationsDescription;
+  String get ok;
+  String get doNotMissVisitUpdates;
+  String get notificationPermissionDenied;
+  String get notificationPermissionPrompt;
+  String get openSettings;
+  String get enable;
 }
 
 class _AppLocalizationsDelegate

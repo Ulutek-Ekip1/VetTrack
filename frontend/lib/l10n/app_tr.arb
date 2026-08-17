@@ -206,4 +206,12 @@
   ,"deleteAllHistoryPermanently": "Tüm Geçmişi Kalıcı Olarak Sil"
   ,"chatHistoryDeleted": "Tüm AI sohbet geçmişiniz kalıcı olarak silindi."
   ,"chatHistoryDeleteFailed": "Geçmiş silinirken bir hata oluştu."
+  ,"enableNotifications": "Bildirimleri açın"
+  ,"enableNotificationsDescription": "Cihaz ayarlarından VetTrack uygulamasını açıp Bildirimler iznini etkinleştirin. İzin vermeseniz de güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz."
+  ,"ok": "Tamam"
+  ,"doNotMissVisitUpdates": "Muayene güncellemelerini kaçırmayın"
+  ,"notificationPermissionDenied": "İzin reddedildi. Güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz."
+  ,"notificationPermissionPrompt": "Tedavi ve muayene güncellemeleri için bildirim izni verin."
+  ,"openSettings": "Ayarları Aç"
+  ,"enable": "Etkinleştir"
 }

@@ -293,4 +293,12 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get deleteAllHistoryPermanently => 'Tüm Geçmişi Kalıcı Olarak Sil';
   @override String get chatHistoryDeleted => 'Tüm AI sohbet geçmişiniz kalıcı olarak silindi.';
   @override String get chatHistoryDeleteFailed => 'Geçmiş silinirken bir hata oluştu.';
+  @override String get enableNotifications => 'Bildirimleri açın';
+  @override String get enableNotificationsDescription => 'Cihaz ayarlarından VetTrack uygulamasını açıp Bildirimler iznini etkinleştirin. İzin vermeseniz de güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz.';
+  @override String get ok => 'Tamam';
+  @override String get doNotMissVisitUpdates => 'Muayene güncellemelerini kaçırmayın';
+  @override String get notificationPermissionDenied => 'İzin reddedildi. Güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz.';
+  @override String get notificationPermissionPrompt => 'Tedavi ve muayene güncellemeleri için bildirim izni verin.';
+  @override String get openSettings => 'Ayarları Aç';
+  @override String get enable => 'Etkinleştir';
 }
