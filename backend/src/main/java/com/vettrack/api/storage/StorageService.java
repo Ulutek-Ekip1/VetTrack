@@ -27,7 +27,7 @@ public class StorageService {
     private static final String TREATMENT_BUCKET = "treatment-attachments";
     private static final long MAX_FILE_SIZE = 15 * 1024 * 1024;
     private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp", "application/pdf"
+            "image/jpeg", "image/png", "image/webp"
     );
 
     public StorageService(RestClient supabaseStorageClient,
