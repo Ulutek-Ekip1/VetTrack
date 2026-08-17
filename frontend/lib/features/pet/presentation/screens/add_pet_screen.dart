@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vettrack_frontend/core/utils/validators.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 import '../../domain/entities/pet_entity.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
@@ -126,6 +127,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
     const primaryBlue = Color(0xFF004AC6);
     const buttonBlue = Color(0xFF2563EB);
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -133,9 +135,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: const Text('Yeni Hayvan Ekle',
-              style:
-                  TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
+          title: Text(l10n.addPetTitle,
+              style: const TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => _showDiscardModal(context),
@@ -245,7 +246,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     controller: _nameController,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
-                      labelText: 'Adı *',
+                      labelText: l10n.petNameLabel,
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
@@ -256,7 +257,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Cinsiyet *',
+                    l10n.genderLabel,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: primaryBlue,
@@ -266,12 +267,12 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   Row(
                     children: [
                       _buildGenderOption(
-                          Gender.male, 'Erkek', Icons.male, Colors.blue),
+                          Gender.male, l10n.male, Icons.male, Colors.blue),
                       const SizedBox(width: 8),
                       _buildGenderOption(
-                          Gender.female, 'Dişi', Icons.female, Colors.pink),
+                          Gender.female, l10n.female, Icons.female, Colors.pink),
                       const SizedBox(width: 8),
-                      _buildGenderOption(Gender.unknown, 'Bilinmiyor',
+                      _buildGenderOption(Gender.unknown, l10n.unknown,
                           Icons.pets, Colors.teal),
                     ],
                   ),
@@ -281,7 +282,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     controller: _speciesController,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
-                      labelText: 'Türü * (örn. Kedi, Köpek)',
+                      labelText: l10n.speciesLabel,
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
@@ -296,7 +297,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     controller: _breedController,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
-                      labelText: 'Cinsi / Irkı (örn. Tekir, Golden)',
+                      labelText: l10n.breedLabel,
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
@@ -317,7 +318,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           textInputAction: TextInputAction.done,
                           enabled: !_ageUnknown,
                           decoration: InputDecoration(
-                            labelText: 'Yaş',
+                            labelText: l10n.ageLabel,
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8)),
                           ),
@@ -370,7 +371,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Bilinmiyor',
+                                  l10n.unknown,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
@@ -409,7 +410,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                               )
                             : const Icon(Icons.save),
                         label: Text(
-                          isLoading ? 'Kaydediliyor...' : 'Kaydet',
+                          isLoading ? l10n.saving : l10n.save,
                           style: const TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),

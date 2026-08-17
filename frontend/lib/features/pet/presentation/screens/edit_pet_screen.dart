@@ -179,15 +179,16 @@ class _EditPetScreenState extends State<EditPetScreen> {
     const primaryBlue = Color(0xFF004AC6);
     const buttonBlue = Color(0xFF2563EB);
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dostu Düzenle',
-            style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
+        title: Text(l10n.editPetTitle,
+            style: const TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Color(0xFFEF4444)),
-            tooltip: 'Evcil Hayvanı Sil',
+            tooltip: l10n.deletePetTooltip,
             onPressed: () => _showDeleteConfirmation(context),
           ),
         ],
@@ -303,7 +304,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   controller: _nameController,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Adı *',
+                    labelText: l10n.petNameLabel,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
@@ -312,7 +313,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Cinsiyet *',
+                  l10n.genderLabel,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: primaryBlue,
@@ -322,13 +323,13 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 Row(
                   children: [
                     _buildGenderOption(
-                        Gender.male, 'Erkek', Icons.male, Colors.blue),
+                        Gender.male, l10n.male, Icons.male, Colors.blue),
                     const SizedBox(width: 8),
                     _buildGenderOption(
-                        Gender.female, 'Dişi', Icons.female, Colors.pink),
+                        Gender.female, l10n.female, Icons.female, Colors.pink),
                     const SizedBox(width: 8),
                     _buildGenderOption(
-                        Gender.unknown, 'Bilinmiyor', Icons.pets, Colors.teal),
+                        Gender.unknown, l10n.unknown, Icons.pets, Colors.teal),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -337,7 +338,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   controller: _speciesController,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Türü * (örn. Kedi, Köpek)',
+                    labelText: l10n.speciesLabel,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
@@ -350,7 +351,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   controller: _breedController,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Cinsi / Irkı (örn. Tekir, Golden)',
+                    labelText: l10n.breedLabel,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
@@ -369,7 +370,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                         textInputAction: TextInputAction.done,
                         enabled: !_ageUnknown,
                         decoration: InputDecoration(
-                          labelText: 'Yaş',
+                          labelText: l10n.ageLabel,
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8)),
                         ),
@@ -420,7 +421,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Bilinmiyor',
+                                  l10n.unknown,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -458,7 +459,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                             )
                           : const Icon(Icons.update),
                       label: Text(
-                        isLoading ? 'Güncelleniyor...' : 'Güncelle',
+                        isLoading ? l10n.updating : l10n.update,
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),

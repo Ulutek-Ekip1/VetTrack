@@ -89,4 +89,20 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get cancel => 'İptal';
+
+  @override String get addPetTitle => 'Yeni Hayvan Ekle';
+  @override String get editPetTitle => 'Dostu Düzenle';
+  @override String get deletePetTooltip => 'Evcil Hayvanı Sil';
+  @override String get petNameLabel => 'Adı *';
+  @override String get genderLabel => 'Cinsiyet *';
+  @override String get male => 'Erkek';
+  @override String get female => 'Dişi';
+  @override String get unknown => 'Bilinmiyor';
+  @override String get speciesLabel => 'Türü * (örn. Kedi, Köpek)';
+  @override String get breedLabel => 'Cinsi / Irkı (örn. Tekir, Golden)';
+  @override String get ageLabel => 'Yaş';
+  @override String get saving => 'Kaydediliyor...';
+  @override String get save => 'Kaydet';
+  @override String get updating => 'Güncelleniyor...';
+  @override String get update => 'Güncelle';
 }

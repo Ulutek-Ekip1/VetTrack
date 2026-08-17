@@ -161,6 +161,22 @@ abstract class AppLocalizations {
   String get confirmDelete;
 
   String get cancel;
+
+  String get addPetTitle;
+  String get editPetTitle;
+  String get deletePetTooltip;
+  String get petNameLabel;
+  String get genderLabel;
+  String get male;
+  String get female;
+  String get unknown;
+  String get speciesLabel;
+  String get breedLabel;
+  String get ageLabel;
+  String get saving;
+  String get save;
+  String get updating;
+  String get update;
 }
 
 class _AppLocalizationsDelegate
