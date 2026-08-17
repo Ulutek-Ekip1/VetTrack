@@ -18,22 +18,18 @@ import java.util.Map;
 /**
  * JWT'den Spring Security authority'leri üretir.
  *
- * <p><b>Authority üretim kuralı:</b>
+ * <p><b>Güvenlik & Yetkilendirme Kuralları:</b>
  * <ul>
- *   <li>{@code user_metadata.role} → {@code ROLE_OWNER}, {@code ROLE_ADMIN} gibi roller
- *       <em>doğrudan</em> eklenir. <strong>Ancak {@code vet_staff} bu eşlemeden muaftır</strong>;
- *       çünkü vet_staff yetkisi yalnızca aktif klinik üyeliğiyle (aşağıda) verilir.</li>
- *   <li>{@code clinic_memberships.status = 'active'} → {@code ROLE_VET_STAFF} eklenir.
- *       Üyeliği {@code disabled} olan bir hesap bu sorgudan 0 satır alır ve hiç
- *       {@code ROLE_VET_STAFF} almaz — okuma dahil tüm vet-path'leri engellenir.</li>
- * </ul>
- *
- * <p>Bu tasarım şunları sağlar:
- * <ul>
- *   <li>Davet kabul eden doktorlar (JWT'de {@code ROLE_OWNER}) aktif üyelikleri sayesinde
- *       {@code ROLE_VET_STAFF} alır (P1a fix).</li>
- *   <li>Üyeliği devre dışı bırakılan eski vet_staff hesapları, JWT'de
- *       {@code user_metadata.role=vet_staff} olsa bile {@code ROLE_VET_STAFF} alamaz.</li>
+ *   <li>{@code user_metadata} kullanıcı tarafından kayıt / profil güncelleme esnasında
+ *       düzenlenebilir (untrusted). Bu nedenle <strong>user_metadata alanından hiçbir rol üretilmez</strong>
+ *       (Yetki yükseltme / Privilege Escalation koruması).</li>
+ *   <li>{@code ROLE_ADMIN} yalnızca güvenilir sunucu yönetimindeki {@code app_metadata.role = 'admin'}
+ *       veya veritabanındaki {@code profiles.role = 'admin' AND is_active = true} kaydı ile verilir.</li>
+ *   <li>{@code ROLE_VET_STAFF} yalnızca {@code clinic_memberships.status = 'active'} kaydı
+ *       bulunan kullanıcılara verilir.</li>
+ *   <li>{@code ROLE_CLINIC_ADMIN} yalnızca {@code clinic_memberships.status = 'active' AND is_clinic_admin = true}
+ *       kaydı bulunan kullanıcılara verilir.</li>
+ *   <li>Tüm authenticated kullanıcılar için varsayılan yetki {@code ROLE_OWNER}'dır.</li>
  * </ul>
  */
 @Component
@@ -53,42 +49,56 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
         Collection<GrantedAuthority> authorities =
                 new HashSet<>(defaultGrantedAuthoritiesConverter.convert(jwt));
 
-        // 1. user_metadata.role → authority (ROLE_OWNER, ROLE_ADMIN, vb.)
-        //    "vet_staff" bu eşlemeden kasıtlı olarak çıkarılmıştır:
-        //    ROLE_VET_STAFF yalnızca aşağıdaki aktif üyelik sorgusuyla verilir.
-        //    Böylece üyeliği disabled olan hesaplar JWT'den ROLE_VET_STAFF alamaz.
-        Map<String, Object> userMetadata = jwt.getClaim("user_metadata");
-        String role = null;
-
-        if (userMetadata != null && userMetadata.containsKey("role")) {
-            role = (String) userMetadata.get("role");
-        } else if (jwt.hasClaim("role")) {
-            role = jwt.getClaimAsString("role");
-        }
-
-        if (role != null && !role.isBlank() && !"vet_staff".equalsIgnoreCase(role)) {
-            String formattedRole = role.startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase();
-            authorities.add(new SimpleGrantedAuthority(formattedRole));
-        }
-
-        // 2. Aktif klinik üyeliği → ROLE_VET_STAFF
-        //    status = 'active' olan üyeler VET_STAFF yetkisi alır.
-        //    status = 'disabled' → 0 satır → yetki verilmez → okuma dahil tüm vet path'leri engellenir.
         String userId = jwt.getSubject();
-        if (userId != null && !userId.isBlank()) {
+
+        // 1. Güvenilir admin kontrolü (app_metadata veya profiles DB tablosu)
+        Map<String, Object> appMetadata = jwt.getClaim("app_metadata");
+        boolean isAdmin = false;
+        if (appMetadata != null && "admin".equalsIgnoreCase((String) appMetadata.get("role"))) {
+            isAdmin = true;
+        }
+
+        if (!isAdmin && userId != null && !userId.isBlank()) {
             try {
-                Integer count = jdbcTemplate.queryForObject(
-                        "SELECT COUNT(*) FROM clinic_memberships WHERE user_id = ?::uuid AND status = 'active'",
+                Integer adminCount = jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM profiles WHERE id = ?::uuid AND role = 'admin' AND is_active = true",
                         Integer.class,
                         userId
                 );
-                if (count != null && count > 0) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_VET_STAFF"));
+                if (adminCount != null && adminCount > 0) {
+                    isAdmin = true;
                 }
-            } catch (DataAccessException ex) {
+            } catch (DataAccessException ignored) {
+                // DB hatası durumunda admin varsayılmaz
+            }
+        }
+
+        if (isAdmin) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        }
+
+        // 2. Aktif klinik üyeliği → ROLE_VET_STAFF & ROLE_CLINIC_ADMIN
+        if (userId != null && !userId.isBlank()) {
+            try {
+                var rows = jdbcTemplate.queryForList(
+                        "SELECT is_clinic_admin FROM clinic_memberships WHERE user_id = ?::uuid AND status = 'active'",
+                        userId
+                );
+                if (!rows.isEmpty()) {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_VET_STAFF"));
+                    boolean hasClinicAdmin = rows.stream()
+                            .anyMatch(r -> Boolean.TRUE.equals(r.get("is_clinic_admin")));
+                    if (hasClinicAdmin) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_CLINIC_ADMIN"));
+                    }
+                }
+            } catch (DataAccessException ignored) {
                 // DB erişim hatası: authority eklenmeden devam edilir.
             }
         }
+
+        // 3. Standart kullanıcı rolü (Varsayılan olarak ROLE_OWNER)
+        authorities.add(new SimpleGrantedAuthority("ROLE_OWNER"));
 
         return new JwtAuthenticationToken(jwt, authorities);
     }
