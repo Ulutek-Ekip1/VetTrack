@@ -10,6 +10,7 @@ import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../widgets/pet_card.dart';
 import '../../../notification/presentation/widgets/notification_badge_button.dart';
+import '../../../../core/widgets/app_async_state_views.dart';
 
 class PetListScreen extends StatefulWidget {
   const PetListScreen({super.key});
@@ -114,9 +115,10 @@ class _PetListScreenState extends State<PetListScreen> {
 
             // --- 3. ÇEVRİMDIŞI / HATA DURUMU ---
             if (state is PetError) {
-              return OfflineErrorView(
-                errorMessage: state.message,
+              return AppErrorStateView(
+                message: state.message,
                 onRetry: () => context.read<PetCubit>().fetchPets(),
+                isOffline: true,
               );
             }
 
