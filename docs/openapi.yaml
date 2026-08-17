@@ -507,6 +507,56 @@ paths:
           $ref: '#/components/responses/NotFound'
 
   # ---- Visits ----
+  /visits/owner:
+    get:
+      tags: [Visits]
+      summary: Sahibin tüm aktif petlerinin ziyaret geçmişi
+      description: |
+        Giriş yapmış sahibin (owner) sahip olduğu tüm AKTIF (soft-delete
+        edilmemiş, isActive=true) petlerinin ziyaretlerini tek listede döner.
+        Frontend'in her pet için ayrı istek atmasını (N+1) önler.
+        Yeniden eskiye (startedAt DESC) sıralı. Kayıt yoksa 200 + boş dizi ([]).
+        Sahip JWT subject'inden belirlenir; parametre almaz.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ziyaret listesi (kayıt yoksa boş dizi)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /visits/vet:
+    get:
+      tags: [Visits]
+      summary: Hekime atanmış tüm ziyaretler
+      description: |
+        Giriş yapmış veteriner hekime (vet_staff) atanmış tüm ziyaretleri
+        döner. Soft-delete edilmiş / pasif petlerin ziyaretleri hariç.
+        Yeniden eskiye (startedAt DESC) sıralı. Kayıt yoksa 200 + boş dizi ([]).
+        Hekim JWT subject'inden belirlenir; parametre almaz. Sadece VET_STAFF
+        veya ADMIN rolü erişebilir.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ziyaret listesi (kayıt yoksa boş dizi)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /visits/code/{code}:
     get:
       tags: [Visits]

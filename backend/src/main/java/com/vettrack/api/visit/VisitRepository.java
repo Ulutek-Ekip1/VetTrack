@@ -3,6 +3,8 @@ package com.vettrack.api.visit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,4 +16,32 @@ public interface VisitRepository extends JpaRepository<Visit, UUID> {
     List<Visit> findByPetIdAndClinicIdOrderByStartedAtDesc(UUID petId, UUID clinicId);
     Page<Visit> findByPetIdOrderByStartedAtDesc(UUID petId, Pageable pageable);
     Page<Visit> findByPetIdAndClinicIdInOrderByStartedAtDesc(UUID petId, List<UUID> clinicIds, Pageable pageable);
+
+    /**
+     * Sahibin (owner) tüm aktif petlerinin ziyaret geçmişini tek sorguda getirir (N+1 önleme).
+     * Soft-delete edilmiş (deletedAt dolu) veya pasif (isActive=false) petlerin ziyaretleri hariç.
+     */
+    @Query("""
+            SELECT v FROM Visit v, Pet p
+            WHERE v.petId = p.id
+              AND p.ownerId = :ownerId
+              AND p.deletedAt IS NULL
+              AND p.isActive = true
+            ORDER BY v.startedAt DESC
+            """)
+    List<Visit> findVisitsForOwner(@Param("ownerId") UUID ownerId);
+
+    /**
+     * Bir veteriner hekime (vet_staff_id) atanmış tüm ziyaretleri getirir.
+     * Soft-delete edilmiş (deletedAt dolu) veya pasif (isActive=false) petlerin ziyaretleri hariç.
+     */
+    @Query("""
+            SELECT v FROM Visit v, Pet p
+            WHERE v.petId = p.id
+              AND v.vetStaffId = :vetStaffId
+              AND p.deletedAt IS NULL
+              AND p.isActive = true
+            ORDER BY v.startedAt DESC
+            """)
+    List<Visit> findVisitsForVet(@Param("vetStaffId") UUID vetStaffId);
 }
