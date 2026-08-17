@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../constants/app_dimensions.dart';
 
 // URL segmentlerini Türkçe isimlere eşlemek için bir sözlük
@@ -163,20 +164,9 @@ class VetShellScreen extends StatelessWidget {
             leading: Column(
               children: [
                 const SizedBox(height: AppDimensions.spacingLg),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.pets, color: Colors.teal.shade700, size: 28),
-                    const SizedBox(width: 8),
-                    Text(
-                      'VETTRACK',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                        color: theme.colorScheme.secondary,
-                      ),
-                    ),
-                  ],
+                SvgPicture.asset(
+                  "assets/icons/VetTrack.svg",
+                  width: 130,
                 ),
                 const SizedBox(height: AppDimensions.spacingSm),
                 Text(
