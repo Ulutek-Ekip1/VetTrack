@@ -10,9 +10,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.core.ParameterizedTypeReference;
 
 @Service
 public class StorageService {
@@ -22,9 +24,10 @@ public class StorageService {
     private final Tika tika = new Tika();
 
     private static final String BUCKET = "pet-photos";
+    private static final String TREATMENT_BUCKET = "treatment-attachments";
     private static final long MAX_FILE_SIZE = 15 * 1024 * 1024;
     private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp"
+            "image/jpeg", "image/png", "image/webp", "application/pdf"
     );
 
     public StorageService(RestClient supabaseStorageClient,
@@ -70,6 +73,64 @@ public class StorageService {
                     .toBodilessEntity();
         } catch (org.springframework.web.client.RestClientException e) {
             throw new StorageException("Supabase Storage silme isteği başarısız: " + e.getMessage(), e);
+        }
+    }
+
+    public String generateSignedUploadUrl(String path, String contentType, long fileSize) {
+        if (fileSize > MAX_FILE_SIZE) {
+            throw new FileTooLargeException("Dosya boyutu 15MB'ı aşamaz");
+        }
+        
+        String declaredType = normalizeMimeType(contentType);
+        if (declaredType == null || !ALLOWED_TYPES.contains(declaredType)) {
+            throw new UnsupportedFileTypeException(
+                    "Geçersiz dosya formatı. (Desteklenenler: JPEG, PNG, WebP, PDF)"
+            );
+        }
+
+        try {
+            Map<String, Object> response = storageClient.post()
+                    .uri("/object/upload/sign/{bucket}/{path}", TREATMENT_BUCKET, path)
+                    .body(Map.of("expiresIn", 900)) // 15 dakika geçerli
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<Map<String, Object>>() {});
+                    
+            if (response != null && response.containsKey("url")) {
+                return storageUrl + response.get("url").toString();
+            } else if (response != null && response.containsKey("signedURL")) {
+                return storageUrl + response.get("signedURL").toString();
+            } else if (response != null && response.containsKey("signedUrl")) {
+                return storageUrl + response.get("signedUrl").toString(); // Bazı SDK sürümleri farklı dönebilir
+            }
+            throw new StorageException("Upload URL yanıtı çözümlenemedi.");
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new StorageException("Supabase Storage Signed Upload URL alınamadı: " + e.getMessage(), e);
+        }
+    }
+
+    public String generateSignedReadUrl(String path) {
+        try {
+            Map<String, Object> response = storageClient.post()
+                    .uri("/object/sign/{bucket}/{path}", TREATMENT_BUCKET, path)
+                    .body(Map.of("expiresIn", 3600)) // 1 saat geçerli
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<Map<String, Object>>() {});
+                    
+            if (response != null && response.containsKey("signedURL")) {
+                // Read için signedURL genellikle tam URL olarak (dizin/token vb.) döner. Bazen sadece token veya path dönebilir.
+                String urlOrPath = response.get("signedURL").toString();
+                if (urlOrPath.startsWith("http")) {
+                    return urlOrPath;
+                }
+                return storageUrl + urlOrPath;
+            } else if (response != null && response.containsKey("signedUrl")) {
+                String urlOrPath = response.get("signedUrl").toString();
+                if (urlOrPath.startsWith("http")) return urlOrPath;
+                return storageUrl + urlOrPath;
+            }
+            throw new StorageException("Read URL yanıtı çözümlenemedi.");
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new StorageException("Supabase Storage Signed Read URL alınamadı: " + e.getMessage(), e);
         }
     }
 

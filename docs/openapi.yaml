@@ -352,7 +352,7 @@ paths:
           description: Sıralama alanı ve yönü (örn. recordedAt,asc)
       responses:
         '200':
-          description: Kilo geçmişi listesi (varsayılan: dizi, sayfalama talep edildiğinde Page nesnesi)
+          description: "Kilo geçmişi listesi (varsayılan: dizi, sayfalama talep edildiğinde Page nesnesi)"
           content:
             application/json:
               schema:
@@ -844,7 +844,7 @@ paths:
                 timestamp: "2026-07-29T14:32:11Z"
 
   # ---- Notifications ----
-/notifications:
+  /notifications:
     get:
       tags: [Notifications]
       summary: Bildirim listesi
