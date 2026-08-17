@@ -219,4 +219,11 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get vetSpecialist => 'Uzman Veteriner Hekim';
   @override String get welcomeDescription => 'Evcil hayvanınızın sağlık, bakım ve muayene süreçlerini tek bir yerden kolayca takip edin.';
   @override String get quickGoogleSignIn => 'Google ile Hızlı Giriş';
+  @override String get myAnimals => 'Hayvanlarım';
+  @override String get searchPetByNameOrCode => 'İsim veya 6 haneli kod ile ara...';
+  @override String get edit => 'Düzenle';
+  @override String get delete => 'Sil';
+  @override String get addNewPet => 'Yeni Hayvan Ekle';
+  @override String get noPetsYet => 'Henüz bir evcil hayvan eklemedin';
+  @override String get noPetsDescription => "Aşağıdaki 'Yeni Hayvan Ekle' butonuna basarak ilk evcil hayvanınızın profilini oluşturun.";
 }

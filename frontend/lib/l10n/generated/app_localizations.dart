@@ -262,6 +262,13 @@ abstract class AppLocalizations {
   String get vetSpecialist;
   String get welcomeDescription;
   String get quickGoogleSignIn;
+  String get myAnimals;
+  String get searchPetByNameOrCode;
+  String get edit;
+  String get delete;
+  String get addNewPet;
+  String get noPetsYet;
+  String get noPetsDescription;
 }
 
 class _AppLocalizationsDelegate

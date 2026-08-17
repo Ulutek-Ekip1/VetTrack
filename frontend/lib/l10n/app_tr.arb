@@ -129,4 +129,11 @@
   ,"vetSpecialist": "Uzman Veteriner Hekim"
   ,"welcomeDescription": "Evcil hayvanınızın sağlık, bakım ve muayene süreçlerini tek bir yerden kolayca takip edin."
   ,"quickGoogleSignIn": "Google ile Hızlı Giriş"
+  ,"myAnimals": "Hayvanlarım"
+  ,"searchPetByNameOrCode": "İsim veya 6 haneli kod ile ara..."
+  ,"edit": "Düzenle"
+  ,"delete": "Sil"
+  ,"addNewPet": "Yeni Hayvan Ekle"
+  ,"noPetsYet": "Henüz bir evcil hayvan eklemedin"
+  ,"noPetsDescription": "Aşağıdaki 'Yeni Hayvan Ekle' butonuna basarak ilk evcil hayvanınızın profilini oluşturun."
 }

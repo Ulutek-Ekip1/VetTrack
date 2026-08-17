@@ -49,6 +49,7 @@ class _PetListScreenState extends State<PetListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const primaryBlue = Color(0xFF004AC6);
     const labelGray = Color(0xFF737686);
     const bgGray = Color(0xFFF1F5F9);
@@ -63,7 +64,7 @@ class _PetListScreenState extends State<PetListScreen> {
           elevation: 1,
           shadowColor: Colors.black12,
           title: Text(
-            'Hayvanlarım',
+            l10n.myAnimals,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: primaryBlue,
                   fontWeight: FontWeight.bold,
@@ -147,7 +148,7 @@ class _PetListScreenState extends State<PetListScreen> {
                       TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'İsim veya 6 haneli kod ile ara...',
+                          hintText: l10n.searchPetByNameOrCode,
                           hintStyle: const TextStyle(color: labelGray, fontSize: 14),
                           prefixIcon: const Icon(Icons.search, color: labelGray),
                           filled: true,
@@ -198,14 +199,14 @@ class _PetListScreenState extends State<PetListScreen> {
                                 alignment: Alignment.centerLeft,
                                 color: Theme.of(context).colorScheme.secondary,
                                 icon: Icons.edit,
-                                label: 'Düzenle',
+                                label: l10n.edit,
                               ),
                               secondaryBackground: _buildSwipeBackground(
                                 context: context,
                                 alignment: Alignment.centerRight,
                                 color: Theme.of(context).colorScheme.error,
                                 icon: Icons.delete_forever,
-                                label: 'Sil',
+                                label: l10n.delete,
                               ),
                               confirmDismiss: (direction) async {
                                 final theme = Theme.of(context);
@@ -268,8 +269,8 @@ class _PetListScreenState extends State<PetListScreen> {
           },
           backgroundColor: primaryBlue,
           icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text(
-            'Yeni Hayvan Ekle',
+          label: Text(
+            l10n.addNewPet,
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
