@@ -332,6 +332,7 @@ class SkeletonLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Column(
@@ -343,13 +344,13 @@ class SkeletonLoadingView extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade300),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.search, color: Color(0xFF737686)),
-                SizedBox(width: 8),
+                const Icon(Icons.search, color: Color(0xFF737686)),
+                const SizedBox(width: 8),
                 Text(
-                  'İsim veya 6 haneli kod ile ara...',
-                  style: TextStyle(color: Color(0xFF737686), fontSize: 14),
+                  l10n.searchPetByNameOrCode,
+                  style: const TextStyle(color: Color(0xFF737686), fontSize: 14),
                 ),
               ],
             ),
@@ -416,6 +417,7 @@ class EmptyDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -432,18 +434,18 @@ class EmptyDashboardView extends StatelessWidget {
               child: const Icon(Icons.pets, size: 72, color: Color(0xFF004AC6)),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Henüz bir evcil hayvan eklemedin',
-              style: TextStyle(
+            Text(
+              l10n.noPetsYet,
+              style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF131B2E)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Aşağıdaki "Yeni Hayvan Ekle" butonuna basarak ilk evcil hayvanınızın profilini oluşturun.',
-              style: TextStyle(fontSize: 14, color: Color(0xFF434655)),
+            Text(
+              l10n.noPetsDescription,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF434655)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -459,9 +461,8 @@ class EmptyDashboardView extends StatelessWidget {
                 ),
                 onPressed: onAddTap,
                 icon: const Icon(Icons.add),
-                label: const Text('Yeni Hayvan Ekle',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                label: Text(l10n.addNewPet,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
