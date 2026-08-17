@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 
 class PetCard extends StatefulWidget {
   final PetEntity pet;
@@ -144,12 +145,16 @@ class _PetCardState extends State<PetCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     const peachBg = Color(0xFFFFECE5);
     const peachBorder = Color(0xFFFFB89C);
     const peachText = Color(0xFFD9531E);
 
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      label: l10n.openPetProfile(widget.pet.name),
+      child: GestureDetector(
       onTapDown: (_) => setState(() => _scale = 0.98),
       onTapUp: (_) => setState(() => _scale = 1.0),
       onTapCancel: () => setState(() => _scale = 1.0),
@@ -316,6 +321,7 @@ class _PetCardState extends State<PetCard> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

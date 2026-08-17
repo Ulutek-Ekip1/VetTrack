@@ -270,4 +270,5 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get recommendedFoods => 'Önerilen Mamalar';
   @override String get askAiAssistant => "AI Asistan'a Sor";
   @override String get details => 'Detaylar';
+  @override String openPetProfile(String name) => '$name profili';
 }

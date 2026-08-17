@@ -313,6 +313,7 @@ abstract class AppLocalizations {
   String get recommendedFoods;
   String get askAiAssistant;
   String get details;
+  String openPetProfile(String name);
 }
 
 class _AppLocalizationsDelegate

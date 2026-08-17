@@ -182,4 +182,6 @@
   ,"recommendedFoods": "Önerilen Mamalar"
   ,"askAiAssistant": "AI Asistan'a Sor"
   ,"details": "Detaylar"
+  ,"openPetProfile": "{name} profili"
+  ,"@openPetProfile": {"placeholders": {"name": {"type": "String"}}}
 }
