@@ -270,6 +270,9 @@ abstract class AppLocalizations {
   String get noPetsYet;
   String get noPetsDescription;
   String get petNotFound;
+  String get discardChangesTitle;
+  String get discardChangesDescription;
+  String get exitWithoutSaving;
 }
 
 class _AppLocalizationsDelegate

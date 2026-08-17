@@ -44,21 +44,22 @@ class _AddPetScreenState extends State<AddPetScreen> {
   }
 
   void _showDiscardModal(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Column(
+        title: Column(
           children: [
-            Icon(Icons.warning_amber_rounded,
+            const Icon(Icons.warning_amber_rounded,
                 color: Color(0xFFF59E0B), size: 48),
-            SizedBox(height: 8),
-            Text('Kaydetmeden Çık?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(l10n.discardChangesTitle,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ],
         ),
-        content: const Text(
-          'Değişiklikleri kaydetmeden çıkmak istiyor musunuz?',
+        content: Text(
+          l10n.discardChangesDescription,
           textAlign: TextAlign.center,
         ),
         actions: [
@@ -72,8 +73,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     side: const BorderSide(color: Colors.grey),
                   ),
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('İptal',
-                      style: TextStyle(color: Color(0xFF131B2E))),
+                  child: Text(l10n.cancel,
+                      style: const TextStyle(color: Color(0xFF131B2E))),
                 ),
               ),
               const SizedBox(width: 12),
@@ -89,7 +90,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     Navigator.pop(dialogContext); // Dialog'u kapat
                     Navigator.pop(context); // Sayfadan çık
                   },
-                  child: const Text('Evet, Çık'),
+                  child: Text(l10n.exitWithoutSaving),
                 ),
               ),
             ],

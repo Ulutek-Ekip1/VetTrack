@@ -137,4 +137,7 @@
   ,"noPetsYet": "Henüz bir evcil hayvan eklemedin"
   ,"noPetsDescription": "Aşağıdaki 'Yeni Hayvan Ekle' butonuna basarak ilk evcil hayvanınızın profilini oluşturun."
   ,"petNotFound": "Pet bulunamadı."
+  ,"discardChangesTitle": "Kaydetmeden Çık?"
+  ,"discardChangesDescription": "Değişiklikleri kaydetmeden çıkmak istiyor musunuz?"
+  ,"exitWithoutSaving": "Evet, Çık"
 }
