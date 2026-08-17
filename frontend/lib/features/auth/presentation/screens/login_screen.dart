@@ -297,35 +297,45 @@ class _LoginScreenState extends State<LoginScreen> {
                                 // Beni Hatırla & Şifremi Unuttum Satırı
                                 Row(
                                   children: [
-                                    SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: Checkbox(
-                                        value: _rememberMe,
-                                        activeColor: const Color(0xFF14B8A6),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        onChanged: (value) {
+                                    Semantics(
+                                      label: l10n.rememberMe,
+                                      checked: _rememberMe,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(8),
+                                        onTap: () {
                                           setState(() {
-                                            _rememberMe = value ?? false;
+                                            _rememberMe = !_rememberMe;
                                           });
                                         },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _rememberMe = !_rememberMe;
-                                        });
-                                      },
-                                      child: Text(
-                                        l10n.rememberMe,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                          color: AppColors.onSurface,
+                                        child: SizedBox(
+                                          height: 44,
+                                          child: Row(
+                                            children: [
+                                              Checkbox(
+                                                value: _rememberMe,
+                                                activeColor:
+                                                    const Color(0xFF14B8A6),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    _rememberMe =
+                                                        value ?? false;
+                                                  });
+                                                },
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                l10n.rememberMe,
+                                                style: theme.textTheme.bodyMedium
+                                                    ?.copyWith(
+                                                  color: AppColors.onSurface,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -334,10 +344,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                       onPressed: () => context
                                           .push(AppRoutes.forgotPassword),
                                       style: TextButton.styleFrom(
-                                        padding: EdgeInsets.zero,
-                                        minimumSize: Size.zero,
-                                        tapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
+                                        minimumSize: const Size(44, 44),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                        ),
                                       ),
                                       child: Text(
                                         l10n.forgotPasswordQuestion,
