@@ -6,6 +6,7 @@ import com.vettrack.api.common.exception.EditWindowExpiredException;
 import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.ConflictException;
+import com.vettrack.api.storage.StorageService;
 import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class TreatmentService {
     private final TreatmentEntryRepository treatmentEntryRepository;
     private final VisitRepository visitRepository;
     private final AuditLogRepository auditLogRepository; // Eklendi
+    private final StorageService storageService;
 
     private static final int EDIT_WINDOW_MINUTES = 15;
 
@@ -42,7 +44,6 @@ public class TreatmentService {
                 .type(request.getType())
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .attachmentUrl(request.getAttachmentUrl())
                 .status(request.getStatus() != null ? request.getStatus() : TreatmentStatus.PLANNED)
                 .startDate(OffsetDateTime.now())
                 .enteredBy(vetStaffId)
@@ -84,7 +85,6 @@ public class TreatmentService {
         if (request.getType() != null) entry.setType(request.getType());
         if (request.getTitle() != null) entry.setTitle(request.getTitle());
         if (request.getDescription() != null) entry.setDescription(request.getDescription());
-        if (request.getAttachmentUrl() != null) entry.setAttachmentUrl(request.getAttachmentUrl());
         if (request.getStatus() != null) entry.setStatus(request.getStatus());
 
         TreatmentEntry updatedEntry = treatmentEntryRepository.save(entry);
@@ -119,6 +119,32 @@ public class TreatmentService {
                 .details("Treatment entry deleted within the 15-minute edit window.")
                 .build();
         auditLogRepository.save(auditLog);
+    }
+
+    @Transactional
+    public String generateAttachmentUploadUrl(UUID treatmentId, String contentType, long fileSize, UUID vetStaffId) {
+        TreatmentEntry entry = getTreatmentById(treatmentId);
+        checkOwnership(entry, vetStaffId);
+        checkEditWindow(entry);
+
+        String path = "treatments/" + entry.getVisitId() + "/" + treatmentId;
+        String signedUrl = storageService.generateSignedUploadUrl(path, contentType, fileSize);
+        
+        entry.setAttachmentUrl(path);
+        treatmentEntryRepository.save(entry);
+        
+        return signedUrl;
+    }
+
+    @Transactional(readOnly = true)
+    public String generateAttachmentReadUrl(UUID treatmentId) {
+        TreatmentEntry entry = getTreatmentById(treatmentId);
+        
+        if (entry.getAttachmentUrl() == null || entry.getAttachmentUrl().isBlank()) {
+            throw new ResourceNotFoundException("Bu tedavi kaydına ait ek bulunmamaktadır.");
+        }
+        
+        return storageService.generateSignedReadUrl(entry.getAttachmentUrl());
     }
 
     private TreatmentEntry getTreatmentById(UUID id) {
