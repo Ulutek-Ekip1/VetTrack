@@ -13,6 +13,7 @@ import 'package:vettrack_frontend/features/treatment/domain/repositories/treatme
 import 'package:vettrack_frontend/features/treatment/presentation/utils/treatment_category_localization.dart';
 import 'package:vettrack_frontend/features/recommendation/domain/entities/recommendation_entity.dart';
 import 'package:vettrack_frontend/features/recommendation/domain/repositories/recommendation_repository.dart';
+import 'package:vettrack_frontend/core/widgets/app_async_state_views.dart';
 
 class ActiveVisitScreen extends StatefulWidget {
   final String visitId;
@@ -163,15 +164,15 @@ class _ActiveVisitScreenState extends State<ActiveVisitScreen> {
         future: _context,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Scaffold(
-                body: Center(child: CircularProgressIndicator()));
+            return const Scaffold(body: AppLoadingView());
           }
           if (snapshot.hasError) {
             return Scaffold(
               appBar: AppBar(title: const Text('Aktif Muayene')),
-              body: Center(
-                  child:
-                      Text('Ziyaret bilgileri alınamadı: ${snapshot.error}')),
+              body: AppErrorStateView(
+                message: 'Ziyaret bilgileri alınamadı: ${snapshot.error}',
+                onRetry: _reload,
+              ),
             );
           }
 
