@@ -48,6 +48,8 @@ tags:
     description: Bildirim yönetimi — listeleme, okundu işaretleme
   - name: Devices
     description: Cihaz yönetimi — FCM token kaydı
+  - name: AI Chat
+    description: Google Gemini tabanlı yapay zeka veteriner danışmanlığı ve sohbet geçmişi yönetimi
 
 # ================================================================
 # PATHS
@@ -1008,7 +1010,46 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+# ---- AI Chat ----
+  /api/v1/ai/messages/{id}:
+    delete:
+      tags: [AI Chat]
+      summary: Tekil sohbet mesajını sil
+      description: |
+        Kullanıcının kendine ait tekil bir sohbet mesajını siler.
+        Mesaj bulunamazsa 404, kullanıcıya ait değilse 403 döner.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Mesaj başarıyla silindi
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
+  /api/v1/ai/history:
+    delete:
+      tags: [AI Chat]
+      summary: Tüm sohbet geçmişini sil (KVKK Unutulma Hakkı)
+      description: |
+        Giriş yapmış kullanıcının tüm AI sohbet geçmişini veritabanından kalıcı olarak siler.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Tüm sohbet geçmişi başarıyla silindi
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 # ================================================================
 # COMPONENTS
 # ================================================================

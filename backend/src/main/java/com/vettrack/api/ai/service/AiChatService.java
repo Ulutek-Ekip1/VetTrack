@@ -6,6 +6,7 @@ import com.vettrack.api.ai.dto.ChatMessageDto;
 import com.vettrack.api.ai.entity.ChatMessage;
 import com.vettrack.api.ai.exception.IdempotencyKeyReusedException;
 import com.vettrack.api.ai.repository.ChatMessageRepository;
+import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
 import lombok.RequiredArgsConstructor;
@@ -213,7 +214,7 @@ public class AiChatService {
 
         Optional<ChatMessage> messageOpt = chatMessageRepository.findById(messageId);
         if (messageOpt.isEmpty()) {
-            throw new IllegalArgumentException("Silinmek istenen mesaj bulunamadı: " + messageId);
+            throw new ResourceNotFoundException("Silinmek istenen mesaj bulunamadı: " + messageId);
         }
 
         ChatMessage message = messageOpt.get();
