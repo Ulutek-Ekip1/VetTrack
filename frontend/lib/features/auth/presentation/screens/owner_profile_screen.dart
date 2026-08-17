@@ -132,7 +132,7 @@ class OwnerProfileScreen extends StatelessWidget {
                         icon: Icons.pets_outlined,
                         title: 'Evcil Hayvanlarım',
                         subtitle: 'Kayıtlı evcil hayvanların listesi',
-                        onTap: () => context.push('/owner/pets'),
+                        onTap: () => context.go('/owner/pets'),
                       ),
                     ],
                   ),
