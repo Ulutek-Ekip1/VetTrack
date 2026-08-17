@@ -69,6 +69,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<String> updateProfilePhoto(String filePath) async {
+    return await remoteDataSource.updateProfilPhoto(filePath);
+  }
+
+  @override
+  Future<void> deleteProfilePhoto() async {
+    await remoteDataSource.deleteProfilPhoto();
+  }
+
+  @override
   Future<UserEntity> signInWithGoogle() async {
     return await remoteDataSource.signInWithGoogle();
   }

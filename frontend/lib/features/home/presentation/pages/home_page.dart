@@ -9,6 +9,9 @@ import '../../../../features/pet/presentation/cubit/pet_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/services/firebase_messaging_service.dart';
+import 'dart:io';
+import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_cubit.dart';
+import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_state.dart';
 import '../../../../features/notification/presentation/cubit/notification_cubit.dart';
 import '../../../../features/notification/presentation/widgets/notification_badge_button.dart';
 
@@ -106,17 +109,40 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        CircleAvatar(
-                          radius: 26,
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
-                          child: Text(
-                            userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
+                        BlocBuilder<ProfileCubit, ProfileState>(
+                          builder: (context, profileState) {
+                            String? photoUrl;
+                            if (profileState is ProfileLoaded) {
+                              photoUrl = profileState.profile.profilePhotoUrl;
+                            }
+
+                            ImageProvider? avatarImage;
+                            if (photoUrl != null && photoUrl.isNotEmpty) {
+                              if (photoUrl.startsWith('http')) {
+                                avatarImage = NetworkImage(photoUrl);
+                              } else {
+                                avatarImage = FileImage(File(photoUrl));
+                              }
+                            }
+
+                            return CircleAvatar(
+                              radius: 26,
+                              backgroundColor: Colors.white.withValues(alpha: 0.2),
+                              backgroundImage: avatarImage,
+                              child: avatarImage == null
+                                  ? Text(
+                                      userName.isNotEmpty
+                                          ? userName[0].toUpperCase()
+                                          : 'U',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    )
+                                  : null,
+                            );
+                          },
                         ),
                         const SizedBox(width: 16),
                         Expanded(

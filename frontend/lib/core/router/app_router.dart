@@ -217,7 +217,10 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.ownerHome,
                   name: 'ownerHome',
-                  builder: (context, state) => const HomePage(),
+                  builder: (context, state) => BlocProvider<ProfileCubit>(
+                    create: (context) => sl<ProfileCubit>()..fetchProfile(),
+                    child: const HomePage(),
+                  ),
                 ),
               ],
             ),
@@ -316,7 +319,10 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.ownerProfile,
                   name: 'ownerProfile',
-                  builder: (context, state) => const OwnerProfileScreen(),
+                  builder: (context, state) => BlocProvider<ProfileCubit>(
+                    create: (context) => sl<ProfileCubit>()..fetchProfile(),
+                    child: const OwnerProfileScreen(),
+                  ),
                   routes: [
                     GoRoute(
                       path: 'edit',

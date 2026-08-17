@@ -1,15 +1,15 @@
 import '../../domain/entities/owner_entity.dart';
 
 class OwnerModel extends OwnerEntity {
-  const OwnerModel({
-    required super.id,
-    required super.name,
-    super.surname,
-    required super.email,
-    super.phone,
-    super.address,
-    required super.createdAt,
-  });
+  const OwnerModel(
+      {required super.id,
+      required super.name,
+      super.surname,
+      required super.email,
+      super.phone,
+      super.address,
+      required super.createdAt,
+      super.profilePhotoUrl});
 
   factory OwnerModel.fromJson(Map<String, dynamic> json) {
     String nameVal = (json['name'] as String?) ?? "";
@@ -33,7 +33,8 @@ class OwnerModel extends OwnerEntity {
     }
 
     DateTime createdAtVal;
-    final createdAtStr = (json['createdAt'] as String?) ?? (json['created_at'] as String?);
+    final createdAtStr =
+        (json['createdAt'] as String?) ?? (json['created_at'] as String?);
     if (createdAtStr != null) {
       try {
         createdAtVal = DateTime.parse(createdAtStr);
@@ -44,15 +45,17 @@ class OwnerModel extends OwnerEntity {
       createdAtVal = DateTime.now();
     }
 
+    final profilePhotoUrl = (json['profilePhotoUrl'] as String?);
+
     return OwnerModel(
-      id: (json['id'] as String?) ?? "",
-      name: nameVal,
-      surname: surnameVal,
-      email: (json['email'] as String?) ?? "",
-      phone: json['phone'] as String?,
-      address: json['address'] as String?,
-      createdAt: createdAtVal,
-    );
+        id: (json['id'] as String?) ?? "",
+        name: nameVal,
+        surname: surnameVal,
+        email: (json['email'] as String?) ?? "",
+        phone: json['phone'] as String?,
+        address: json['address'] as String?,
+        createdAt: createdAtVal,
+        profilePhotoUrl: profilePhotoUrl);
   }
 
   Map<String, dynamic> toJson() {
@@ -64,6 +67,7 @@ class OwnerModel extends OwnerEntity {
       if (phone != null) 'phone': phone,
       if (address != null) 'address': address,
       'createdAt': createdAt.toIso8601String(),
+      if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl
     };
   }
 }

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
 import '../../../../core/constants/app_constants.dart';
 import '../models/user_model.dart';
 import '../models/owner_model.dart';
@@ -24,6 +24,8 @@ abstract class AuthRemoteDataSource {
   Future<void> reSendVerificationEmail(String email);
   Future<void> forgotPassword(String email);
   Future<void> deleteAccount();
+  Future<String> updateProfilPhoto(String newProfilPhotoUrl);
+  Future<void> deleteProfilPhoto();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -186,6 +188,48 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception(_handleDioError(e));
       }
       rethrow;
+    }
+  }
+
+  @override
+  Future<String> updateProfilPhoto(String filePath) async {
+    try {
+      final fileName = filePath.split('/').last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          filePath,
+          filename: fileName,
+        ),
+      });
+      final response = await dio.post(
+        '/owners/me/photo',
+        data: formData,
+      );
+      if (response.statusCode == 200) {
+        return response.data['profilePhotoUrl'] as String;
+      } else {
+        throw Exception("Fotoğraf yüklenemedi");
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 413) {
+        throw Exception("Dosya boyutu çok büyük (Max 15MB)");
+      } else if (e.response?.statusCode == 400) {
+        throw Exception(
+            "Desteklenmeyen dosya formatı (.jpg, .jpeg, .png, .webp)");
+      }
+      throw Exception(_handleDioError(e));
+    }
+  }
+
+  @override
+  Future<void> deleteProfilPhoto() async {
+    try {
+      final response = await dio.delete('/owners/me/photo');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception("Fotoğraf silinemedi");
+      }
+    } on DioException catch (e) {
+      throw Exception(_handleDioError(e));
     }
   }
 
