@@ -16,11 +16,25 @@ class DoctorSearchScreen extends StatefulWidget {
 
 class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
   final _codeController = TextEditingController();
+  final _codeFocusNode = FocusNode();
+  final _resultFocusNode = FocusNode();
+  final _activeVisitActionFocusNode = FocusNode();
   VisitSearchResult? _searchResult;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _codeFocusNode.requestFocus();
+    });
+  }
 
   @override
   void dispose() {
     _codeController.dispose();
+    _codeFocusNode.dispose();
+    _resultFocusNode.dispose();
+    _activeVisitActionFocusNode.dispose();
     super.dispose();
   }
 
@@ -55,14 +69,25 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
           setState(() => _searchResult = state);
           final activeVisit = state.result.activeVisit;
           if (activeVisit != null) {
-            _showMessage('Bu hasta için açık bir muayene bulundu.');
-            context.push('/vet/visit/active/${activeVisit.id}');
+            _showMessage(
+              'Bu hasta için açık bir muayene bulundu. Devam etmek için aşağıdaki aksiyonu kullanın.',
+            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _activeVisitActionFocusNode.requestFocus();
+            });
+          } else {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _resultFocusNode.requestFocus();
+            });
           }
         } else if (state is VisitStarted) {
           context.push('/vet/visit/active/${state.visit.id}');
         } else if (state is VisitError) {
           setState(() => _searchResult = null);
           _showMessage(state.message, isError: true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _codeFocusNode.requestFocus();
+          });
         }
       },
       builder: (context, state) {
@@ -107,6 +132,7 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                         const SizedBox(height: 28),
                         TextField(
                           controller: _codeController,
+                          focusNode: _codeFocusNode,
                           textCapitalization: TextCapitalization.characters,
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
@@ -128,11 +154,73 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                           icon: isLoading ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search),
                           label: const Text('Hastayı Ara'),
                         ),
+                        if (_searchResult != null && _searchResult!.result.activeVisit != null) ...[
+                          const Divider(height: 36),
+                          Semantics(
+                              liveRegion: true,
+                              label: 'Bu hasta için açık bir muayene var',
+                              child: Card(
+                                color: Colors.amber.shade50,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.warning_amber_rounded,
+                                            color: Colors.amber.shade900,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Expanded(
+                                            child: Text(
+                                              'Açık muayene bulundu',
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'Yeni muayene başlatılamaz. Devam eden muayeneyi açarak işlemlere devam edin.',
+                                      ),
+                                      const SizedBox(height: 12),
+                                      ElevatedButton.icon(
+                                        focusNode: _activeVisitActionFocusNode,
+                                        onPressed: isLoading
+                                            ? null
+                                            : () => context.push(
+                                                  '/vet/visit/active/${_searchResult!.result.activeVisit!.id}',
+                                                ),
+                                        icon: const Icon(Icons.open_in_new),
+                                        label: const Text('Açık Muayeneye Git'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ),
+                        ],
                         if (_searchResult != null && _searchResult!.result.activeVisit == null) ...[
                           const Divider(height: 36),
-                          Text(_searchResult!.result.pet.name,
-                              style: Theme.of(context).textTheme.titleMedium),
-                          Text('${_searchResult!.result.visits.length} geçmiş ziyaret bulundu.'),
+                          Focus(
+                            focusNode: _resultFocusNode,
+                            child: Semantics(
+                              liveRegion: true,
+                              label: '${_searchResult!.result.pet.name} bulundu. ${_searchResult!.result.visits.length} geçmiş ziyaret kaydı var.',
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _searchResult!.result.pet.name,
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  Text('${_searchResult!.result.visits.length} geçmiş ziyaret bulundu.'),
+                                ],
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           ElevatedButton.icon(
                             onPressed: isLoading ? null : _startVisit,
