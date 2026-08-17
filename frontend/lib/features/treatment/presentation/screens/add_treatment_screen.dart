@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../presentation/utils/treatment_category_localization.dart';
 import '../cubit/treatment_cubit.dart';
 import '../cubit/treatment_state.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 
 class AddTreatmentScreen extends StatefulWidget {
   final String visitId;
@@ -52,6 +53,7 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocListener<TreatmentCubit, TreatmentState>(
         listenWhen: (previous, current) => previous != current,
         listener: (context, state) {
@@ -86,7 +88,7 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: Text('Tedavi/Reçete Ekle (#${widget.visitId})'),
+            title: Text(l10n.addTreatment(widget.visitId)),
             centerTitle: true,
             backgroundColor: Colors.teal,
             foregroundColor: Colors.white,
@@ -101,10 +103,10 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
                   children: [
                     DropdownButtonFormField<String>(
                       initialValue: _selectedCategory,
-                      decoration: const InputDecoration(
-                        labelText: 'İşlem Türü',
-                        prefixIcon: Icon(Icons.category),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.treatmentType,
+                        prefixIcon: const Icon(Icons.category),
+                        border: const OutlineInputBorder(),
                       ),
                       items: const [
                         DropdownMenuItem(
@@ -135,32 +137,32 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _treatmentTitleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Tedavi Adı/ Aşı Adı',
-                        prefixIcon: Icon(Icons.medication),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.treatmentName,
+                        prefixIcon: const Icon(Icons.medication),
+                        border: const OutlineInputBorder(),
                       ),
                       validator: (val) => val!.trim().isEmpty
-                          ? 'Lütfen tedavi adını girin'
+                          ? l10n.treatmentRequired
                           : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _dosageController,
-                      decoration: const InputDecoration(
-                        labelText: 'Doz / Kullanım Sıklığı',
-                        prefixIcon: Icon(Icons.medical_services_outlined),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.dosageFrequency,
+                        prefixIcon: const Icon(Icons.medical_services_outlined),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _notesController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Kullanım Talimatı ve Açıklama',
-                        prefixIcon: Icon(Icons.description),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.treatmentInstructions,
+                        prefixIcon: const Icon(Icons.description),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -187,8 +189,8 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
                               : const Icon(Icons.save),
                           label: Text(
                             isLoading
-                                ? 'Tedavi Kaydediliyor...'
-                                : 'Tedaviyi Kaydet',
+                                ? l10n.savingTreatment
+                                : l10n.saveTreatment,
                             style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),

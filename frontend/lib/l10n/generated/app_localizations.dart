@@ -285,6 +285,14 @@ abstract class AppLocalizations {
   String get nutrition;
   String get hygiene;
   String get generalCare;
+  String addTreatment(String visitId);
+  String get treatmentType;
+  String get treatmentName;
+  String get treatmentRequired;
+  String get dosageFrequency;
+  String get treatmentInstructions;
+  String get saveTreatment;
+  String get savingTreatment;
 }
 
 class _AppLocalizationsDelegate

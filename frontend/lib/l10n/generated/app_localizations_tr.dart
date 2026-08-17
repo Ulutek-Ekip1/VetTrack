@@ -242,4 +242,12 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get nutrition => 'Beslenme / Mama';
   @override String get hygiene => 'Kum / Hijyen';
   @override String get generalCare => 'Genel Bakım & Diğer';
+  @override String addTreatment(String visitId) => 'Tedavi/Reçete Ekle ($visitId)';
+  @override String get treatmentType => 'İşlem Türü';
+  @override String get treatmentName => 'Tedavi Adı/ Aşı Adı';
+  @override String get treatmentRequired => 'Lütfen tedavi adını girin';
+  @override String get dosageFrequency => 'Doz / Kullanım Sıklığı';
+  @override String get treatmentInstructions => 'Kullanım Talimatı ve Açıklama';
+  @override String get saveTreatment => 'Tedaviyi Kaydet';
+  @override String get savingTreatment => 'Tedavi Kaydediliyor...';
 }

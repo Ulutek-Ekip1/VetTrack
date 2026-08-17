@@ -153,4 +153,13 @@
   ,"nutrition": "Beslenme / Mama"
   ,"hygiene": "Kum / Hijyen"
   ,"generalCare": "Genel Bakım & Diğer"
+  ,"addTreatment": "Tedavi/Reçete Ekle ({visitId})"
+  ,"@addTreatment": {"placeholders": {"visitId": {"type": "String"}}}
+  ,"treatmentType": "İşlem Türü"
+  ,"treatmentName": "Tedavi Adı/ Aşı Adı"
+  ,"treatmentRequired": "Lütfen tedavi adını girin"
+  ,"dosageFrequency": "Doz / Kullanım Sıklığı"
+  ,"treatmentInstructions": "Kullanım Talimatı ve Açıklama"
+  ,"saveTreatment": "Tedaviyi Kaydet"
+  ,"savingTreatment": "Tedavi Kaydediliyor..."
 }
