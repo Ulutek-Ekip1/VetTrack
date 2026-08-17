@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_snackbar.dart';
@@ -144,6 +145,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -277,7 +279,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                     label: const Text.rich(
                                       TextSpan(
                                         children: [
-                                          TextSpan(text: "Ad Soyad"),
+                                          TextSpan(text: l10n.fullName),
                                           TextSpan(
                                             text: " *",
                                             style: TextStyle(
@@ -287,7 +289,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                         ],
                                       ),
                                     ),
-                                    hintText: "Adınızı ve soyadınızı giriniz",
+                                    hintText: l10n.fullNameHint,
                                     prefixIcon: const Icon(
                                       Icons.person_outline,
                                       color: AppColors.outline,
@@ -324,7 +326,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                     label: const Text.rich(
                                       TextSpan(
                                         children: [
-                                          TextSpan(text: "E-posta Adresi"),
+                                          TextSpan(text: l10n.emailAddress),
                                           TextSpan(
                                             text: " *",
                                             style: TextStyle(
@@ -334,7 +336,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                         ],
                                       ),
                                     ),
-                                    hintText: "E-posta adresinizi giriniz",
+                                    hintText: l10n.emailHint,
                                     prefixIcon: const Icon(
                                       Icons.mail_outline,
                                       color: AppColors.outline,
@@ -368,7 +370,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                   autofillHints: const [AutofillHints.telephoneNumber],
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
-                                    labelText: "Telefon (Opsiyonel)",
+                                    labelText: l10n.phoneOptional,
                                     hintText: "05XX XXX XX XX",
                                     prefixIcon: const Icon(
                                       Icons.phone_outlined,
@@ -406,7 +408,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                     label: const Text.rich(
                                       TextSpan(
                                         children: [
-                                          TextSpan(text: "Şifre"),
+                                          TextSpan(text: l10n.password),
                                           TextSpan(
                                             text: " *",
                                             style: TextStyle(
@@ -416,9 +418,9 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                         ],
                                       ),
                                     ),
-                                    hintText: "Şifrenizi giriniz",
+                                    hintText: l10n.passwordHint,
                                     helperText:
-                                        "En az 8 karakter, harf ve rakam içermelidir",
+                                        l10n.passwordRequirements,
                                     helperStyle:
                                         theme.textTheme.bodySmall?.copyWith(
                                       color: AppColors.onSurfaceVariant,

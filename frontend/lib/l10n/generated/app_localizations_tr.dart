@@ -109,4 +109,8 @@ class AppLocalizationsTr extends AppLocalizations {
   @override String get emailHint => 'E-posta adresinizi giriniz';
   @override String get password => 'Şifre';
   @override String get passwordHint => 'Şifrenizi giriniz';
+  @override String get fullName => 'Ad Soyad';
+  @override String get fullNameHint => 'Adınızı ve soyadınızı giriniz';
+  @override String get phoneOptional => 'Telefon (Opsiyonel)';
+  @override String get passwordRequirements => 'En az 8 karakter, harf ve rakam içermelidir';
 }

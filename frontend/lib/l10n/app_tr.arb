@@ -46,4 +46,8 @@
   ,"emailHint": "E-posta adresinizi giriniz"
   ,"password": "Şifre"
   ,"passwordHint": "Şifrenizi giriniz"
+  ,"fullName": "Ad Soyad"
+  ,"fullNameHint": "Adınızı ve soyadınızı giriniz"
+  ,"phoneOptional": "Telefon (Opsiyonel)"
+  ,"passwordRequirements": "En az 8 karakter, harf ve rakam içermelidir"
 }

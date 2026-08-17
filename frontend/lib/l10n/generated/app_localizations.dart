@@ -181,6 +181,10 @@ abstract class AppLocalizations {
   String get emailHint;
   String get password;
   String get passwordHint;
+  String get fullName;
+  String get fullNameHint;
+  String get phoneOptional;
+  String get passwordRequirements;
 }
 
 class _AppLocalizationsDelegate
