@@ -166,4 +166,6 @@
   ,"treatmentHistoryLoading": "Tedavi geçmişi yükleniyor"
   ,"treatmentHistoryLoadFailed": "Tedavi geçmişi yüklenemedi."
   ,"noTreatmentRecords": "Henüz tedavi kaydı yok."
+  ,"aiAnalysis": "AI Analizi"
+  ,"recommendationsLoading": "Öneriler yükleniyor"
 }

@@ -6,6 +6,7 @@ import 'package:vettrack_frontend/features/recommendation/presentation/cubit/rec
 import 'package:vettrack_frontend/features/recommendation/presentation/cubit/recommendation_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/widgets/app_async_state_views.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class PetRecommendationScreen extends StatefulWidget {
   final String petId;
@@ -61,6 +62,7 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     const primaryBlue = Color(0xFF004AC6);
     const peachBg = Color(0xFFFFECE5);
     const peachBorder = Color(0xFFFFB89C);
@@ -72,9 +74,9 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         shadowColor: Colors.black12,
-        title: const Text(
-          'AI Analizi',
-          style: TextStyle(
+        title: Text(
+          l10n.aiAnalysis,
+          style: const TextStyle(
             color: primaryBlue,
             fontWeight: FontWeight.bold,
             fontSize: 28,
@@ -84,7 +86,7 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
       body: BlocBuilder<RecommendationCubit, RecommendationState>(
         builder: (context, state) {
           if (state is RecommendationLoading) {
-            return const AppLoadingView(label: 'Öneriler yükleniyor');
+            return AppLoadingView(label: l10n.recommendationsLoading);
           }
           if (state is RecommendationError) {
             return AppErrorStateView(

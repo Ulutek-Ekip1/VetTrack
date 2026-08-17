@@ -254,4 +254,6 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get treatmentHistoryLoading => 'Tedavi geçmişi yükleniyor';
   @override String get treatmentHistoryLoadFailed => 'Tedavi geçmişi yüklenemedi.';
   @override String get noTreatmentRecords => 'Henüz tedavi kaydı yok.';
+  @override String get aiAnalysis => 'AI Analizi';
+  @override String get recommendationsLoading => 'Öneriler yükleniyor';
 }

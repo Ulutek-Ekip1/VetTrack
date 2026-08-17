@@ -297,6 +297,8 @@ abstract class AppLocalizations {
   String get treatmentHistoryLoading;
   String get treatmentHistoryLoadFailed;
   String get noTreatmentRecords;
+  String get aiAnalysis;
+  String get recommendationsLoading;
 }
 
 class _AppLocalizationsDelegate
