@@ -30,4 +30,18 @@ public interface VisitRepository extends JpaRepository<Visit, UUID> {
             ORDER BY v.startedAt DESC
             """)
     List<Visit> findVisitsForOwner(@Param("ownerId") UUID ownerId);
+
+    /**
+     * Bir veteriner hekime (vet_staff_id) atanmış tüm ziyaretleri getirir.
+     * Soft-delete edilmiş (deletedAt dolu) veya pasif (isActive=false) petlerin ziyaretleri hariç.
+     */
+    @Query("""
+            SELECT v FROM Visit v, Pet p
+            WHERE v.petId = p.id
+              AND v.vetStaffId = :vetStaffId
+              AND p.deletedAt IS NULL
+              AND p.isActive = true
+            ORDER BY v.startedAt DESC
+            """)
+    List<Visit> findVisitsForVet(@Param("vetStaffId") UUID vetStaffId);
 }
