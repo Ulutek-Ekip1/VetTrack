@@ -41,6 +41,7 @@
 | `UNAUTHORIZED` | 401 | JWT eksik veya geçersiz | — |
 | `INVALID_CREDENTIALS` | 401 | E-posta veya şifre hatalı | FR-01 |
 | `EMAIL_NOT_VERIFIED` | 401 | E-posta doğrulanmamış, giriş engellendi | FR-01 |
+| `REAUTHENTICATION_REQUIRED` | 401 | JWT yeterince taze değil (son 5 dk), tekrar giriş gerekli | EC-05 |
 | `FORBIDDEN` | 403 | Rol yetkisiz (owner/vet_staff ayrımı) | FR-02 |
 | `ROLE_MISMATCH` | 403 | JWT rolü ile erişilen profil endpoint'i uyumsuz | FR-02 |
 | `EDIT_WINDOW_EXPIRED` | 403 | 15 dakikalık düzenleme süresi doldu | EC-08 |
@@ -907,10 +908,10 @@ Kullanıcı logout olurken çağrılır. İlgili cihaz token'ı silinerek eski c
 
 **Response:** `204 No Content`
 
-**Hatalar:** 401
+**Hatalar:** 401 (`UNAUTHORIZED` veya `REAUTHENTICATION_REQUIRED`)
 
 **Notlar:**
 - Kullanıcının tüm hayvanları da soft delete olur
 - Supabase Auth'tan kullanıcı deaktive edilir
 - Tıbbi geçmiş saklanır (KVKK ve kayıt zorunluluğu)
-- Bu endpoint henüz implement edilmedi, Sprint 3'te planlanıyor
+- **Re-authentication zorunlu:** JWT'nin `iat` (issued-at) claim'i son 5 dakika içinde olmalı, yoksa `REAUTHENTICATION_REQUIRED` (401) döner. Frontend, silme isteğinden hemen önce kullanıcıya şifresini tekrar girdirip Supabase'den taze bir token almalı (şifre backend'e hiç gönderilmez, sadece Supabase'in ürettiği taze JWT kullanılır). Bu, çalıntı/sızmış eski bir token'ın şifre bilinmeden hesap silmek için kullanılmasını engeller.
