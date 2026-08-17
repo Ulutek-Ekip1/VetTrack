@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vettrack_frontend/core/utils/validators.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 import 'package:vettrack_frontend/features/pet/presentation/widgets/pet_profile_photo_bottom_sheet.dart';
 import '../../domain/entities/pet_entity.dart';
 import '../cubit/pet_cubit.dart';
@@ -117,21 +118,22 @@ class _EditPetScreenState extends State<EditPetScreen> {
   }
 
   void _showDeleteConfirmation(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Column(
+        title: Column(
           children: [
             Icon(Icons.warning_amber_rounded,
                 color: Color(0xFFEF4444), size: 48),
             SizedBox(height: 8),
-            Text('Evcil Hayvanı Sil?',
+            Text(l10n.deletePetTitle,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ],
         ),
-        content: const Text(
-          'Bu evcil hayvan uygulama listelerinden kaldırılacak. Bu işlemi uygulama içinde geri alamazsınız. Sağlık geçmişi güvenli biçimde soft-delete olarak saklanır.',
+        content: Text(
+          l10n.softDeletePetDescription,
           textAlign: TextAlign.center,
         ),
         actions: [
@@ -145,7 +147,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                     side: const BorderSide(color: Colors.grey),
                   ),
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('İptal',
+                  child: Text(l10n.cancel,
                       style: TextStyle(color: Color(0xFF131B2E))),
                 ),
               ),
@@ -162,7 +164,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                     Navigator.pop(dialogContext);
                     context.read<PetCubit>().deletePet(id: widget.petId);
                   },
-                  child: const Text('Evet, Sil'),
+                  child: Text(l10n.confirmDelete),
                 ),
               ),
             ],

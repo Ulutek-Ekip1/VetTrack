@@ -131,6 +131,36 @@ abstract class AppLocalizations {
   String get noNotifications;
 
   String get markAllNotificationsRead;
+
+  String get doctorPanelTitle;
+
+  String get patientSearchTitle;
+
+  String get accessCodeInstructions;
+
+  String get accessCodeLabel;
+
+  String get accessCodeHint;
+
+  String get searchPatient;
+
+  String get openVisitFound;
+
+  String get openVisitActionMessage;
+
+  String get openVisitBlockedMessage;
+
+  String get goToOpenVisit;
+
+  String pastVisitCount(int count);
+
+  String get deletePetTitle;
+
+  String get softDeletePetDescription;
+
+  String get confirmDelete;
+
+  String get cancel;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
@@ -206,19 +207,19 @@ class _PetListScreenState extends State<PetListScreen> {
                               ),
                               confirmDismiss: (direction) async {
                                 final theme = Theme.of(context);
+                                final l10n = AppLocalizations.of(context)!;
                                 if (direction == DismissDirection.endToStart) {
                                   // Silme
                                   bool deleteConfirmed = false;
                                   await showDialog(
                                     context: context,
                                     builder: (dialogContext) => AlertDialog(
-                                      title: const Text('Evcil Hayvanı Sil'),
-                                      content: Text(
-                                          '${pet.name} adlı evcil hayvan uygulama listelerinden kaldırılacak. Bu işlemi uygulama içinde geri alamazsınız. Sağlık geçmişi güvenli biçimde soft-delete olarak saklanır.'),
+                                      title: Text(l10n.deletePetTitle),
+                                      content: Text(l10n.softDeletePetDescription),
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.of(dialogContext).pop(),
-                                          child: const Text('İptal'),
+                                          child: Text(l10n.cancel),
                                         ),
                                         FilledButton(
                                           style: FilledButton.styleFrom(
@@ -229,7 +230,7 @@ class _PetListScreenState extends State<PetListScreen> {
                                             deleteConfirmed = true;
                                             Navigator.of(dialogContext).pop();
                                           },
-                                          child: const Text('Evet, Sil'),
+                                          child: Text(l10n.confirmDelete),
                                         ),
                                       ],
                                     ),

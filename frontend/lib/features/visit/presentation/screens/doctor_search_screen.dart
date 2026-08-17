@@ -6,6 +6,7 @@ import 'package:vettrack_frontend/core/utils/validators.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_cubit.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_state.dart';
+import 'package:vettrack_frontend/l10n/generated/app_localizations.dart';
 
 class DoctorSearchScreen extends StatefulWidget {
   const DoctorSearchScreen({super.key});
@@ -63,15 +64,14 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocConsumer<VisitCubit, VisitState>(
       listener: (context, state) {
         if (state is VisitSearchResult) {
           setState(() => _searchResult = state);
           final activeVisit = state.result.activeVisit;
           if (activeVisit != null) {
-            _showMessage(
-              'Bu hasta için açık bir muayene bulundu. Devam etmek için aşağıdaki aksiyonu kullanın.',
-            );
+            _showMessage(l10n.openVisitActionMessage);
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) _activeVisitActionFocusNode.requestFocus();
             });
@@ -94,7 +94,7 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
         final isLoading = state is VisitLoading;
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Veteriner Hekim Paneli'),
+            title: Text(l10n.doctorPanelTitle),
             backgroundColor: Colors.teal,
             foregroundColor: Colors.white,
             actions: [
@@ -120,14 +120,14 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                       children: [
                         const Icon(Icons.local_hospital_rounded, size: 64, color: Colors.teal),
                         const SizedBox(height: 16),
-                        Text('Hasta Arama & Muayene',
+                        Text(l10n.patientSearchTitle,
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.teal.shade800,
                                 ),
                             textAlign: TextAlign.center),
                         const SizedBox(height: 8),
-                        const Text('Hasta sahibinin paylaştığı erişim kodunu giriniz.',
+                        Text(l10n.accessCodeInstructions,
                             textAlign: TextAlign.center),
                         const SizedBox(height: 28),
                         Semantics(
@@ -148,7 +148,7 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                             enabled: !isLoading,
                             textAlign: TextAlign.center,
                             decoration: const InputDecoration(
-                              labelText: 'Geçici Erişim Kodu', hintText: 'Örn: A8X23J',
+                              labelText: l10n.accessCodeLabel, hintText: l10n.accessCodeHint,
                               prefixIcon: Icon(Icons.qr_code_scanner), border: OutlineInputBorder(),
                             ),
                           ),
@@ -163,14 +163,14 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                             ),
                             onPressed: isLoading ? null : _searchPatient,
                             icon: isLoading ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search),
-                            label: const Text('Hastayı Ara'),
+                            label: Text(l10n.searchPatient),
                           ),
                         ),
                         if (_searchResult != null && _searchResult!.result.activeVisit != null) ...[
                           const Divider(height: 36),
                           Semantics(
                               liveRegion: true,
-                              label: 'Bu hasta için açık bir muayene var',
+                              label: l10n.openVisitFound,
                               child: Card(
                                 color: Colors.amber.shade50,
                                 child: Padding(
@@ -185,18 +185,16 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                                             color: Colors.amber.shade900,
                                           ),
                                           const SizedBox(width: 8),
-                                          const Expanded(
+                                          Expanded(
                                             child: Text(
-                                              'Açık muayene bulundu',
-                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                              l10n.openVisitFound,
+                                              style: const TextStyle(fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                         ],
                                       ),
                                       const SizedBox(height: 8),
-                                      const Text(
-                                        'Yeni muayene başlatılamaz. Devam eden muayeneyi açarak işlemlere devam edin.',
-                                      ),
+                                      Text(l10n.openVisitBlockedMessage),
                                       const SizedBox(height: 12),
                                       ElevatedButton.icon(
                                         focusNode: _activeVisitActionFocusNode,
@@ -206,7 +204,7 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                                                   '/vet/visit/active/${_searchResult!.result.activeVisit!.id}',
                                                 ),
                                         icon: const Icon(Icons.open_in_new),
-                                        label: const Text('Açık Muayeneye Git'),
+                                        label: Text(l10n.goToOpenVisit),
                                       ),
                                     ],
                                   ),
@@ -220,7 +218,7 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                             focusNode: _resultFocusNode,
                             child: Semantics(
                               liveRegion: true,
-                              label: '${_searchResult!.result.pet.name} bulundu. ${_searchResult!.result.visits.length} geçmiş ziyaret kaydı var.',
+                              label: '${_searchResult!.result.pet.name} bulundu. ${l10n.pastVisitCount(_searchResult!.result.visits.length)}',
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -228,7 +226,7 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                                     _searchResult!.result.pet.name,
                                     style: Theme.of(context).textTheme.titleMedium,
                                   ),
-                                  Text('${_searchResult!.result.visits.length} geçmiş ziyaret bulundu.'),
+                                  Text(l10n.pastVisitCount(_searchResult!.result.visits.length)),
                                 ],
                               ),
                             ),

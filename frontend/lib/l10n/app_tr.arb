@@ -11,4 +11,20 @@
   "notificationsLoading": "Bildirimler yükleniyor",
   "noNotifications": "Henüz bildiriminiz yok",
   "markAllNotificationsRead": "Tümünü Okundu Yap"
+  ,"doctorPanelTitle": "Veteriner Hekim Paneli"
+  ,"patientSearchTitle": "Hasta Arama ve Muayene"
+  ,"accessCodeInstructions": "Hasta sahibinin paylaştığı erişim kodunu giriniz."
+  ,"accessCodeLabel": "Geçici Erişim Kodu"
+  ,"accessCodeHint": "Örn: A8X23J"
+  ,"searchPatient": "Hastayı Ara"
+  ,"openVisitFound": "Açık muayene bulundu"
+  ,"openVisitActionMessage": "Bu hasta için açık bir muayene bulundu. Devam etmek için aşağıdaki aksiyonu kullanın."
+  ,"openVisitBlockedMessage": "Yeni muayene başlatılamaz. Devam eden muayeneyi açarak işlemlere devam edin."
+  ,"goToOpenVisit": "Açık Muayeneye Git"
+  ,"pastVisitCount": "{count} geçmiş ziyaret bulundu."
+  ,"@pastVisitCount": {"placeholders": {"count": {"type": "int"}}}
+  ,"deletePetTitle": "Evcil Hayvanı Sil"
+  ,"softDeletePetDescription": "Bu evcil hayvan uygulama listelerinden kaldırılacak. Bu işlemi uygulama içinde geri alamazsınız. Sağlık geçmişi güvenli biçimde soft-delete olarak saklanır."
+  ,"confirmDelete": "Evet, Sil"
+  ,"cancel": "İptal"
 }
