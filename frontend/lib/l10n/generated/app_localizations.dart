@@ -299,6 +299,11 @@ abstract class AppLocalizations {
   String get noTreatmentRecords;
   String get aiAnalysis;
   String get recommendationsLoading;
+  String get noRecommendations;
+  String get noRecommendationsDescription;
+  String get aiQuestionPrompt;
+  String get aiChatDescription;
+  String get chatWithAiAssistant;
 }
 
 class _AppLocalizationsDelegate

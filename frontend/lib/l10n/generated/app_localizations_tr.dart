@@ -256,4 +256,9 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get noTreatmentRecords => 'Henüz tedavi kaydı yok.';
   @override String get aiAnalysis => 'AI Analizi';
   @override String get recommendationsLoading => 'Öneriler yükleniyor';
+  @override String get noRecommendations => 'Kayıtlı Öneri Bulunamadı';
+  @override String get noRecommendationsDescription => 'Evcil hayvanınız için şu anda tanımlanmış bir öneri bulunmamaktadır. Muayene sonrası veteriner hekiminiz öneriler ekleyebilir.';
+  @override String get aiQuestionPrompt => 'Kafanıza takılan bir soru mu var?';
+  @override String get aiChatDescription => 'AI Sohbet Asistanımız ile evcil hayvanınızın sağlığı hakkında her şeyi anında konuşabilirsiniz.';
+  @override String get chatWithAiAssistant => 'AI Asistan ile Sohbet Et';
 }

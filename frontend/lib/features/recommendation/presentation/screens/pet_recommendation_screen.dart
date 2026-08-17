@@ -225,7 +225,7 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
                               size: 64, color: Colors.grey.shade400),
                           const SizedBox(height: 16),
                           Text(
-                            'Kayıtlı Öneri Bulunamadı',
+                            l10n.noRecommendations,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
@@ -233,7 +233,7 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Evcil hayvanınız için şu anda tanımlanmış bir öneri bulunmamaktadır. Muayene sonrası veteriner hekiminiz öneriler ekleyebilir.',
+                            l10n.noRecommendationsDescription,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: Colors.grey.shade500, height: 1.4),
@@ -376,15 +376,15 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
                     ),
                     child: Column(
                       children: [
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.auto_awesome,
+                            const Icon(Icons.auto_awesome,
                                 color: peachText, size: 22),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
-                              'Kafanıza takılan bir soru mu var?',
-                              style: TextStyle(
+                              l10n.aiQuestionPrompt,
+                              style: const TextStyle(
                                 color: peachText,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
@@ -393,8 +393,8 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'AI Sohbet Asistanımız ile evcil hayvanınızın sağlığı hakkında her şeyi anında konuşabilirsiniz.',
+                        Text(
+                          l10n.aiChatDescription,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: Colors.black87,
@@ -414,9 +414,9 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
                             ),
                           ),
                           icon: const Icon(Icons.forum_outlined),
-                          label: const Text(
-                            'AI Asistan ile Sohbet Et',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          label: Text(
+                            l10n.chatWithAiAssistant,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],

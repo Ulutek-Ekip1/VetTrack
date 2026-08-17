@@ -168,4 +168,9 @@
   ,"noTreatmentRecords": "Henüz tedavi kaydı yok."
   ,"aiAnalysis": "AI Analizi"
   ,"recommendationsLoading": "Öneriler yükleniyor"
+  ,"noRecommendations": "Kayıtlı Öneri Bulunamadı"
+  ,"noRecommendationsDescription": "Evcil hayvanınız için şu anda tanımlanmış bir öneri bulunmamaktadır. Muayene sonrası veteriner hekiminiz öneriler ekleyebilir."
+  ,"aiQuestionPrompt": "Kafanıza takılan bir soru mu var?"
+  ,"aiChatDescription": "AI Sohbet Asistanımız ile evcil hayvanınızın sağlığı hakkında her şeyi anında konuşabilirsiniz."
+  ,"chatWithAiAssistant": "AI Asistan ile Sohbet Et"
 }
