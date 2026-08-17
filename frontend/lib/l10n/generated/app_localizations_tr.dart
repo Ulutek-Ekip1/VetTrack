@@ -215,4 +215,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   @override String get privacyAndSecurity => 'Gizlilik ve Güvenlik Sözleşmesi';
   @override String get privacyAndSecurityDescription => 'Verilerin korunması ve yasal maddeler';
   @override String get signOut => 'Hesaptan Çıkış Yap';
+  @override String get vetProfileTitle => 'Veteriner Hekim Profili';
+  @override String get vetSpecialist => 'Uzman Veteriner Hekim';
+  @override String get welcomeDescription => 'Evcil hayvanınızın sağlık, bakım ve muayene süreçlerini tek bir yerden kolayca takip edin.';
+  @override String get quickGoogleSignIn => 'Google ile Hızlı Giriş';
 }

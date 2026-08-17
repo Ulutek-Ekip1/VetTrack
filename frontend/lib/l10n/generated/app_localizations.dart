@@ -258,6 +258,10 @@ abstract class AppLocalizations {
   String get privacyAndSecurity;
   String get privacyAndSecurityDescription;
   String get signOut;
+  String get vetProfileTitle;
+  String get vetSpecialist;
+  String get welcomeDescription;
+  String get quickGoogleSignIn;
 }
 
 class _AppLocalizationsDelegate

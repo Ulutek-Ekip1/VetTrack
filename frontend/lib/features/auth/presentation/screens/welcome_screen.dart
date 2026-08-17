@@ -6,6 +6,7 @@ import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -13,6 +14,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Container(
@@ -76,7 +78,7 @@ class WelcomeScreen extends StatelessWidget {
 
                   // Alt Açıklama
                   Text(
-                    "Evcil hayvanınızın sağlık, bakım ve muayene süreçlerini tek bir yerden kolayca takip edin.",
+                    l10n.welcomeDescription,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: AppColors.onSurfaceVariant,
                       height: 1.5,
@@ -125,7 +127,7 @@ class WelcomeScreen extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Giriş Yap',
+                                    l10n.signIn,
                                     style: theme.textTheme.titleMedium?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -166,7 +168,7 @@ class WelcomeScreen extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Kayıt Ol',
+                                      l10n.register,
                                       style: theme.textTheme.titleMedium?.copyWith(
                                         color: const Color(0xFF131B2E),
                                         fontWeight: FontWeight.bold,
@@ -197,7 +199,7 @@ class WelcomeScreen extends StatelessWidget {
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
-                                  "veya",
+                                  l10n.or,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: AppColors.onSurfaceVariant,
                                   ),
@@ -251,7 +253,7 @@ class WelcomeScreen extends StatelessWidget {
                                         ),
                                         const SizedBox(width: 12),
                                         Text(
-                                          'Google ile Hızlı Giriş',
+                                          l10n.quickGoogleSignIn,
                                           style: theme.textTheme.titleMedium?.copyWith(
                                             color: AppColors.onSurface,
                                             fontWeight: FontWeight.bold,
@@ -270,7 +272,7 @@ class WelcomeScreen extends StatelessWidget {
 
                   // Footer
                   Text(
-                    "© 2026 VetTrack Health Systems. All rights reserved.",
+                    l10n.copyright,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.outline,
                     ),

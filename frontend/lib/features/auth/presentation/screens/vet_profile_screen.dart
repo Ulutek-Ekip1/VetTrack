@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/auth_cubit.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class VetProfileScreen extends StatelessWidget {
   const VetProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Veteriner Hekim Profili'),
+        title: Text(l10n.vetProfileTitle),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
@@ -27,7 +29,7 @@ class VetProfileScreen extends StatelessWidget {
               'Dr. Mehmet Yılmaz',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const Text('Uzman Veteriner Hekim', style: TextStyle(color: Colors.grey)),
+            Text(l10n.vetSpecialist, style: const TextStyle(color: Colors.grey)),
             const Spacer(),
             ElevatedButton.icon(
               onPressed: () {
@@ -39,7 +41,7 @@ class VetProfileScreen extends StatelessWidget {
                 minimumSize: const Size.fromHeight(50),
               ),
               icon: const Icon(Icons.logout),
-              label: const Text('Çıkış Yap'),
+              label: Text(l10n.signOut),
             ),
           ],
         ),
