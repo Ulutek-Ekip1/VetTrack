@@ -57,7 +57,9 @@ class OwnerProfileScreen extends StatelessWidget {
                           radius: 36,
                           backgroundColor: const Color(0xFFDBEAFE),
                           child: Text(
-                            userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                            userName.isNotEmpty
+                                ? userName[0].toUpperCase()
+                                : 'U',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               color: primaryBlue,
                               fontWeight: FontWeight.bold,
@@ -85,7 +87,8 @@ class OwnerProfileScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFECFDF5),
                                   borderRadius: BorderRadius.circular(20),
@@ -106,7 +109,7 @@ class OwnerProfileScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: AppDimensions.spacingLg),
 
                 // Hesap Ayarları Grubu
@@ -187,7 +190,8 @@ class OwnerProfileScreen extends StatelessWidget {
                     minimumSize: const Size.fromHeight(56),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLg),
                     ),
                   ),
                   icon: const Icon(Icons.logout),
@@ -196,6 +200,31 @@ class OwnerProfileScreen extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
+
+                TextButton(
+                    onPressed: () {
+                      context.push(AppRoutes.deleteAccount);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.delete_outline_outlined,
+                          size: 24,
+                          color: theme.colorScheme.onErrorContainer,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Hesabımı sil',
+                          style: TextStyle(
+                              color: theme.colorScheme.onErrorContainer,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        ),
+                      ],
+                    )),
+
                 const SizedBox(height: AppDimensions.spacingLg),
               ],
             ),

@@ -176,14 +176,26 @@ paths:
       description: |
         Kullanıcının hesabını siler. Tüm hayvanları soft delete olur.
         Supabase Auth'tan kullanıcı deaktive edilir. Tıbbi geçmiş
-        saklanır (KVKK). Henüz implement edilmedi, Sprint 3'te planlanıyor.
+        saklanır (KVKK). JWT'nin iat (issued-at) claim'i son 5 dakika
+        içinde olmalı — değilse REAUTHENTICATION_REQUIRED (401) döner.
+        Frontend, silme isteğinden hemen önce kullanıcıya şifresini
+        tekrar girdirip Supabase'den taze bir token almalıdır.
       security:
         - bearerAuth: []
       responses:
         '204':
           description: Hesap silindi
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Yetkisiz erişim veya token yeterince taze değil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: 401
+                error: REAUTHENTICATION_REQUIRED
+                message: "Bu işlem için yakın zamanda tekrar giriş yapmış olmanız gerekir."
+                timestamp: "2026-08-17T12:00:00Z"
 
   # ---- Pets ----
   /pets:
@@ -495,6 +507,30 @@ paths:
           $ref: '#/components/responses/NotFound'
 
   # ---- Visits ----
+  /visits/owner:
+    get:
+      tags: [Visits]
+      summary: Sahibin tüm aktif petlerinin ziyaret geçmişi
+      description: |
+        Giriş yapmış sahibin (owner) sahip olduğu tüm AKTIF (soft-delete
+        edilmemiş, isActive=true) petlerinin ziyaretlerini tek listede döner.
+        Frontend'in her pet için ayrı istek atmasını (N+1) önler.
+        Yeniden eskiye (startedAt DESC) sıralı. Kayıt yoksa 200 + boş dizi ([]).
+        Sahip JWT subject'inden belirlenir; parametre almaz.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ziyaret listesi (kayıt yoksa boş dizi)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /visits/code/{code}:
     get:
       tags: [Visits]

@@ -57,3 +57,7 @@ class VerificationEmailSent extends AuthState {
   @override
   List<Object?> get props => [email];
 }
+
+class RegistrationSuccess extends AuthState {
+  const RegistrationSuccess();
+}

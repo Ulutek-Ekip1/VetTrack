@@ -72,7 +72,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         backgroundColor: AppColors.primary,
                       ),
                     );
-                    context.go(AppRoutes.ownerEmailVerification);
+                    context.go(AppRoutes.login);
                   }
                 },
                 builder: (context, state) {

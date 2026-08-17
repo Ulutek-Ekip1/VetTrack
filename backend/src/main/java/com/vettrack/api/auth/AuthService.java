@@ -297,12 +297,17 @@ public class AuthService {
         Object expires = respBody.get("expires_in");
         Integer expiresIn = (expires instanceof Number) ? ((Number) expires).intValue() : null;
 
+        Object userObj = respBody.get("user");
+        if (userObj == null && (respBody.containsKey("id") || respBody.containsKey("email"))) {
+            userObj = respBody;
+        }
+
         return AuthResponse.builder()
                 .accessToken((String) respBody.get("access_token"))
                 .refreshToken((String) respBody.get("refresh_token"))
                 .tokenType((String) respBody.get("token_type"))
                 .expiresIn(expiresIn)
-                .user(respBody.get("user"))
+                .user(userObj)
                 .build();
     }
 }

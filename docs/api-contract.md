@@ -41,6 +41,7 @@
 | `UNAUTHORIZED` | 401 | JWT eksik veya geçersiz | — |
 | `INVALID_CREDENTIALS` | 401 | E-posta veya şifre hatalı | FR-01 |
 | `EMAIL_NOT_VERIFIED` | 401 | E-posta doğrulanmamış, giriş engellendi | FR-01 |
+| `REAUTHENTICATION_REQUIRED` | 401 | JWT yeterince taze değil (son 5 dk), tekrar giriş gerekli | EC-05 |
 | `FORBIDDEN` | 403 | Rol yetkisiz (owner/vet_staff ayrımı) | FR-02 |
 | `ROLE_MISMATCH` | 403 | JWT rolü ile erişilen profil endpoint'i uyumsuz | FR-02 |
 | `EDIT_WINDOW_EXPIRED` | 403 | 15 dakikalık düzenleme süresi doldu | EC-08 |
@@ -75,6 +76,7 @@
 | 9 | POST | `/pets/{id}/photo` | Fotoğraf yükle | owner |
 | 9a | DELETE | `/pets/{id}/photo` | Fotoğraf sil | owner |
 | 10 | GET | `/pets/{id}/visits` | Hayvanın ziyaret geçmişi | owner |
+| 10a | GET | `/visits/owner` | Sahibin tüm aktif petlerinin ziyaret geçmişi | owner |
 | 11 | GET | `/pets/{id}/recommendations` | Hayvanın önerileri | owner |
 | 12 | GET | `/visits/code/{code}` | Kod ile hasta bul | vet_staff |
 | 13 | POST | `/visits` | Yeni ziyaret başlat | vet_staff |
@@ -550,6 +552,18 @@ Zamana bağlı kilo geçmişini kronolojik (`date ASC`) olarak listeler. Paramet
 
 ---
 
+### GET /visits/owner — Sahibin tüm aktif petlerinin ziyaret geçmişi
+
+**Kim:** Giriş yapmış `owner`. **Amaç:** Genel ziyaret geçmişi ekranı (tüm hayvanlar tek listede) — N+1 istek önleme.
+
+**Path/query param:** Yok. Sahip JWT subject'inden belirlenir.
+
+**Response (200):** `VisitResponse[]` — sahibin **aktif** (soft-delete edilmemiş, `isActive=true`) tüm petlerinin ziyaretleri, `startedAt` DESC sıralı.
+
+> Not: Silinmiş/pasif petlerin ziyaretleri dahil edilmez. Kayıt yoksa `null` değil **boş dizi (`[]`)** döner (200). Sayfalama yok — düz liste.
+
+---
+
 ### POST /visits — Yeni ziyaret başlat
 
 **Kim:** Sadece `vet_staff`. **PRD:** FR-06, EC-02.
@@ -907,10 +921,10 @@ Kullanıcı logout olurken çağrılır. İlgili cihaz token'ı silinerek eski c
 
 **Response:** `204 No Content`
 
-**Hatalar:** 401
+**Hatalar:** 401 (`UNAUTHORIZED` veya `REAUTHENTICATION_REQUIRED`)
 
 **Notlar:**
 - Kullanıcının tüm hayvanları da soft delete olur
 - Supabase Auth'tan kullanıcı deaktive edilir
 - Tıbbi geçmiş saklanır (KVKK ve kayıt zorunluluğu)
-- Bu endpoint henüz implement edilmedi, Sprint 3'te planlanıyor
+- **Re-authentication zorunlu:** JWT'nin `iat` (issued-at) claim'i son 5 dakika içinde olmalı, yoksa `REAUTHENTICATION_REQUIRED` (401) döner. Frontend, silme isteğinden hemen önce kullanıcıya şifresini tekrar girdirip Supabase'den taze bir token almalı (şifre backend'e hiç gönderilmez, sadece Supabase'in ürettiği taze JWT kullanılır). Bu, çalıntı/sızmış eski bir token'ın şifre bilinmeden hesap silmek için kullanılmasını engeller.
