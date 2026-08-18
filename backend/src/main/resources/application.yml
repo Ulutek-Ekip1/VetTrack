@@ -78,7 +78,7 @@ management:
         include: health,info,liveness,readiness
   endpoint:
     health:
-      show-details: ${MANAGEMENT_HEALTH_SHOW_DETAILS:always}
+      show-details: ${MANAGEMENT_HEALTH_SHOW_DETAILS:when-authorized}
       probes:
         enabled: true
   health:
