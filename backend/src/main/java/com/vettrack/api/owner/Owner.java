@@ -29,7 +29,7 @@ public class Owner {
     @Column(nullable = false)
     private String role;
 
-    @Column(length = 100)
+    @Column(length = 50)
     private String surname;
 
     @Column(columnDefinition = "TEXT")
@@ -47,7 +47,8 @@ public class Owner {
 
     @PrePersist
     protected void onCreate() {
-        if (this.createdAt == null) this.createdAt = OffsetDateTime.now();
+        if (this.createdAt == null)
+            this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
     }
 
