@@ -370,6 +370,30 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /pets/{id}/health-history:
+    get:
+      tags: [Pets]
+      summary: Pet Sağlık Geçmişi ve Klinik Detaylarını Getir
+      description: |
+        Evcil hayvanın kilo geçmişi, muayene ziyaretleri, tedavi/ilaç kayıtları ve hekim önerilerini tek bir yanıtta döner.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Sağlık geçmişi başarıyla getirildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetHealthHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /pets/{id}/photo:
     post:
       tags: [Pets]
@@ -1520,6 +1544,114 @@ components:
         empty:
           type: boolean
           example: false
+
+    PetHealthHistoryResponse:
+      type: object
+      properties:
+        petId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        species:
+          type: string
+        breed:
+          type: string
+        gender:
+          type: string
+        currentWeight:
+          type: number
+          format: double
+        bloodType:
+          type: string
+        microchipNo:
+          type: string
+        isSpayedOrNeutered:
+          type: boolean
+        allergies:
+          type: string
+        chronicIllnesses:
+          type: string
+        weightHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/PetWeightHistoryResponse'
+        visits:
+          type: array
+          items:
+            $ref: '#/components/schemas/VisitSummaryDto'
+        treatments:
+          type: array
+          items:
+            $ref: '#/components/schemas/TreatmentSummaryDto'
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendationSummaryDto'
+
+    VisitSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        vetStaffId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        chiefComplaint:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+
+    TreatmentSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        visitId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+
+    RecommendationSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        visitId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
     PetWithVisitsResponse:
       allOf:
