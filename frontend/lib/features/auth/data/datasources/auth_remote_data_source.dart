@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
 import '../../../../core/constants/app_constants.dart';
 import '../models/user_model.dart';
 import '../models/owner_model.dart';
@@ -21,6 +21,11 @@ abstract class AuthRemoteDataSource {
   Future<OwnerModel> getOwnerProfile();
   Future<OwnerModel> updateOwnerProfile(Map<String, dynamic> data);
   Future<UserModel> signInWithGoogle();
+  Future<void> reSendVerificationEmail(String email);
+  Future<void> forgotPassword(String email);
+  Future<void> deleteAccount();
+  Future<String> updateProfilPhoto(String newProfilPhotoUrl);
+  Future<void> deleteProfilPhoto();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -49,7 +54,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           await localDataSource.cacheToken(token, persist: rememberMe);
         }
 
-        return UserModel.fromJson(userData as Map<String, dynamic>);
+        if (userData is Map<String, dynamic>) {
+          return UserModel.fromJson(userData);
+        }
+        throw Exception("Kullanıcı bilgisi alınamadı.");
       } else {
         throw Exception("Giriş başarısız: ${response.statusCode}");
       }
@@ -92,7 +100,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           await localDataSource.cacheToken(token);
         }
 
-        final createdUser = UserModel.fromJson(userData as Map<String, dynamic>);
+        UserModel createdUser;
+        if (userData is Map<String, dynamic>) {
+          createdUser = UserModel.fromJson(userData);
+        } else {
+          createdUser = UserModel(
+            id: '',
+            authId: '',
+            email: email,
+            name: name,
+            phone: phone,
+            role: role,
+            createdAt: DateTime.now(),
+          );
+        }
 
         // Supabase, e-posta doğrulaması açıkken kayıt yanıtındaki user_metadata
         // alanını eksik döndürebilir. Rol kayıt isteğinde zaten kesin olarak
@@ -100,9 +121,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return UserModel(
           id: createdUser.id,
           authId: createdUser.authId,
-          email: createdUser.email,
-          name: createdUser.name,
-          phone: createdUser.phone,
+          email: createdUser.email.isNotEmpty ? createdUser.email : email,
+          name: createdUser.name.isNotEmpty ? createdUser.name : name,
+          phone: createdUser.phone ?? phone,
           role: role,
           createdAt: createdUser.createdAt,
         );
@@ -111,7 +132,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        throw Exception("Bu e-posta ile kayıtlı bir hesap var, lütfen farklı bir e-posta ile deneyin.");
+        throw Exception(
+            "Bu e-posta ile kayıtlı bir hesap var, lütfen farklı bir e-posta ile deneyin.");
       }
       throw Exception(_handleDioError(e));
     } catch (e) {
@@ -170,18 +192,60 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
+  Future<String> updateProfilPhoto(String filePath) async {
+    try {
+      final fileName = filePath.split('/').last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          filePath,
+          filename: fileName,
+        ),
+      });
+      final response = await dio.post(
+        '/owners/me/photo',
+        data: formData,
+      );
+      if (response.statusCode == 200) {
+        return response.data['profilePhotoUrl'] as String;
+      } else {
+        throw Exception("Fotoğraf yüklenemedi");
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 413) {
+        throw Exception("Dosya boyutu çok büyük (Max 15MB)");
+      } else if (e.response?.statusCode == 400) {
+        throw Exception(
+            "Desteklenmeyen dosya formatı (.jpg, .jpeg, .png, .webp)");
+      }
+      throw Exception(_handleDioError(e));
+    }
+  }
+
+  @override
+  Future<void> deleteProfilPhoto() async {
+    try {
+      final response = await dio.delete('/owners/me/photo');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception("Fotoğraf silinemedi");
+      }
+    } on DioException catch (e) {
+      throw Exception(_handleDioError(e));
+    }
+  }
+
+  @override
   Future<UserModel> signInWithGoogle() async {
     try {
       if (kIsWeb) {
         // Web'de Google Giriş için Supabase'in kendi OAuth akışını kullanıyoruz.
         // Web ortamı Veteriner Paneli olduğu için yönlendirme sonrası Supabase veya profil tarafında rol okunur.
         final redirectTo = Uri.base.origin;
-        
+
         await Supabase.instance.client.auth.signInWithOAuth(
           OAuthProvider.google,
           redirectTo: redirectTo,
         );
-        
+
         // Yönlendirme yapılacağı için bu metodun return değerine ulaşılmayacaktır.
         return UserModel(
           id: '',
@@ -194,7 +258,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       } else {
         // Mobil için mevcut google_sign_in akışı
         final googleSignIn = GoogleSignIn(
-          serverClientId: AppConstants.googleWebClientId.isEmpty ? null : AppConstants.googleWebClientId,
+          serverClientId: AppConstants.googleWebClientId.isEmpty
+              ? null
+              : AppConstants.googleWebClientId,
           scopes: ['email', 'profile', 'openid'],
         );
         final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
@@ -202,7 +268,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           throw Exception("Google ile giriş iptal edildi.");
         }
 
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
         final idToken = googleAuth.idToken;
         final accessToken = googleAuth.accessToken;
 
@@ -242,9 +309,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           id: user.id,
           authId: user.id,
           email: user.email ?? '',
-          name: (metadata['name'] ?? metadata['full_name'] ?? 'Google Kullanıcısı') as String,
+          name: (metadata['name'] ??
+              metadata['full_name'] ??
+              'Google Kullanıcısı') as String,
           phone: user.phone,
-          role: rawRole == 'vet_staff' || rawRole == 'VET' ? UserRole.vet : UserRole.owner,
+          role: rawRole == 'vet_staff' || rawRole == 'VET'
+              ? UserRole.vet
+              : UserRole.owner,
           createdAt: DateTime.parse(user.createdAt),
         );
       }
@@ -289,5 +360,54 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     return message.isNotEmpty ? message : "Bilinmeyen bağlantı hatası";
+  }
+
+  @override
+  Future<void> reSendVerificationEmail(String email) async {
+    try {
+      await dio.post('/auth/resend-verification', data: {'email': email});
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        throw Exception(
+            e.response?.data['message'] ?? 'Bilinmeyen bir hata oluştu');
+      }
+      throw Exception('İnternet bağlantınızı kontrol edin.');
+    } catch (e) {
+      throw Exception('Doğrulama e-postası gönderilemedi: $e');
+    }
+  }
+
+  @override
+  Future<void> forgotPassword(String email) async {
+    try {
+      await dio.post('/auth/forgot-password', data: {'email': email});
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        throw Exception(
+            e.response?.data['message'] ?? 'Bilinmeyen bir hata oluştu');
+      }
+      throw Exception('İnternet bağlantınızı kontrol edin.');
+    } catch (e) {
+      throw Exception('Şifre sıfırlama isteği gönderilemedi: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      final response = await dio.delete(
+        '/auth/me',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        await Supabase.instance.client.auth.signOut();
+        await localDataSource.deleteToken();
+      } else {
+        throw Exception("Hesap silinemedi: ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      throw Exception(
+          "Hesap silme hatası: ${e.response?.data['message'] ?? e.message}");
+    }
   }
 }

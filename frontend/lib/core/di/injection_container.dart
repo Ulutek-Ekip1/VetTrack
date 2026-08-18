@@ -48,6 +48,11 @@ import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/domain/usecases/get_owner_profile_usecase.dart';
 import '../../features/auth/domain/usecases/update_owner_profile_usecase.dart';
 import '../../features/auth/presentation/cubit/profile_cubit.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/forgot_password_usecase.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/resend_verification_email_usecase.dart';
+import 'package:vettrack_frontend/features/auth/presentation/cubit/delete_account_cubit.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/update_profile_photo_usecase.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/delete_profile_photo_usecase.dart';
 
 // Treatment Imports
 import 'package:vettrack_frontend/features/treatment/domain/usecases/add_treatment_usecase.dart';
@@ -119,6 +124,10 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SignInWithGoogleUseCase(sl()));
   sl.registerLazySingleton(() => GetOwnerProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateOwnerProfileUseCase(sl()));
+  sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => ResendVerificationEmailUsecase(sl()));
+  sl.registerLazySingleton(() => UpdateProfilePhotoUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteProfilePhotoUseCase(sl()));
 
   sl.registerLazySingleton<AuthCubit>(
     () => AuthCubit(
@@ -129,13 +138,23 @@ Future<void> init() async {
       authRepository: sl(),
       registerDeviceTokenUseCase: sl(),
       unregisterDeviceTokenUseCase: sl(),
+      forgotPasswordUseCase: sl(),
+      resendVerificationEmailUsecase: sl(),
     ),
   );
 
   sl.registerFactory(
     () => ProfileCubit(
-      getOwnerProfile: sl(),
-      updateOwnerProfile: sl(),
+        getOwnerProfile: sl(),
+        updateOwnerProfile: sl(),
+        updateProfilePhotoUseCase: sl(),
+        deleteProfilePhotoUseCase: sl()),
+  );
+
+  sl.registerFactory(
+    () => DeleteAccountCubit(
+      authRepository: sl(),
+      localDataSource: sl(),
     ),
   );
 

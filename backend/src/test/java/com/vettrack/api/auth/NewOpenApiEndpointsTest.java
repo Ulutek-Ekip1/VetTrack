@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -81,6 +82,7 @@ public class NewOpenApiEndpointsTest {
 
         mockMvc.perform(delete("/auth/me").with(jwt().jwt(builder -> builder
                 .subject(ownerId.toString())
+                .issuedAt(java.time.Instant.now())
                 .claim("email", owner.getEmail())
                 .claim("user_metadata", Map.of("role", "owner", "name", owner.getFullName()))
         )))
@@ -92,6 +94,31 @@ public class NewOpenApiEndpointsTest {
         Pet updatedPet = petRepository.findById(savedPet.getId()).orElseThrow();
         assertFalse(updatedPet.getIsActive());
         assertNotNull(updatedPet.getDeletedAt());
+    }
+
+    @Test
+    void testDeleteMyAccount_StaleToken_Returns401ReauthRequired() throws Exception {
+        UUID ownerId = UUID.randomUUID();
+        Owner owner = Owner.builder()
+                .id(ownerId)
+                .email("test-stale-" + ownerId + "@vettrack.local")
+                .fullName("Test Stale Owner")
+                .role("owner")
+                .isActive(true)
+                .build();
+        ownerRepository.save(owner);
+
+        mockMvc.perform(delete("/auth/me").with(jwt().jwt(builder -> builder
+                .subject(ownerId.toString())
+                .issuedAt(java.time.Instant.now().minus(java.time.Duration.ofMinutes(10)))
+                .claim("email", owner.getEmail())
+                .claim("user_metadata", Map.of("role", "owner", "name", owner.getFullName()))
+        )))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("REAUTHENTICATION_REQUIRED"));
+
+        Owner untouchedOwner = ownerRepository.findById(ownerId).orElseThrow();
+        assertTrue(untouchedOwner.getIsActive());
     }
 
     @Test

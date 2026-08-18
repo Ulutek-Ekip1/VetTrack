@@ -335,6 +335,58 @@ class StorageServiceTest {
     }
 
     // =========================================================================
+    // Signed URL Testleri (Tedavi Ekleri)
+    // =========================================================================
+    @Nested
+    @DisplayName("Signed URL Testleri")
+    class SignedUrlTests {
+
+        @Test
+        @DisplayName("PDF formatı için signed upload URL üretilebilmeli")
+        void shouldAcceptPdfForSignedUploadUrl() {
+            when(restClient.post()).thenReturn(requestBodyUriSpec);
+            when(requestBodyUriSpec.uri(anyString(), anyString(), anyString())).thenReturn(requestBodySpec);
+            when(requestBodySpec.body(any(Object.class))).thenReturn(requestBodySpec);
+            when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+            when(responseSpec.body(any(org.springframework.core.ParameterizedTypeReference.class)))
+                    .thenReturn(java.util.Map.of("url", "/object/upload/sign/treatment-attachments/test.pdf"));
+
+            String url = storageService.generateSignedUploadUrl("test.pdf", "application/pdf", 1024);
+            assertNotNull(url);
+            assertTrue(url.contains("test.pdf"));
+        }
+
+        @Test
+        @DisplayName("JPEG, PNG, WebP için signed upload URL üretilebilmeli")
+        void shouldAcceptImagesForSignedUploadUrl() {
+            when(restClient.post()).thenReturn(requestBodyUriSpec);
+            when(requestBodyUriSpec.uri(anyString(), anyString(), anyString())).thenReturn(requestBodySpec);
+            when(requestBodySpec.body(any(Object.class))).thenReturn(requestBodySpec);
+            when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+            when(responseSpec.body(any(org.springframework.core.ParameterizedTypeReference.class)))
+                    .thenReturn(java.util.Map.of("signedURL", "/object/upload/sign/treatment-attachments/test.jpg"));
+
+            String url = storageService.generateSignedUploadUrl("test.jpg", "image/jpeg", 2048);
+            assertNotNull(url);
+            assertTrue(url.contains("test.jpg"));
+        }
+
+        @Test
+        @DisplayName("Desteklenmeyen format için UnsupportedFileTypeException fırlatılmalı")
+        void shouldRejectUnsupportedFormatForSignedUploadUrl() {
+            assertThrows(UnsupportedFileTypeException.class, () ->
+                    storageService.generateSignedUploadUrl("test.exe", "application/x-msdownload", 1024));
+        }
+
+        @Test
+        @DisplayName("15MB üstü dosyalar için FileTooLargeException fırlatılmalı")
+        void shouldRejectOversizedFileForSignedUploadUrl() {
+            assertThrows(FileTooLargeException.class, () ->
+                    storageService.generateSignedUploadUrl("test.pdf", "application/pdf", 16 * 1024 * 1024));
+        }
+    }
+
+    // =========================================================================
     // Helper metodlar
     // =========================================================================
 

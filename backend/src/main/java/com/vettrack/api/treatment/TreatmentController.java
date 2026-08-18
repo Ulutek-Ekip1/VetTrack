@@ -94,7 +94,7 @@ public class TreatmentController {
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
         if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
-            throw new AccessDeniedException("Bu ziyaretin tedavi geçmişine erişim yetkiniz yok");
+            throw new AccessDeniedException("Bu ziyaretin tedavi kaydına erişim yetkiniz yok");
         }
 
         return ResponseEntity.ok(treatmentService.getTreatmentsByVisit(visitId, status));
@@ -161,5 +161,52 @@ public class TreatmentController {
         clinicAccessService.requireVisitAccess(vetStaffId, treatmentService.getVisitIdForTreatment(id));
         treatmentService.deleteTreatment(id, vetStaffId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/treatments/{id}/attachment/upload-url")
+    @Operation(
+        summary = "İmzalı Yükleme URL'i Al (Upload URL)",
+        description = "Tedaviye eklenecek dosya için Supabase Storage'a doğrudan yüklenebilecek güvenli ve süreli (15dk) bir upload URL döndürür.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AttachmentUrlResponse> generateUploadUrl(
+            @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "Tedavi UUID") @PathVariable UUID id,
+            @Valid @RequestBody AttachmentUploadRequest request
+    ) {
+        UUID vetStaffId = UUID.fromString(jwt.getSubject());
+        clinicAccessService.requireVisitAccess(vetStaffId, treatmentService.getVisitIdForTreatment(id));
+        
+        String url = treatmentService.generateAttachmentUploadUrl(id, request.getContentType(), request.getFileSize(), vetStaffId);
+        return ResponseEntity.ok(AttachmentUrlResponse.builder().url(url).build());
+    }
+
+    @GetMapping("/treatments/{id}/attachment/read-url")
+    @Operation(
+        summary = "İmzalı Okuma URL'i Al (Read URL)",
+        description = "Tedaviye ait dosyayı görüntülemek için güvenli ve süreli (1 saat) bir okuma URL'i döndürür.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AttachmentUrlResponse> generateReadUrl(
+            @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "Tedavi UUID") @PathVariable UUID id
+    ) {
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+        UUID visitId = treatmentService.getVisitIdForTreatment(id);
+        Visit visit = visitService.getVisit(visitId);
+        Pet pet = petService.getPetById(visit.getPetId());
+
+        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu tedavi eklentisine erişim yetkiniz yok");
+        }
+
+        if (isVetOrAdmin()) {
+            clinicAccessService.requireVisitAccess(currentUserId, visitId);
+        }
+
+        String url = treatmentService.generateAttachmentReadUrl(id);
+        return ResponseEntity.ok(AttachmentUrlResponse.builder().url(url).build());
     }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/core/utils/formatters.dart';
 import '../cubit/visit_cubit.dart';
 import '../cubit/visit_state.dart';
 import 'package:vettrack_frontend/features/visit/domain/entities/visit_entity.dart';
@@ -59,7 +60,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                   const Icon(Icons.assignment_outlined, color: Colors.white),
                   const SizedBox(width: 8),
                   Text(
-                    'Muayene Detayı (${visit.id.substring(0, 8)})',
+                    'Muayene Detayı (${visit.id.toShortId()})',
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -101,7 +102,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Pet ID: ${visit.petId.substring(0, 8)}',
+                              'Pet ID: ${visit.petId.toShortId()}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
@@ -170,7 +171,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
 
                 // Hekim Notları
                 _buildDetailSection(
-                    'Hekim Notları )',
+                    'Hekim Notları',
                     visit.chiefComplaint ??
                         'Hekim tarafından girilen not bulunmamaktadır.',
                     Icons.note_alt_outlined),
@@ -330,7 +331,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                 title: Row(
                                   children: [
                                     Text(
-                                      visit.petId.substring(0, 8),
+                                      visit.petId.toShortId(),
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16),
@@ -344,7 +345,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        visit.id.substring(0, 8),
+                                        visit.id.toShortId(),
                                         style: const TextStyle(
                                             fontSize: 11,
                                             color: Colors.black87),
@@ -355,7 +356,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 6.0),
                                   child: Text(
-                                    'Pet ID: ${visit.petId.substring(0, 8)}\nŞikayet/Teşhis: ${visit.chiefComplaint ?? 'Belirtilmemiş'} • Tarih: ${visit.startedAt.toLocal().toString().substring(0, 16)}',
+                                    'Pet ID: ${visit.petId.toShortId()}\nŞikayet/Teşhis: ${visit.chiefComplaint ?? 'Belirtilmemiş'} • Tarih: ${visit.startedAt.toFormattedDateTime()}',
                                     style: const TextStyle(height: 1.3),
                                   ),
                                 ),

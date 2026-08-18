@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/core/utils/formatters.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_cubit.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_state.dart';
 
@@ -46,11 +47,11 @@ class PetVisitHistoryScreen extends StatelessWidget {
                       child: Icon(Icons.event_note, color: Colors.white),
                     ),
                     title: Text(
-                      '${visit.chiefComplaint ?? 'Genel Kontrol'} (#${visit.id.substring(0, 8)})',
+                      '${visit.chiefComplaint ?? 'Genel Kontrol'} (#${visit.id.toShortId()})',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      '${visit.startedAt.toLocal().toString().substring(0, 16)} • ${visit.vetStaffName ?? 'Bilinmeyen Hekim'}',
+                      '${visit.startedAt.toFormattedDateTime()} • ${visit.vetStaffName ?? 'Bilinmeyen Hekim'}',
                     ),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(

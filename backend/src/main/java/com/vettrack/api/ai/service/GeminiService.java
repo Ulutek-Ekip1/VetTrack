@@ -24,7 +24,7 @@ public class GeminiService {
 
     private final RestClient geminiRestClient;
 
-    @Value("${gemini.model:gemini-2.5-flash}")
+    @Value("${gemini.model:gemini-1.5-flash}")
     private String modelName;
 
     /**

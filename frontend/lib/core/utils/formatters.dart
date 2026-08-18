@@ -19,6 +19,16 @@ class Formatters {
     return '${date.day} ${_monthName(date.month)} ${date.year}';
   }
 
+  static String formatDateTime(DateTime date) {
+    final local = date.toLocal();
+    final day = local.day.toString().padLeft(2, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final year = local.year.toString();
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    return '$day.$month.$year $hour:$minute';
+  }
+
   static String _monthName(int month) {
     const months = [
       'Ocak',
@@ -38,3 +48,16 @@ class Formatters {
     return months[month - 1];
   }
 }
+
+extension StringExtension on String {
+  String toShortId() {
+    return length >= 8 ? substring(0, 8) : this;
+  }
+}
+
+extension DateTimeExtension on DateTime {
+  String toFormattedDateTime() {
+    return Formatters.formatDateTime(this);
+  }
+}
+

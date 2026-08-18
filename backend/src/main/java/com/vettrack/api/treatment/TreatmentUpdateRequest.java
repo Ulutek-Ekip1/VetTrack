@@ -9,6 +9,5 @@ public class TreatmentUpdateRequest {
     private String type;
     private String title;
     private String description;
-    private String attachmentUrl;
     private TreatmentStatus status;
 }

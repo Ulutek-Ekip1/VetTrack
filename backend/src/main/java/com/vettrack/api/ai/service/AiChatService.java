@@ -6,6 +6,7 @@ import com.vettrack.api.ai.dto.ChatMessageDto;
 import com.vettrack.api.ai.entity.ChatMessage;
 import com.vettrack.api.ai.exception.IdempotencyKeyReusedException;
 import com.vettrack.api.ai.repository.ChatMessageRepository;
+import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
 import lombok.RequiredArgsConstructor;
@@ -203,6 +204,26 @@ public class AiChatService {
     public void deleteUserHistory(UUID ownerId) {
         chatMessageRepository.deleteByOwnerId(ownerId);
         log.info("All chat history deleted for ownerId: {}", ownerId);
+    }
+
+    @Transactional
+    public void deleteSingleMessage(UUID ownerId, UUID messageId) {
+        if (ownerId == null || messageId == null) {
+            throw new IllegalArgumentException("Kullanıcı ve mesaj kimliği boş olamaz.");
+        }
+
+        Optional<ChatMessage> messageOpt = chatMessageRepository.findById(messageId);
+        if (messageOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Silinmek istenen mesaj bulunamadı: " + messageId);
+        }
+
+        ChatMessage message = messageOpt.get();
+        if (!message.getOwnerId().equals(ownerId)) {
+            throw new AccessDeniedException("Bu mesajı silme yetkiniz bulunmamaktadır.");
+        }
+
+        chatMessageRepository.deleteByIdAndOwnerId(messageId, ownerId);
+        log.info("Chat message deleted successfully. messageId: {} by ownerId: {}", messageId, ownerId);
     }
 
     private boolean isStaffRole(String role) {

@@ -48,6 +48,8 @@ tags:
     description: Bildirim yönetimi — listeleme, okundu işaretleme
   - name: Devices
     description: Cihaz yönetimi — FCM token kaydı
+  - name: AI Chat
+    description: Google Gemini tabanlı yapay zeka veteriner danışmanlığı ve sohbet geçmişi yönetimi
 
 # ================================================================
 # PATHS
@@ -176,14 +178,26 @@ paths:
       description: |
         Kullanıcının hesabını siler. Tüm hayvanları soft delete olur.
         Supabase Auth'tan kullanıcı deaktive edilir. Tıbbi geçmiş
-        saklanır (KVKK). Henüz implement edilmedi, Sprint 3'te planlanıyor.
+        saklanır (KVKK). JWT'nin iat (issued-at) claim'i son 5 dakika
+        içinde olmalı — değilse REAUTHENTICATION_REQUIRED (401) döner.
+        Frontend, silme isteğinden hemen önce kullanıcıya şifresini
+        tekrar girdirip Supabase'den taze bir token almalıdır.
       security:
         - bearerAuth: []
       responses:
         '204':
           description: Hesap silindi
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Yetkisiz erişim veya token yeterince taze değil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: 401
+                error: REAUTHENTICATION_REQUIRED
+                message: "Bu işlem için yakın zamanda tekrar giriş yapmış olmanız gerekir."
+                timestamp: "2026-08-17T12:00:00Z"
 
   # ---- Pets ----
   /pets:
@@ -300,6 +314,55 @@ paths:
       responses:
         '204':
           description: Hayvan pasife alındı
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /pets/{id}/weight-history:
+    get:
+      tags: [Pets]
+      summary: Hayvanın kilo geçmişini listele (Seçenek A)
+      description: |
+        Zamana bağlı kilo geçmişini kronolojik (ASC) olarak döner.
+        Mobil kilo grafiği için kullanılır.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Sayfa numarası (0-indexed, opsiyonel)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: Sayfa boyutu (opsiyonel)
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Sıralama alanı ve yönü (örn. recordedAt,asc)
+      responses:
+        '200':
+          description: "Kilo geçmişi listesi (varsayılan: dizi, sayfalama talep edildiğinde Page nesnesi)"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/PetWeightHistoryResponse'
+                  - $ref: '#/components/schemas/PagePetWeightHistoryResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -446,6 +509,56 @@ paths:
           $ref: '#/components/responses/NotFound'
 
   # ---- Visits ----
+  /visits/owner:
+    get:
+      tags: [Visits]
+      summary: Sahibin tüm aktif petlerinin ziyaret geçmişi
+      description: |
+        Giriş yapmış sahibin (owner) sahip olduğu tüm AKTIF (soft-delete
+        edilmemiş, isActive=true) petlerinin ziyaretlerini tek listede döner.
+        Frontend'in her pet için ayrı istek atmasını (N+1) önler.
+        Yeniden eskiye (startedAt DESC) sıralı. Kayıt yoksa 200 + boş dizi ([]).
+        Sahip JWT subject'inden belirlenir; parametre almaz.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ziyaret listesi (kayıt yoksa boş dizi)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /visits/vet:
+    get:
+      tags: [Visits]
+      summary: Hekime atanmış tüm ziyaretler
+      description: |
+        Giriş yapmış veteriner hekime (vet_staff) atanmış tüm ziyaretleri
+        döner. Soft-delete edilmiş / pasif petlerin ziyaretleri hariç.
+        Yeniden eskiye (startedAt DESC) sıralı. Kayıt yoksa 200 + boş dizi ([]).
+        Hekim JWT subject'inden belirlenir; parametre almaz. Sadece VET_STAFF
+        veya ADMIN rolü erişebilir.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ziyaret listesi (kayıt yoksa boş dizi)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /visits/code/{code}:
     get:
       tags: [Visits]
@@ -783,7 +896,7 @@ paths:
                 timestamp: "2026-07-29T14:32:11Z"
 
   # ---- Notifications ----
-/notifications:
+  /notifications:
     get:
       tags: [Notifications]
       summary: Bildirim listesi
@@ -897,7 +1010,46 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+# ---- AI Chat ----
+  /api/v1/ai/messages/{id}:
+    delete:
+      tags: [AI Chat]
+      summary: Tekil sohbet mesajını sil
+      description: |
+        Kullanıcının kendine ait tekil bir sohbet mesajını siler.
+        Mesaj bulunamazsa 404, kullanıcıya ait değilse 403 döner.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Mesaj başarıyla silindi
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
+  /api/v1/ai/history:
+    delete:
+      tags: [AI Chat]
+      summary: Tüm sohbet geçmişini sil (KVKK Unutulma Hakkı)
+      description: |
+        Giriş yapmış kullanıcının tüm AI sohbet geçmişini veritabanından kalıcı olarak siler.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Tüm sohbet geçmişi başarıyla silindi
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 # ================================================================
 # COMPONENTS
 # ================================================================
@@ -1168,6 +1320,35 @@ components:
           type: string
           nullable: true
           format: uri
+        weight:
+          type: number
+          format: double
+          nullable: true
+          example: 23.0
+        microchipNo:
+          type: string
+          nullable: true
+          example: "900215000123456"
+        isSpayedOrNeutered:
+          type: boolean
+          nullable: true
+          example: true
+        bloodType:
+          type: string
+          nullable: true
+          example: "DEA 1.1 (+)"
+        color:
+          type: string
+          nullable: true
+          example: "Golden"
+        allergies:
+          type: string
+          nullable: true
+          example: "Tavuk proteinine alerjik."
+        chronicIllnesses:
+          type: string
+          nullable: true
+          example: "Yok"
 
     PetUpdateRequest:
       type: object
@@ -1192,6 +1373,33 @@ components:
           nullable: true
         estimatedBirthYear:
           type: integer
+          nullable: true
+        weight:
+          type: number
+          format: double
+          nullable: true
+          example: 23.0
+        microchipNo:
+          type: string
+          nullable: true
+          example: "900215000123456"
+        isSpayedOrNeutered:
+          type: boolean
+          nullable: true
+          example: true
+        bloodType:
+          type: string
+          nullable: true
+          example: "DEA 1.1 (+)"
+        color:
+          type: string
+          nullable: true
+          example: "Golden"
+        allergies:
+          type: string
+          nullable: true
+        chronicIllnesses:
+          type: string
           nullable: true
 
     PetResponse:
@@ -1230,6 +1438,35 @@ components:
           type: string
           nullable: true
           format: uri
+        weight:
+          type: number
+          format: double
+          nullable: true
+          example: 23.0
+        microchipNo:
+          type: string
+          nullable: true
+          example: "900215000123456"
+        isSpayedOrNeutered:
+          type: boolean
+          nullable: true
+          example: true
+        bloodType:
+          type: string
+          nullable: true
+          example: "DEA 1.1 (+)"
+        color:
+          type: string
+          nullable: true
+          example: "Golden"
+        allergies:
+          type: string
+          nullable: true
+          example: "Tavuk proteinine alerjik."
+        chronicIllnesses:
+          type: string
+          nullable: true
+          example: "Yok"
         uniqueCode:
           type: string
           minLength: 6
@@ -1242,6 +1479,47 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    PetWeightHistoryResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2026-03-15"
+        weight:
+          type: number
+          format: double
+          example: 21.0
+
+    PagePetWeightHistoryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PetWeightHistoryResponse'
+        totalPages:
+          type: integer
+          example: 1
+        totalElements:
+          type: integer
+          example: 3
+        size:
+          type: integer
+          example: 20
+        number:
+          type: integer
+          example: 0
+        first:
+          type: boolean
+          example: true
+        last:
+          type: boolean
+          example: true
+        empty:
+          type: boolean
+          example: false
 
     PetWithVisitsResponse:
       allOf:

@@ -8,11 +8,16 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
+
     steps:
-      - name: PostgreSQL client kur
+      - name: PostgreSQL 17 client kur
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          sudo apt-get install -y postgresql-common ca-certificates
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          pg_dump --version
 
       - name: Veritabanini SQL olarak disari aktar (pg_dump)
         env:
