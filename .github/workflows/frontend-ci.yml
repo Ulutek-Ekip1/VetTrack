@@ -1,4 +1,4 @@
-name: Flutter CI
+name: Flutter CI & Firebase Deploy
 
 on:
   push:
@@ -7,23 +7,40 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build_and_deploy:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./frontend
-        
+
     steps:
-    - name: Kodu Checkout Et
-      uses: actions/checkout@v3
+      - name: Kodu Checkout Et
+        uses: actions/checkout@v4
 
-    - name: Flutter Kurulumu
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
+      - name: Flutter Kurulumu
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
 
-    - name: Bağımlılıkları Yükle
-      run: flutter pub get
+      - name: Bağımlılıkları Yükle
+        run: flutter pub get
 
-    - name: Kodu Analiz Et
-      run: flutter analyze
+      - name: Kodu Analiz Et
+        run: flutter analyze
+
+      - name: .env Dosyasını Oluştur
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+
+      - name: Flutter Web Build Al
+        run: flutter build web --release --dart-define-from-file=.env
+
+      - name: Firebase Hosting Deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK }}'
+          projectId: vettrack-ce0ad
+          channelId: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'live' || '' }}
+          entryPoint: ./frontend
