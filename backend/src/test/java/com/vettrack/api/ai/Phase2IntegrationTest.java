@@ -87,6 +87,7 @@ class Phase2IntegrationTest {
         AiChatRequest request = AiChatRequest.builder()
                 .petId(petId)
                 .message("Kedim bugün ne yemeli?")
+                .aiConsentGiven(true)
                 .build();
 
         when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
