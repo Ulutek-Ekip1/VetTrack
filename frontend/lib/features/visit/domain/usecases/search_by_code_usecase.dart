@@ -6,7 +6,7 @@ class SearchByCodeUseCase {
 
   SearchByCodeUseCase(this.repository);
 
-  Future<PatientSearchResult> call(String code) async {
-    return await repository.searchByCode(code);
+  Future<PatientSearchResult> call(String code, String clinicId) async {
+    return await repository.searchByCode(code, clinicId);
   }
 }
