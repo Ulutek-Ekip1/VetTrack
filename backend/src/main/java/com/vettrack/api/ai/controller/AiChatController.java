@@ -72,7 +72,7 @@ public class AiChatController {
         return ResponseEntity.ok(aiChatService.getChatHistory(ownerId, petId, page, limit));
     }
 
-    @DeleteMapping("/history/conversation/{conversationId}")
+    @DeleteMapping({"/history/conversation/{conversationId}", "/conversations/{conversationId}"})
     @Operation(summary = "Belirli Bir Konuşma Oturumunu Sil (KVKK)", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Void> deleteConversation(
             @AuthenticationPrincipal Jwt jwt,
