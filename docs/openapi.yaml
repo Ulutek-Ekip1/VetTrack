@@ -597,6 +597,10 @@ paths:
     get:
       tags: [Visits]
       summary: 6 haneli kod ile hasta bul
+      description: |
+        `clinicId` opsiyoneldir. Verilmezse hekimin tek bir aktif klinik üyeliği varsa
+        otomatik kullanılır (`VisitController.createVisit` ile aynı desen). Birden fazla
+        aktif üyelikte `clinicId` zorunludur (400), hiç aktif üyelik yoksa 401 döner.
       security:
         - bearerAuth: []
       parameters:
@@ -605,6 +609,13 @@ paths:
           required: true
           schema:
             type: string
+        - name: clinicId
+          in: query
+          required: false
+          description: Belirtilmezse hekimin tek aktif klinik üyeliğinden otomatik çözümlenir.
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
           description: Hasta bilgisi ve geçmiş ziyaretleri
@@ -612,6 +623,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PetWithVisitsResponse'
+        '400':
+          description: clinicId verilmedi ve hekim birden fazla klinikte aktif — clinicId zorunlu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
