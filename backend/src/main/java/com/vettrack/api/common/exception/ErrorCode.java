@@ -22,6 +22,7 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN),
     ROLE_MISMATCH(HttpStatus.FORBIDDEN),
     EDIT_WINDOW_EXPIRED(HttpStatus.FORBIDDEN),
+    AI_CONSENT_REQUIRED(HttpStatus.FORBIDDEN),
 
     // 404 Not Found
     NOT_FOUND(HttpStatus.NOT_FOUND),
