@@ -279,6 +279,8 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
   "fullName": "Ayşe Yılmaz",
   "email": "ayse@example.com",
   "phone": "+905551234567",
+  "surname": "Yılmaz",
+  "address": "Kadıköy, İstanbul",
   "createdAt": "2026-07-29T14:32:11Z",
   "updatedAt": "2026-07-29T14:32:11Z"
 }
@@ -296,8 +298,11 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 
 | Alan | Tip | Zorunlu | Açıklama |
 |---|---|---|---|
-| `fullName` | String | Hayır | Ad Soyad |
+| `fullName` | String | Hayır | Ad Soyad (Birlikte güncellemek için) |
+| `name` | String | Hayır | Ad |
+| `surname` | String | Hayır | Soyad |
 | `phone` | String | Hayır | Telefon |
+| `address` | String | Hayır | Adres |
 
 **Response (200):** Güncellenmiş `OwnerResponse` (yukarıdaki şemayla aynı)
 

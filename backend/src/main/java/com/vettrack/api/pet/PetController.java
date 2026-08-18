@@ -1,5 +1,6 @@
 package com.vettrack.api.pet;
 
+import com.vettrack.api.pet.dto.PetHealthHistoryResponse;
 import com.vettrack.api.pet.dto.PetResponse;
 import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitService;
@@ -108,6 +109,30 @@ public class PetController {
             throw new AccessDeniedException("Bu hayvan size ait değil");
         }
         return ResponseEntity.ok(PetResponse.fromEntity(pet));
+    }
+
+    @GetMapping("/{id}/health-history")
+    @Operation(summary = "Pet Sağlık Geçmişi ve Klinik Detaylarını Getir", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sağlık geçmişi başarıyla getirildi"),
+        @ApiResponse(responseCode = "403", description = "Bu hayvanın sağlık geçmişine erişim yetkiniz yok"),
+        @ApiResponse(responseCode = "404", description = "Pet bulunamadı")
+    })
+    public ResponseEntity<PetHealthHistoryResponse> getPetHealthHistory(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id
+    ) {
+        Pet pet = petService.getPetById(id);
+        UUID currentUserId = UUID.fromString(jwt.getSubject());
+
+        boolean isAdmin = isRole("ROLE_ADMIN");
+        boolean isVetStaff = isRole("ROLE_VET_STAFF");
+
+        if (!isAdmin && !isVetStaff && !pet.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Bu hayvanın sağlık geçmişini görüntüleme yetkiniz yoktur");
+        }
+
+        return ResponseEntity.ok(petService.getPetHealthHistory(id));
     }
 
     @GetMapping("/{id}/visits")

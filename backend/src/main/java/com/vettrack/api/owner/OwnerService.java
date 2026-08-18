@@ -81,11 +81,48 @@ public class OwnerService {
     public Owner updateOwner(UUID id, OwnerUpdateRequest request) {
         Owner owner = getOwnerById(id);
 
-        if (request.getFullName() != null) {
-            owner.setFullName(request.getFullName());
+        if (request.getName() != null || request.getSurname() != null) {
+            String nameVal = request.getName() != null ? request.getName().trim() : "";
+            String surnameVal = request.getSurname() != null ? request.getSurname().trim() : "";
+
+            String targetName = request.getName() != null ? nameVal : "";
+            String targetSurname = request.getSurname() != null ? surnameVal : "";
+
+            if (request.getName() == null) {
+                String currentFullName = owner.getFullName() != null ? owner.getFullName().trim() : "";
+                String currentSurname = owner.getSurname() != null ? owner.getSurname().trim() : "";
+                if (!currentSurname.isEmpty() && currentFullName.endsWith(currentSurname)) {
+                    targetName = currentFullName.substring(0, currentFullName.length() - currentSurname.length()).trim();
+                } else {
+                    targetName = currentFullName;
+                }
+            }
+            if (request.getSurname() == null) {
+                targetSurname = owner.getSurname() != null ? owner.getSurname().trim() : "";
+            }
+
+            owner.setFullName((targetName + " " + targetSurname).trim());
+            owner.setSurname(targetSurname.isEmpty() ? null : targetSurname);
+        } else if (request.getFullName() != null) {
+            String fullNameVal = request.getFullName().trim();
+            owner.setFullName(fullNameVal);
+
+            String extractedSurname = null;
+            if (!fullNameVal.isEmpty()) {
+                int lastSpaceIndex = fullNameVal.lastIndexOf(' ');
+                if (lastSpaceIndex != -1) {
+                    extractedSurname = fullNameVal.substring(lastSpaceIndex + 1).trim();
+                }
+            }
+            owner.setSurname(extractedSurname);
         }
+
         if (request.getPhone() != null) {
             owner.setPhone(request.getPhone());
+        }
+
+        if (request.getAddress() != null) {
+            owner.setAddress(request.getAddress());
         }
 
         return ownerRepository.save(owner);

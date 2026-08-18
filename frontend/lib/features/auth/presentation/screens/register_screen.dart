@@ -187,47 +187,14 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Logo (Yuvarlatılmış Mavi Kutu İle İkon)
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF7B4832),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF7B4832)
-                                  .withValues(alpha: 0.25),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: SvgPicture.asset(
-                          "assets/icons/paw.svg",
-                          width: 40,
-                          height: 40,
-                          colorFilter: const ColorFilter.mode(
-                            Colors.white,
-                            BlendMode.srcIn,
-                          ),
-                        ),
+                      // Logo
+                      SvgPicture.asset(
+                        "assets/icons/VetTrack.svg",
+                        width: 160,
+                        height: 160,
                       ),
 
                       const SizedBox(height: 16),
-
-                      // VetTrack Başlık
-                      Text(
-                        "VetTrack",
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF7B4832),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      const SizedBox(height: 28),
 
                       // Kutulu Form Kartı (Card Container)
                       Card(

@@ -1,19 +1,28 @@
 package com.vettrack.api.pet;
 
-import com.vettrack.api.storage.StorageService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.multipart.MultipartFile;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-
 import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
+import com.vettrack.api.pet.dto.PetHealthHistoryResponse;
+import com.vettrack.api.pet.dto.PetWeightHistoryResponse;
+import com.vettrack.api.recommendation.Recommendation;
+import com.vettrack.api.recommendation.RecommendationRepository;
+import com.vettrack.api.storage.StorageService;
+import com.vettrack.api.treatment.TreatmentEntry;
+import com.vettrack.api.treatment.TreatmentEntryRepository;
+import com.vettrack.api.visit.Visit;
+import com.vettrack.api.visit.VisitRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.SecureRandom;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +32,9 @@ public class PetService {
 
     private final PetRepository petRepository;
     private final PetWeightHistoryRepository petWeightHistoryRepository;
+    private final VisitRepository visitRepository;
+    private final TreatmentEntryRepository treatmentEntryRepository;
+    private final RecommendationRepository recommendationRepository;
     private final StorageService storageService;
 
     private static final String ALPHANUMERIC = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
@@ -63,6 +75,26 @@ public class PetService {
         return petRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(ownerId);
     }
 
+    @Transactional(readOnly = true)
+    public PetHealthHistoryResponse getPetHealthHistory(UUID petId) {
+        Pet pet = getPetById(petId);
+        List<PetWeightHistoryResponse> weightHistory = getWeightHistory(petId);
+        List<Visit> visits = visitRepository.findByPetIdOrderByStartedAtDesc(petId);
+
+        List<UUID> visitIds = visits.stream().map(Visit::getId).toList();
+        List<TreatmentEntry> treatments = visitIds.isEmpty()
+                ? List.of()
+                : treatmentEntryRepository.findByVisitIdInOrderByCreatedAtDesc(visitIds);
+
+        List<Recommendation> recommendations = visitIds.isEmpty()
+                ? List.of()
+                : recommendationRepository.findByVisitIdInOrderByCreatedAtDesc(visitIds);
+
+        return PetHealthHistoryResponse.from(
+                pet, weightHistory, visits, treatments, recommendations
+        );
+    }
+
     @Transactional
     public Pet updatePet(UUID id, PetUpdateRequest request) {
         Pet existingPet = getPetById(id);
@@ -93,18 +125,18 @@ public class PetService {
     }
 
     @Transactional(readOnly = true)
-    public List<com.vettrack.api.pet.dto.PetWeightHistoryResponse> getWeightHistory(UUID petId) {
+    public List<PetWeightHistoryResponse> getWeightHistory(UUID petId) {
         getPetById(petId);
         return petWeightHistoryRepository.findByPetIdOrderByRecordedAtAscCreatedAtAsc(petId).stream()
-                .map(com.vettrack.api.pet.dto.PetWeightHistoryResponse::fromEntity)
+                .map(PetWeightHistoryResponse::fromEntity)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public Page<com.vettrack.api.pet.dto.PetWeightHistoryResponse> getWeightHistoryPaginated(UUID petId, Pageable pageable) {
+    public Page<PetWeightHistoryResponse> getWeightHistoryPaginated(UUID petId, Pageable pageable) {
         getPetById(petId);
         return petWeightHistoryRepository.findByPetIdOrderByRecordedAtAscCreatedAtAsc(petId, pageable)
-                .map(com.vettrack.api.pet.dto.PetWeightHistoryResponse::fromEntity);
+                .map(PetWeightHistoryResponse::fromEntity);
     }
 
     @Transactional
@@ -113,17 +145,19 @@ public class PetService {
         if (Double.isNaN(weight) || Double.isInfinite(weight) || weight <= 0 || weight > 2000.0) {
             throw new IllegalArgumentException("Kilo değeri 0'dan büyük ve en fazla 2000 kg olmalıdır");
         }
-        // Son kayıtla aynı değerse tekrar ekleme
+        
         var lastRecord = petWeightHistoryRepository.findTopByPetIdOrderByRecordedAtDescCreatedAtDesc(petId);
         if (lastRecord.isPresent() && lastRecord.get().getWeight().equals(weight)) {
             return;
         }
+        
         OffsetDateTime recordedAt;
-        if (date == null || date.isEqual(LocalDate.now(java.time.ZoneOffset.UTC))) {
-            recordedAt = OffsetDateTime.now(java.time.ZoneOffset.UTC);
+        if (date == null || date.isEqual(LocalDate.now(ZoneOffset.UTC))) {
+            recordedAt = OffsetDateTime.now(ZoneOffset.UTC);
         } else {
-            recordedAt = date.atStartOfDay().atOffset(java.time.ZoneOffset.UTC);
+            recordedAt = date.atStartOfDay().atOffset(ZoneOffset.UTC);
         }
+        
         PetWeightHistory history = PetWeightHistory.builder()
                 .petId(petId)
                 .weight(weight)
@@ -146,7 +180,7 @@ public class PetService {
     public void deletePetPhoto(UUID petId, UUID ownerId) {
         Pet pet = getPetById(petId);
         if (!pet.getOwnerId().equals(ownerId)) {
-            throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+            throw new AccessDeniedException("Bu hayvan size ait değil");
         }
         if (pet.getPhotoUrl() == null) {
             return;
@@ -160,7 +194,7 @@ public class PetService {
     public void softDeletePet(UUID petId, UUID ownerId) {
         Pet pet = getPetById(petId);
         if (!pet.getOwnerId().equals(ownerId)) {
-            throw new org.springframework.security.access.AccessDeniedException("Bu hayvan size ait değil");
+            throw new AccessDeniedException("Bu hayvan size ait değil");
         }
         if (pet.getDeletedAt() != null) {
             throw new ResourceNotFoundException("Evcil hayvan zaten silinmiş");

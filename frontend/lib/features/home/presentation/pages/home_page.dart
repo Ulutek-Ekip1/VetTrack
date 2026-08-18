@@ -56,12 +56,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Future<void> _requestNotificationPermission() async {
-    final status = await sl<FirebaseMessagingService>().requestPermissionFromUser();
+    final status =
+        await sl<FirebaseMessagingService>().requestPermissionFromUser();
     if (mounted) setState(() => _notificationPermission = status);
   }
 
   Future<void> _openNotificationSettings() async {
-    final opened = await sl<FirebaseMessagingService>().openNotificationSettings();
+    final opened =
+        await sl<FirebaseMessagingService>().openNotificationSettings();
     if (!mounted || opened) return;
 
     await showDialog<void>(
@@ -90,7 +92,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       backgroundColor: theme.colorScheme.surfaceDim,
       body: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, authState) {
-          final userName = authState is Authenticated ? authState.user.name : 'Misafir';
+          final userName =
+              authState is Authenticated ? authState.user.name : 'Misafir';
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
@@ -183,19 +186,28 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               // İçerik Listesi
               SliverList(
                 delegate: SliverChildListDelegate([
-                  if (_notificationPermission == AuthorizationStatus.notDetermined || _notificationPermission == AuthorizationStatus.denied)
+                  if (_notificationPermission ==
+                          AuthorizationStatus.notDetermined ||
+                      _notificationPermission == AuthorizationStatus.denied)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                       child: Card(
                         child: ListTile(
-                          leading: const Icon(Icons.notifications_active_outlined),
-                          title: const Text('Muayene güncellemelerini kaçırmayın'),
-                          subtitle: Text(_notificationPermission == AuthorizationStatus.denied ? 'İzin reddedildi. Güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz.' : 'Tedavi ve muayene güncellemeleri için bildirim izni verin.'),
+                          leading:
+                              const Icon(Icons.notifications_active_outlined),
+                          title:
+                              const Text('Muayene güncellemelerini kaçırmayın'),
+                          subtitle: Text(_notificationPermission ==
+                                  AuthorizationStatus.denied
+                              ? 'İzin reddedildi. Güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz.'
+                              : 'Tedavi ve muayene güncellemeleri için bildirim izni verin.'),
                           trailing: TextButton(
-                            onPressed: _notificationPermission == AuthorizationStatus.denied
+                            onPressed: _notificationPermission ==
+                                    AuthorizationStatus.denied
                                 ? _openNotificationSettings
                                 : _requestNotificationPermission,
-                            child: Text(_notificationPermission == AuthorizationStatus.denied
+                            child: Text(_notificationPermission ==
+                                    AuthorizationStatus.denied
                                 ? 'Ayarları Aç'
                                 : 'Etkinleştir'),
                           ),
@@ -206,7 +218,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
                   // Hızlı İşlemler
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.containerMargin),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.containerMargin),
                     child: Text(
                       'Hızlı İşlemler',
                       style: theme.textTheme.titleMedium?.copyWith(
@@ -218,7 +231,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   ),
                   const SizedBox(height: 8), // Boşluk daraltıldı (12 -> 8)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.containerMargin),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.containerMargin),
                     child: GridView.count(
                       crossAxisCount: 2,
                       shrinkWrap: true,
@@ -254,10 +268,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           iconColor: const Color(0xFFF43F5E),
                           onTap: () {
                             final petState = context.read<PetCubit>().state;
-                            if (petState is PetLoaded && petState.pets.isNotEmpty) {
-                              context.push('/owner/pets/${petState.pets.first.id}/treatments');
+                            if (petState is PetLoaded &&
+                                petState.pets.isNotEmpty) {
+                              context.push(
+                                  '/owner/pets/${petState.pets.first.id}/treatments');
                             } else {
-                              context.push('/owner/pets');
+                              context.go('/owner/pets');
                             }
                           },
                         ),
@@ -278,7 +294,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
                   // Dostlarım Bölümü
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.containerMargin),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.containerMargin),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -291,15 +308,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           ),
                         ),
                         TextButton(
-                          onPressed: () => context.push('/owner/pets'),
+                          onPressed: () => context.go('/owner/pets'),
                           style: TextButton.styleFrom(
                             foregroundColor: theme.colorScheme.primary,
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text('Tümünü Gör', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: const Text('Tümünü Gör',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
@@ -312,19 +331,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     child: BlocBuilder<PetCubit, PetState>(
                       builder: (context, petState) {
                         if (petState is PetLoading) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         } else if (petState is PetLoaded) {
                           final pets = petState.pets;
                           if (pets.isEmpty) {
                             return Center(
                               child: Text(
                                 'Kayıtlı evcil hayvanınız bulunmuyor.',
-                                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                                style: theme.textTheme.bodyMedium
+                                    ?.copyWith(color: Colors.grey),
                               ),
                             );
                           }
                           return ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.containerMargin),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppDimensions.containerMargin),
                             scrollDirection: Axis.horizontal,
                             physics: const BouncingScrollPhysics(),
                             itemCount: pets.length,
@@ -334,39 +356,55 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 width: 215,
                                 margin: const EdgeInsets.only(right: 12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF), // Eşleşen açık mavi renk
+                                  color: const Color(
+                                      0xFFEFF6FF), // Eşleşen açık mavi renk
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: InkWell(
-                                  onTap: () => context.push('/owner/pets/${pet.id}'),
+                                  onTap: () =>
+                                      context.push('/owner/pets/${pet.id}'),
                                   borderRadius: BorderRadius.circular(20),
-                                  splashColor: theme.colorScheme.primary.withValues(alpha: 0.08),
-                                  hoverColor: theme.colorScheme.primary.withValues(alpha: 0.04),
+                                  splashColor: theme.colorScheme.primary
+                                      .withValues(alpha: 0.08),
+                                  hoverColor: theme.colorScheme.primary
+                                      .withValues(alpha: 0.04),
                                   child: Padding(
                                     padding: const EdgeInsets.all(16),
                                     child: Row(
                                       children: [
                                         CircleAvatar(
                                           radius: 30,
-                                          backgroundColor: const Color(0xFFDBEAFE),
-                                          backgroundImage: pet.photoUrl != null && pet.photoUrl!.isNotEmpty
-                                              ? NetworkImage(pet.photoUrl!)
-                                              : null,
-                                          child: pet.photoUrl == null || pet.photoUrl!.isEmpty
-                                              ? Icon(Icons.pets, size: 30, color: theme.colorScheme.primary)
+                                          backgroundColor:
+                                              const Color(0xFFDBEAFE),
+                                          backgroundImage:
+                                              pet.photoUrl != null &&
+                                                      pet.photoUrl!.isNotEmpty
+                                                  ? NetworkImage(pet.photoUrl!)
+                                                  : null,
+                                          child: pet.photoUrl == null ||
+                                                  pet.photoUrl!.isEmpty
+                                              ? Icon(Icons.pets,
+                                                  size: 30,
+                                                  color:
+                                                      theme.colorScheme.primary)
                                               : null,
                                         ),
                                         const SizedBox(width: 14),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               Text(
                                                 pet.name,
-                                                style: theme.textTheme.titleMedium?.copyWith(
+                                                style: theme
+                                                    .textTheme.titleMedium
+                                                    ?.copyWith(
                                                   fontWeight: FontWeight.bold,
-                                                  color: const Color(0xFF131B2E),
+                                                  color:
+                                                      const Color(0xFF131B2E),
                                                   fontSize: 16,
                                                 ),
                                                 maxLines: 1,
@@ -374,8 +412,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                pet.breed ?? 'Tür Belirtilmemiş',
-                                                style: theme.textTheme.bodySmall?.copyWith(
+                                                pet.breed ??
+                                                    'Tür Belirtilmemiş',
+                                                style: theme.textTheme.bodySmall
+                                                    ?.copyWith(
                                                   color: Colors.grey.shade600,
                                                 ),
                                                 maxLines: 1,

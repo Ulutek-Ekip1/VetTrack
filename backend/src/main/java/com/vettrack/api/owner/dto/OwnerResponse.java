@@ -19,6 +19,8 @@ public class OwnerResponse {
     private String fullName;
     private String email;
     private String phone;
+    private String surname;
+    private String address;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
@@ -31,6 +33,8 @@ public class OwnerResponse {
                 .fullName(owner.getFullName())
                 .email(owner.getEmail())
                 .phone(owner.getPhone())
+                .surname(owner.getSurname())
+                .address(owner.getAddress())
                 .createdAt(owner.getCreatedAt())
                 .updatedAt(owner.getUpdatedAt())
                 .build();

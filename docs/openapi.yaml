@@ -4,25 +4,20 @@ info:
   description: |
     Veteriner Tedavi Takip Uygulaması — Backend REST API Sözleşmesi.
 
-    Bu doküman, VetTrack PRD v1.0 ve 4 Haftalık Yol Haritası dokümanlarına
-    dayanılarak hazırlanmıştır. Tüm endpoint'ler, request/response şemaları,
-    hata kodları ve edge case davranışları burada tanımlanmıştır.
+    Bu doküman, VetTrack PRD v1.0 ve yol haritası dokümanlarına dayanılarak
+    hazırlanmıştır. Tüm endpoint'ler, request/response şemaları, hata kodları
+    ve sözleşme kuralları burada tanımlanmıştır.
 
     ## Kimlik Doğrulama
-
     - Kayıt ve giriş backend üzerinden yapılır (Supabase Auth arka planda).
-    - Başarılı kayıt/giriş sonrası dönen `accessToken`, tüm korumalı
-      endpoint'lere `Authorization: Bearer <token>` header'ında gönderilir.
-    - İki rol vardır: `owner` (hayvan sahibi, mobil) ve `vet_staff` (doktor, web panel).
-    - Rol bilgisi JWT claim'inden çıkarılır.
+    - Başarılı kayıt/giriş sonrası dönen `accessToken`, tüm korumalı endpoint'lere `Authorization: Bearer <token>` header'ında gönderilir.
+    - Rol bilgisi JWT claim'inden çıkarılır (`owner`, `vet_staff`, `admin`).
 
     ## Genel Kurallar
-
     - JSON alan isimleri **camelCase** formatındadır.
     - Tarih/saat alanları ISO 8601 formatındadır (UTC).
     - UUID formatında ID'ler kullanılır.
-    - Tüm liste endpoint'leri yeniden eskiye (DESC) sıralı döner.
-    - Tüm hatalar aynı `ErrorResponse` formatında döner.
+    - Tüm hatalar standart `ErrorResponse` formatında döner.
   version: 1.0.0
   contact:
     name: VetTrack Backend Ekibi
@@ -35,21 +30,25 @@ servers:
 
 tags:
   - name: Auth
-    description: Kimlik doğrulama — kayıt, giriş, şifre sıfırlama
+    description: Kimlik doğrulama — kayıt, giriş, şifre sıfırlama, hesap silme
+  - name: Profile
+    description: Kullanıcı profili yönetimi ve güncelleme
   - name: Pets
-    description: Hayvan yönetimi — ekleme, listeleme, güncelleme, fotoğraf
+    description: Hayvan yönetimi — ekleme, listeleme, güncelleme, kilo geçmişi, fotoğraf
   - name: Visits
-    description: Ziyaret yönetimi — hasta bulma, ziyaret başlatma/kapatma
+    description: Ziyaret yönetimi — hasta bulma, ziyaret başlatma/kapatma, geçmiş
   - name: Treatments
-    description: Tedavi girişleri — ilaç, röntgen, tahlil, not
+    description: Tedavi girişleri — ilaç, aşı, operasyon, röntgen, tahlil, not
   - name: Recommendations
     description: Bakım önerileri — mama, kum, diğer
   - name: Notifications
-    description: Bildirim yönetimi — listeleme, okundu işaretleme
+    description: Bildirim yönetimi — listeleme, okunmamış sayısı, okundu işaretleme
   - name: Devices
-    description: Cihaz yönetimi — FCM token kaydı
+    description: Cihaz yönetimi — FCM token kaydı ve silme
+  - name: Clinics
+    description: Klinik ve davet yönetimi — davet oluşturma, kabul etme, iptal etme
   - name: AI Chat
-    description: Google Gemini tabanlı yapay zeka veteriner danışmanlığı ve sohbet geçmişi yönetimi
+    description: Google Gemini tabanlı yapay zeka veteriner danışmanlığı, güvenlik filtreleri ve sohbet geçmişi
 
 # ================================================================
 # PATHS
@@ -61,10 +60,7 @@ paths:
     post:
       tags: [Auth]
       summary: Kayıt ol
-      description: |
-        Yeni kullanıcı kaydı (FR-01). Backend Supabase Auth'a kullanıcı
-        oluşturur, ardından role göre owners veya vet_staff tablosuna
-        profil kaydı ekler. JWT döner.
+      description: Yeni kullanıcı kaydı oluşturur ve JWT döner.
       requestBody:
         required: true
         content:
@@ -86,19 +82,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 409
-                error: EMAIL_ALREADY_EXISTS
-                message: "Bu e-posta adresi zaten kayıtlı"
-                timestamp: "2026-07-29T14:32:11Z"
 
   /auth/login:
     post:
       tags: [Auth]
       summary: Giriş yap
-      description: |
-        E-posta ve şifre ile giriş (FR-01). Backend Supabase Auth'a
-        forward eder, JWT döner.
+      description: E-posta ve şifre ile giriş yaparak JWT döner.
       requestBody:
         required: true
         content:
@@ -115,24 +104,12 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          description: E-posta veya şifre hatalı
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 401
-                error: INVALID_CREDENTIALS
-                message: "E-posta veya şifre hatalı"
-                timestamp: "2026-07-29T14:32:11Z"
+          $ref: '#/components/responses/Unauthorized'
 
   /auth/forgot-password:
     post:
       tags: [Auth]
       summary: Şifre sıfırlama e-postası gönder
-      description: |
-        Supabase Auth şifre sıfırlama akışını tetikler (US-15).
-        E-posta kayıtlı olmasa bile 200 döner (güvenlik).
       requestBody:
         required: true
         content:
@@ -149,7 +126,35 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi"
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/resend-verification:
+    post:
+      tags: [Auth]
+      summary: Doğrulama e-postasını tekrar gönder
+      description: Kayıt sonrası e-posta doğrulama linkini yeniden tetikler.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Doğrulama e-postası gönderildi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         '400':
           $ref: '#/components/responses/ValidationError'
 
@@ -157,56 +162,59 @@ paths:
     get:
       tags: [Auth]
       summary: Mevcut kullanıcı bilgisi
-      description: |
-        JWT'deki kullanıcının profil bilgisini döner. Frontend uygulama
-        açılışında çağırarak role göre yönlendirme yapar.
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Kullanıcı bilgisi
+          description: Kullanıcı profil ve yetki bilgisi
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MeResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-
     delete:
       tags: [Auth]
-      summary: Hesap sil
-      description: |
-        Kullanıcının hesabını siler. Tüm hayvanları soft delete olur.
-        Supabase Auth'tan kullanıcı deaktive edilir. Tıbbi geçmiş
-        saklanır (KVKK). JWT'nin iat (issued-at) claim'i son 5 dakika
-        içinde olmalı — değilse REAUTHENTICATION_REQUIRED (401) döner.
-        Frontend, silme isteğinden hemen önce kullanıcıya şifresini
-        tekrar girdirip Supabase'den taze bir token almalıdır.
+      summary: Hesap sil (KVKK / Unutulma Hakkı)
+      description: Kullanıcının hesabını ve bağlı aktif petlerini soft delete yapar.
       security:
         - bearerAuth: []
       responses:
         '204':
           description: Hesap silindi
         '401':
-          description: Yetkisiz erişim veya token yeterince taze değil
+          $ref: '#/components/responses/Unauthorized'
+
+  # ---- Profile ----
+  /profiles/me:
+    put:
+      tags: [Profile]
+      summary: Kullanıcı profilini güncelle
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profil güncellendi
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 401
-                error: REAUTHENTICATION_REQUIRED
-                message: "Bu işlem için yakın zamanda tekrar giriş yapmış olmanız gerekir."
-                timestamp: "2026-08-17T12:00:00Z"
+                $ref: '#/components/schemas/OwnerResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   # ---- Pets ----
   /pets:
     post:
       tags: [Pets]
       summary: Yeni hayvan ekle
-      description: |
-        Sahip yeni hayvan kaydeder. Sistem otomatik 6 haneli benzersiz
-        kod üretir (FR-04). Kod response'ta uniqueCode alanında döner.
       security:
         - bearerAuth: []
       requestBody:
@@ -226,15 +234,10 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
 
     get:
       tags: [Pets]
-      summary: Sahibin hayvanlarını listele
-      description: |
-        JWT'deki kullanıcıya ait tüm hayvanları döner (FR-13).
-        Pasife alınmış hayvanlar döndürülmez (EC-05).
+      summary: Sahibin aktif hayvanlarını listele
       security:
         - bearerAuth: []
       responses:
@@ -259,22 +262,19 @@ paths:
         - $ref: '#/components/parameters/PathId'
       responses:
         '200':
-          description: Hayvan bilgisi
+          description: Hayvan detayı
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PetResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
 
     put:
       tags: [Pets]
       summary: Hayvan bilgilerini güncelle
-      description: Tüm alanlar opsiyonel — sadece gönderilenler güncellenir. uniqueCode ve photoUrl güncellenemez.
       security:
         - bearerAuth: []
       parameters:
@@ -287,7 +287,7 @@ paths:
               $ref: '#/components/schemas/PetUpdateRequest'
       responses:
         '200':
-          description: Güncellenmiş hayvan bilgisi
+          description: Hayvan güncellendi
           content:
             application/json:
               schema:
@@ -296,17 +296,12 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
 
     delete:
       tags: [Pets]
       summary: Hayvan sil (soft delete)
-      description: |
-        Hayvanı pasife alır (EC-05). deleted_at doldurulur, kayıt silinmez.
-        Tıbbi geçmiş saklanır, listeleme ve kod aramasında görünmez.
       security:
         - bearerAuth: []
       parameters:
@@ -316,18 +311,13 @@ paths:
           description: Hayvan pasife alındı
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
 
   /pets/{id}/weight-history:
     get:
       tags: [Pets]
-      summary: Hayvanın kilo geçmişini listele (Seçenek A)
-      description: |
-        Zamana bağlı kilo geçmişini kronolojik (ASC) olarak döner.
-        Mobil kilo grafiği için kullanılır.
+      summary: Hayvanın kilo geçmişini listele
       security:
         - bearerAuth: []
       parameters:
@@ -338,23 +328,20 @@ paths:
           schema:
             type: integer
             default: 0
-          description: Sayfa numarası (0-indexed, opsiyonel)
         - name: size
           in: query
           required: false
           schema:
             type: integer
             default: 20
-          description: Sayfa boyutu (opsiyonel)
         - name: sort
           in: query
           required: false
           schema:
             type: string
-          description: Sıralama alanı ve yönü (örn. recordedAt,asc)
       responses:
         '200':
-          description: "Kilo geçmişi listesi (varsayılan: dizi, sayfalama talep edildiğinde Page nesnesi)"
+          description: Kilo geçmişi listesi veya sayfalı sonuç
           content:
             application/json:
               schema:
@@ -365,6 +352,28 @@ paths:
                   - $ref: '#/components/schemas/PagePetWeightHistoryResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /pets/{id}/health-history:
+    get:
+      tags: [Pets]
+      summary: Pet Sağlık Geçmişi ve Klinik Detaylarını Getir
+      description: |
+        Evcil hayvanın kilo geçmişi, muayene ziyaretleri, tedavi/ilaç kayıtları ve hekim önerilerini tek bir yanıtta döner.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Sağlık geçmişi başarıyla getirildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetHealthHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
@@ -373,12 +382,7 @@ paths:
   /pets/{id}/photo:
     post:
       tags: [Pets]
-      summary: Hayvan fotoğrafı yükle
-      description: |
-        Fotoğraf Supabase Storage'a yüklenir (FR-09). Max 15MB (EC-06).
-        Kabul edilen tipler: image/jpeg, image/jpg, image/png, image/webp.
-        Dönen `photoUrl` her yüklemede değişen bir versiyon parametresi (`?v=`) taşır;
-        CDN/istemci önbelleğinin güncellenen fotoğraf yerine eskisini göstermesini önler.
+      summary: Hayvan fotoğrafı yükle (Max 15MB)
       security:
         - bearerAuth: []
       parameters:
@@ -405,69 +409,38 @@ paths:
                   photoUrl:
                     type: string
                     format: uri
-                    example: "https://xxx.supabase.co/storage/v1/pets/abc123.jpg"
+        '400':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '413':
-          description: Dosya 15MB sınırını aşıyor (EC-06)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 413
-                error: FILE_TOO_LARGE
-                message: "Dosya boyutu 15MB'ı aşamaz"
-                timestamp: "2026-07-29T14:32:11Z"
+          description: Dosya boyutu çok büyük
         '415':
-          description: Desteklenmeyen dosya tipi
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 415
-                error: UNSUPPORTED_FILE_TYPE
-                message: "Sadece JPEG, PNG ve WebP formatları kabul edilir"
-                timestamp: "2026-07-29T14:32:11Z"
+          description: Desteklenmeyen dosya türü
     delete:
       tags: [Pets]
       summary: Hayvan fotoğrafını sil
-      description: |
-        Hayvanın mevcut fotoğrafını Supabase Storage'dan ve kayıttan siler.
-        Hayvanın zaten fotoğrafı yoksa hata fırlatılmaz, yine 204 döner (idempotent).
       security:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
       responses:
         '204':
-          description: Fotoğraf silindi (veya zaten yoktu)
+          description: Fotoğraf silindi
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
 
   /pets/{id}/visits:
     get:
       tags: [Visits]
-      summary: Hayvanın ziyaret geçmişi (sahip tarafı)
-      description: |
-        Sahip, kendi hayvanının tüm ziyaretlerini kronolojik görüntüler (US-04).
-        Her ziyaretin tedavi girişleri ve önerileri dahil döner.
+      summary: Hayvanın tüm ziyaret geçmişi
       security:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
       responses:
         '200':
-          description: Ziyaret listesi (tedaviler ve öneriler dahil)
+          description: Ziyaret listesi
           content:
             application/json:
               schema:
@@ -476,279 +449,15 @@ paths:
                   $ref: '#/components/schemas/VisitDetailResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
 
-  /pets/{id}/recommendations:
-    get:
-      tags: [Recommendations]
-      summary: Hayvanın tüm önerileri
-      description: |
-        Sahip, hayvanının tüm ziyaretlerinden gelen önerileri tek listede
-        görür (US-07). Yeniden eskiye sıralı. Doktor adı dahil.
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-      responses:
-        '200':
-          description: Öneri listesi
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RecommendationDetailResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # ---- Visits ----
-  /visits/owner:
-    get:
-      tags: [Visits]
-      summary: Sahibin tüm aktif petlerinin ziyaret geçmişi
-      description: |
-        Giriş yapmış sahibin (owner) sahip olduğu tüm AKTIF (soft-delete
-        edilmemiş, isActive=true) petlerinin ziyaretlerini tek listede döner.
-        Frontend'in her pet için ayrı istek atmasını (N+1) önler.
-        Yeniden eskiye (startedAt DESC) sıralı. Kayıt yoksa 200 + boş dizi ([]).
-        Sahip JWT subject'inden belirlenir; parametre almaz.
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Ziyaret listesi (kayıt yoksa boş dizi)
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/VisitResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /visits/vet:
-    get:
-      tags: [Visits]
-      summary: Hekime atanmış tüm ziyaretler
-      description: |
-        Giriş yapmış veteriner hekime (vet_staff) atanmış tüm ziyaretleri
-        döner. Soft-delete edilmiş / pasif petlerin ziyaretleri hariç.
-        Yeniden eskiye (startedAt DESC) sıralı. Kayıt yoksa 200 + boş dizi ([]).
-        Hekim JWT subject'inden belirlenir; parametre almaz. Sadece VET_STAFF
-        veya ADMIN rolü erişebilir.
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Ziyaret listesi (kayıt yoksa boş dizi)
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/VisitResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /visits/code/{code}:
-    get:
-      tags: [Visits]
-      summary: Kod ile hasta bul
-      description: |
-        Doktor, 6 haneli kodu girer. Case-insensitive, boşluk temizlenir (FR-05).
-        Hayvan bilgisi + geçmiş ziyaretler + tedaviler + öneriler döner.
-        Benzer kod önerisi sunulmaz (güvenlik, EC-01).
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: code
-          in: path
-          required: true
-          schema:
-            type: string
-          description: "6 haneli benzersiz kod (boşluk/küçük harf kabul edilir)"
-          example: "7k4r 9m"
-      responses:
-        '200':
-          description: Hasta bulundu
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PetWithVisitsResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          description: Kod bulunamadı (EC-01)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 404
-                error: PET_NOT_FOUND
-                message: "Kod bulunamadı"
-                timestamp: "2026-07-29T14:32:11Z"
-
-  /visits:
-    post:
-      tags: [Visits]
-      summary: Yeni ziyaret başlat
-      description: |
-        Doktor, hasta için yeni ziyaret açar. Açık ziyaret varsa
-        409 döner (EC-02).
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VisitCreateRequest'
-      responses:
-        '201':
-          description: Ziyaret başlatıldı
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VisitResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          description: Pet bulunamadı
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: >
-            Açık ziyaret zaten var (EC-02). Normalde VISIT_ALREADY_OPEN döner;
-            eş zamanlı iki istekte (yarış durumu) DB seviyesindeki partial
-            unique index (idx_visits_active_pet) ikinciyi reddeder ve generic
-            CONFLICT döner. Frontend her iki durumda da aynı davranmalı:
-            mevcut açık ziyareti tekrar çek, otomatik retry yapma.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 409
-                error: VISIT_ALREADY_OPEN
-                message: "Bu hayvan için açık bir ziyaret zaten var"
-                timestamp: "2026-07-29T14:32:11Z"
-
-  /visits/{id}/close:
-    put:
-      tags: [Visits]
-      summary: Ziyareti kapat
-      description: |
-        Ziyareti completed olarak kapatır. Zaten kapalıysa 409 döner.
-        Kapatma anında sahibe FCM push bildirimi asenkron tetiklenir (FR-10).
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-      responses:
-        '200':
-          description: Ziyaret kapatıldı
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VisitResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Ziyaret zaten kapalı
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 409
-                error: VISIT_ALREADY_CLOSED
-                message: "Bu ziyaret zaten tamamlanmış"
-                timestamp: "2026-07-29T14:32:11Z"
-
-  # ---- Treatments ----
-  /visits/{visitId}/treatments:
-    post:
-      tags: [Treatments]
-      summary: Tedavi girişi ekle
-      description: |
-        Doktor tedavi kaydı girer (FR-07). Kapalı ziyarete giriş yapılamaz.
-        Kayıt oluşturulduğunda sahibe FCM push bildirimi tetiklenir (FR-10).
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: visitId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TreatmentCreateRequest'
-      responses:
-        '201':
-          description: Tedavi kaydı oluşturuldu
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TreatmentEntryResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          description: Ziyaret bulunamadı
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: Ziyaret kapalı
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 409
-                error: VISIT_CLOSED
-                message: "Kapalı ziyarete tedavi girişi yapılamaz"
-                timestamp: "2026-07-29T14:32:11Z"
-
+  /pets/{petId}/treatments:
     get:
       tags: [Treatments]
-      summary: Ziyaretin tedavi girişlerini listele
-      description: Hem doktor hem sahip erişebilir.
+      summary: Pet'in tüm tedavilerini listele
       security:
         - bearerAuth: []
       parameters:
-        - name: visitId
+        - name: petId
           in: path
           required: true
           schema:
@@ -770,13 +479,196 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /pets/{id}/recommendations:
+    get:
+      tags: [Recommendations]
+      summary: Hayvanın tüm önerileri
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Öneri listesi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecommendationDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ---- Visits ----
+  /visits/owner:
+    get:
+      tags: [Visits]
+      summary: Sahibin tüm aktif hayvanlarının ziyaret geçmişi
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ziyaret listesi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /visits/vet:
+    get:
+      tags: [Visits]
+      summary: Hekime atanmış ziyaretler
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ziyaret listesi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /visits/code/{code}:
+    get:
+      tags: [Visits]
+      summary: 6 haneli kod ile hasta bul
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Hasta bilgisi ve geçmiş ziyaretleri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetWithVisitsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /visits:
+    post:
+      tags: [Visits]
+      summary: Yeni ziyaret başlat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VisitCreateRequest'
+      responses:
+        '201':
+          description: Ziyaret başlatıldı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Açık ziyaret zaten mevcut
+
+  /visits/{id}/close:
+    put:
+      tags: [Visits]
+      summary: Ziyareti tamamla/kapat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Ziyaret kapatıldı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Ziyaret zaten kapalı
+
+  # ---- Treatments ----
+  /visits/{visitId}/treatments:
+    post:
+      tags: [Treatments]
+      summary: Tedavi girişi ekle
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: visitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TreatmentCreateRequest'
+      responses:
+        '201':
+          description: Tedavi girişi kaydedildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreatmentEntryResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Ziyaret kapalı
+    get:
+      tags: [Treatments]
+      summary: Ziyaretin tedavi girişlerini listele
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: visitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tedavi listesi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TreatmentEntryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /treatments/{id}:
     put:
       tags: [Treatments]
-      summary: Tedavi kaydını düzenle (15 dk pencere)
-      description: |
-        Doktor yanlış girdiği kaydı düzenler (EC-08). Oluşturulmasından
-        itibaren 15 dakika içinde mümkün. Sadece kaydı giren doktor.
+      summary: Tedavi kaydını güncelle (15 dakika penceresi)
       security:
         - bearerAuth: []
       parameters:
@@ -789,7 +681,7 @@ paths:
               $ref: '#/components/schemas/TreatmentUpdateRequest'
       responses:
         '200':
-          description: Tedavi kaydı güncellendi
+          description: Tedavi güncellendi
           content:
             application/json:
               schema:
@@ -799,25 +691,10 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Yetki yok veya 15 dakika geçmiş
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 403
-                error: EDIT_WINDOW_EXPIRED
-                message: "Düzenleme süresi doldu (15 dakika)"
-                timestamp: "2026-07-29T14:32:11Z"
-        '404':
-          $ref: '#/components/responses/NotFound'
-
+          description: 15 dakikalık düzenleme penceresi doldu
     delete:
       tags: [Treatments]
-      summary: Tedavi kaydını sil (15 dk pencere)
-      description: |
-        Doktor yanlış hastaya girdiği kaydı siler (EC-08). Hard delete.
-        Denetim izi (audit log) tutulur.
+      summary: Tedavi kaydını sil (15 dakika penceresi)
       security:
         - bearerAuth: []
       parameters:
@@ -828,27 +705,65 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Yetki yok veya 15 dakika geçmiş
+          description: 15 dakikalık silme penceresi doldu
+
+  /treatments/{id}/attachment/upload-url:
+    post:
+      tags: [Treatments]
+      summary: Tedavi eki için güvenli yükleme URL'i al
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileName, contentType]
+              properties:
+                fileName:
+                  type: string
+                contentType:
+                  type: string
+      responses:
+        '200':
+          description: Yükleme URL'i üretildi
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 403
-                error: EDIT_WINDOW_EXPIRED
-                message: "Silme süresi doldu (15 dakika)"
-                timestamp: "2026-07-29T14:32:11Z"
-        '404':
-          $ref: '#/components/responses/NotFound'
+                type: object
+                properties:
+                  uploadUrl:
+                    type: string
+                  attachmentUrl:
+                    type: string
+
+  /treatments/{id}/attachment/read-url:
+    get:
+      tags: [Treatments]
+      summary: Tedavi ekini görüntülemek için imzalı okuma URL'i al
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Okuma URL'i
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  readUrl:
+                    type: string
 
   # ---- Recommendations ----
   /visits/{visitId}/recommendations:
     post:
       tags: [Recommendations]
-      summary: Öneri gir
-      description: |
-        Doktor bakım önerisi girer (FR-08). Kapalı ziyarete eklenemez.
-        Sahibe FCM push bildirimi tetiklenir (FR-10).
+      summary: Bakım önerisi ekle
       security:
         - bearerAuth: []
       parameters:
@@ -866,7 +781,7 @@ paths:
               $ref: '#/components/schemas/RecommendationCreateRequest'
       responses:
         '201':
-          description: Öneri oluşturuldu
+          description: Öneri kaydedildi
           content:
             application/json:
               schema:
@@ -875,48 +790,30 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          description: Ziyaret bulunamadı
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '409':
           description: Ziyaret kapalı
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: 409
-                error: VISIT_CLOSED
-                message: "Kapalı ziyarete öneri eklenemez"
-                timestamp: "2026-07-29T14:32:11Z"
 
   # ---- Notifications ----
   /notifications:
     get:
       tags: [Notifications]
-      summary: Bildirim listesi
-      description: Sahibin tüm bildirimlerini ve okunmamış sayısını döner (FR-11).
+      summary: Sahibin tüm bildirimleri
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Bildirim listesi + okunmamış sayısı
+          description: Bildirim listesi ve okunmamış sayısı
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotificationListResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
   /notifications/unread-count:
     get:
       tags: [Notifications]
       summary: Okunmamış bildirim sayısı
-      description: Sadece okunmamış bildirim sayısını döner. Badge/counter güncellemesi için hafif endpoint.
       security:
         - bearerAuth: []
       responses:
@@ -928,11 +825,11 @@ paths:
                 $ref: '#/components/schemas/UnreadCountResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
   /notifications/{id}/read:
     patch:
       tags: [Notifications]
       summary: Bildirimi okundu işaretle
-      description: İdempotent — zaten okunmuşsa sessizce 204 döner.
       security:
         - bearerAuth: []
       parameters:
@@ -942,20 +839,18 @@ paths:
           description: Bildirim okundu olarak işaretlendi
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+
   /notifications/read-all:
     patch:
       tags: [Notifications]
       summary: Tüm bildirimleri okundu işaretle
-      description: Sahibin tüm okunmamış bildirimlerini toplu olarak okundu işaretler.
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Tüm bildirimler okundu olarak işaretlendi
+          description: Tüm bildirimler okundu işaretlendi
           content:
             application/json:
               schema:
@@ -967,10 +862,7 @@ paths:
   /devices/register:
     post:
       tags: [Devices]
-      summary: FCM token kaydet
-      description: |
-        Uygulama açılışında/girişte cihazın FCM token'ı kaydedilir (FR-12).
-        Aynı token varsa mevcut kayıt yeni userId ve platform ile güncellenir (idempotent).
+      summary: FCM cihaz token kaydı
       security:
         - bearerAuth: []
       requestBody:
@@ -981,20 +873,16 @@ paths:
               $ref: '#/components/schemas/DeviceRegisterRequest'
       responses:
         '201':
-          description: Token kaydedildi veya güncellendi
+          description: Cihaz token'ı kaydedildi
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
   /devices/unregister:
     post:
       tags: [Devices]
-      summary: FCM token sil (logout)
-      description: |
-        Logout sırasında çağrılır. İlgili cihaz token'ı silinerek eski cihaza bildirim
-        gönderilmesi engellenir (FR-12). Silme sadece token + userId eşleşmesinde
-        gerçekleşir; başka kullanıcının token'ı silinmez.
-        Token zaten yoksa yine 204 döner (idempotent).
+      summary: FCM cihaz token silme (logout)
       security:
         - bearerAuth: []
       requestBody:
@@ -1005,23 +893,82 @@ paths:
               $ref: '#/components/schemas/DeviceRegisterRequest'
       responses:
         '204':
-          description: Token silindi (veya zaten yoktu)
+          description: Cihaz token'ı silindi
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
-# ---- AI Chat ----
-  /api/v1/ai/messages/{id}:
-    delete:
-      tags: [AI Chat]
-      summary: Tekil sohbet mesajını sil
-      description: |
-        Kullanıcının kendine ait tekil bir sohbet mesajını siler.
-        Mesaj bulunamazsa 404, kullanıcıya ait değilse 403 döner.
+
+  # ---- Clinics & Invites ----
+  /clinics/{clinicId}/invites:
+    post:
+      tags: [Clinics]
+      summary: Kliniğe personel davet et
+      description: Klinik yöneticisi (admin) tarafından yeni veteriner/personel davetiyesi oluşturulur.
       security:
         - bearerAuth: []
       parameters:
-        - name: id
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClinicInviteCreateRequest'
+      responses:
+        '201':
+          description: Davetiye oluşturuldu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicInviteResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /clinics/invites/accept:
+    post:
+      tags: [Clinics]
+      summary: Davetiyeyi kabul et
+      description: Kullanıcı kendisine gelen davet token'ı ile kliniğe katılır.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptInviteRequest'
+      responses:
+        '200':
+          description: Davet kabul edildi ve üyelik aktifleştirildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicMembershipResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Geçersiz veya süresi dolmuş davet token'ı
+
+  /clinics/invites/{inviteId}:
+    delete:
+      tags: [Clinics]
+      summary: Davetiyeyi iptal et (Revoke)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: inviteId
           in: path
           required: true
           schema:
@@ -1029,7 +976,7 @@ paths:
             format: uuid
       responses:
         '204':
-          description: Mesaj başarıyla silindi
+          description: Davetiye iptal edildi
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1037,12 +984,89 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  # ---- AI Chat ----
+  /api/v1/ai/chat:
+    post:
+      tags: [AI Chat]
+      summary: AI Asistan ile sohbet et
+      description: |
+        Kullanıcının evcil hayvanıyla ilgili sorularını yanıtlayan Google Gemini destekli asistan.
+        Acil durum tespiti, PII maskeleme, opt-in onay kontrolü ve günlük kota sınırlaması içerir.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiChatRequest'
+      responses:
+        '200':
+          description: AI yanıtı üretildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiChatResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Açık rıza (opt-in) onayı eksik veya pet sahipliği yetkisi yok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Idempotency anahtarı uyuşmazlığı
+        '429':
+          description: Günlük mesaj kotası aşıldı (50 mesaj/gün)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/ai/history:
+    get:
+      tags: [AI Chat]
+      summary: AI sohbet geçmişini getir
+      description: Giriş yapmış kullanıcının (veya belirtilen petId'nin) AI sohbet geçmişini döner.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: petId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Mesaj geçmişi listesi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatMessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
     delete:
       tags: [AI Chat]
       summary: Tüm sohbet geçmişini sil (KVKK Unutulma Hakkı)
-      description: |
-        Giriş yapmış kullanıcının tüm AI sohbet geçmişini veritabanından kalıcı olarak siler.
       security:
         - bearerAuth: []
       responses:
@@ -1050,6 +1074,46 @@ paths:
           description: Tüm sohbet geçmişi başarıyla silindi
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/ai/conversations/{conversationId}:
+    delete:
+      tags: [AI Chat]
+      summary: Belirli bir konuşma oturumunu sil
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Konuşma oturumu silindi
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/ai/messages/{id}:
+    delete:
+      tags: [AI Chat]
+      summary: Tekil sohbet mesajını sil
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: Mesaj silindi
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 # ================================================================
 # COMPONENTS
 # ================================================================
@@ -1100,7 +1164,7 @@ components:
             timestamp: "2026-07-29T14:32:11Z"
 
     Forbidden:
-      description: Rol yetkisiz
+      description: Rol yetkisiz veya erişim izni yok
       content:
         application/json:
           schema:
@@ -1133,22 +1197,19 @@ components:
       properties:
         status:
           type: integer
-          description: HTTP status kodu
           example: 400
         error:
           type: string
-          description: "Makine-okunur hata kodu (UPPER_SNAKE_CASE)"
           example: VALIDATION_ERROR
         message:
           type: string
-          description: "İnsan-okunur hata mesajı"
-          example: "name alanı zorunludur"
+          example: "Doğrulama hatası"
         timestamp:
           type: string
           format: date-time
           example: "2026-07-29T14:32:11Z"
 
-    # -- Auth --
+    # -- Auth & Profile --
     RegisterRequest:
       type: object
       required: [email, password, name, role]
@@ -1206,6 +1267,20 @@ components:
           example: 3600
         user:
           $ref: '#/components/schemas/MeResponse'
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Ayşe Yılmaz"
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+          example: "+905551234567"
 
     OwnerResponse:
       type: object
@@ -1301,7 +1376,6 @@ components:
         breed:
           type: string
           nullable: true
-          maxLength: 100
           example: "Tekir"
         gender:
           type: string
@@ -1324,7 +1398,7 @@ components:
           type: number
           format: double
           nullable: true
-          example: 23.0
+          example: 4.5
         microchipNo:
           type: string
           nullable: true
@@ -1336,15 +1410,15 @@ components:
         bloodType:
           type: string
           nullable: true
-          example: "DEA 1.1 (+)"
+          example: "A"
         color:
           type: string
           nullable: true
-          example: "Golden"
+          example: "Sarman"
         allergies:
           type: string
           nullable: true
-          example: "Tavuk proteinine alerjik."
+          example: "Tavuk proteini"
         chronicIllnesses:
           type: string
           nullable: true
@@ -1359,11 +1433,9 @@ components:
           maxLength: 100
         species:
           type: string
-          minLength: 1
         breed:
           type: string
           nullable: true
-          maxLength: 100
         gender:
           type: string
           enum: [male, female, unknown]
@@ -1378,23 +1450,18 @@ components:
           type: number
           format: double
           nullable: true
-          example: 23.0
         microchipNo:
           type: string
           nullable: true
-          example: "900215000123456"
         isSpayedOrNeutered:
           type: boolean
           nullable: true
-          example: true
         bloodType:
           type: string
           nullable: true
-          example: "DEA 1.1 (+)"
         color:
           type: string
           nullable: true
-          example: "Golden"
         allergies:
           type: string
           nullable: true
@@ -1442,11 +1509,10 @@ components:
           type: number
           format: double
           nullable: true
-          example: 23.0
+          example: 4.5
         microchipNo:
           type: string
           nullable: true
-          example: "900215000123456"
         isSpayedOrNeutered:
           type: boolean
           nullable: true
@@ -1454,19 +1520,15 @@ components:
         bloodType:
           type: string
           nullable: true
-          example: "DEA 1.1 (+)"
         color:
           type: string
           nullable: true
-          example: "Golden"
         allergies:
           type: string
           nullable: true
-          example: "Tavuk proteinine alerjik."
         chronicIllnesses:
           type: string
           nullable: true
-          example: "Yok"
         uniqueCode:
           type: string
           minLength: 6
@@ -1490,7 +1552,7 @@ components:
         weight:
           type: number
           format: double
-          example: 21.0
+          example: 4.5
 
     PagePetWeightHistoryResponse:
       type: object
@@ -1521,6 +1583,114 @@ components:
           type: boolean
           example: false
 
+    PetHealthHistoryResponse:
+      type: object
+      properties:
+        petId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        species:
+          type: string
+        breed:
+          type: string
+        gender:
+          type: string
+        currentWeight:
+          type: number
+          format: double
+        bloodType:
+          type: string
+        microchipNo:
+          type: string
+        isSpayedOrNeutered:
+          type: boolean
+        allergies:
+          type: string
+        chronicIllnesses:
+          type: string
+        weightHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/PetWeightHistoryResponse'
+        visits:
+          type: array
+          items:
+            $ref: '#/components/schemas/VisitSummaryDto'
+        treatments:
+          type: array
+          items:
+            $ref: '#/components/schemas/TreatmentSummaryDto'
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendationSummaryDto'
+
+    VisitSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        vetStaffId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        chiefComplaint:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+
+    TreatmentSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        visitId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+
+    RecommendationSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        visitId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
     PetWithVisitsResponse:
       allOf:
         - $ref: '#/components/schemas/PetResponse'
@@ -1539,6 +1709,10 @@ components:
         petId:
           type: string
           format: uuid
+        chiefComplaint:
+          type: string
+          nullable: true
+          example: "Halsizlik ve kusma"
 
     VisitResponse:
       type: object
@@ -1585,7 +1759,6 @@ components:
         chiefComplaint:
           type: string
           nullable: true
-          example: "Akut kusma ve iştahsızlık"
         startedAt:
           type: string
           format: date-time
@@ -1619,7 +1792,7 @@ components:
         description:
           type: string
           nullable: true
-          example: "Günde 2 kez, 7 gün süreyle"
+          example: "Günde 2 kez, 7 gün"
         attachmentUrl:
           type: string
           nullable: true
@@ -1686,7 +1859,7 @@ components:
         description:
           type: string
           minLength: 1
-          example: "Royal Canin Gastrointestinal, günde 2 öğün, 200g"
+          example: "Royal Canin Gastrointestinal, günde 2 öğün"
 
     RecommendationResponse:
       type: object
@@ -1716,16 +1889,15 @@ components:
               example: "Dr. Mehmet Yılmaz"
 
     # -- Notifications --
-    # -- Notifications --
     NotificationType:
       type: string
-      description: Bildirim türü. Frontend ikon/renk seçimi için kullanır.
       enum:
         - VACCINE
         - VISIT
         - TREATMENT
         - RECOMMENDATION
         - SYSTEM
+
     NotificationResponse:
       type: object
       properties:
@@ -1740,7 +1912,6 @@ components:
         body:
           type: string
           nullable: true
-          example: "Dr. Mehmet Yılmaz tarafından ilaç kaydı girildi"
         treatmentEntryId:
           type: string
           format: uuid
@@ -1751,10 +1922,10 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Bildirimin okunduğu zaman. Okunmamışsa null.
         sentAt:
           type: string
           format: date-time
+
     NotificationListResponse:
       type: object
       properties:
@@ -1765,14 +1936,15 @@ components:
         unreadCount:
           type: integer
           format: int64
-          example: 5
+          example: 3
+
     UnreadCountResponse:
       type: object
       properties:
         unreadCount:
           type: integer
           format: int64
-          example: 5
+          example: 3
 
     # -- Devices --
     DeviceRegisterRequest:
@@ -1785,3 +1957,139 @@ components:
         platform:
           type: string
           enum: [ios, android]
+
+    # -- Clinics & Invites --
+    ClinicInviteCreateRequest:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "vet@klinik.com"
+        role:
+          type: string
+          enum: [doctor, staff]
+          example: "doctor"
+
+    ClinicInviteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        inviteToken:
+          type: string
+          example: "inv_9a8b7c6d5e4f"
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    AcceptInviteRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          minLength: 1
+          example: "inv_9a8b7c6d5e4f"
+
+    # -- AI Chat --
+    ChatMessageDto:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, model]
+          example: "user"
+        content:
+          type: string
+          example: "Kedim bugün biraz halsiz."
+
+    AiChatRequest:
+      type: object
+      required: [message]
+      properties:
+        conversationId:
+          type: string
+          format: uuid
+          nullable: true
+        clientMessageId:
+          type: string
+          nullable: true
+          example: "cli_123456"
+        petId:
+          type: string
+          format: uuid
+          nullable: true
+        message:
+          type: string
+          minLength: 1
+          example: "Kedimin ateşi var gibi ne yapmalıyım?"
+        aiConsentGiven:
+          type: boolean
+          default: true
+          example: true
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessageDto'
+
+    AiChatResponse:
+      type: object
+      properties:
+        messageId:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        emergency:
+          type: boolean
+          example: false
+        reply:
+          type: string
+          example: "Kedinizin durumunu takip etmek için..."
+        disclaimer:
+          type: string
+          example: "YASAL UYARI: Bu yapay zeka asistanı..."
+        model:
+          type: string
+          example: "gemini-2.5-flash"
+        promptVersion:
+          type: string
+          example: "v1.3-security-guardrail"
+        createdAt:
+          type: string
+          format: date-time
+
+    ChatMessageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, model]
+        content:
+          type: string
+        emergency:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+          
