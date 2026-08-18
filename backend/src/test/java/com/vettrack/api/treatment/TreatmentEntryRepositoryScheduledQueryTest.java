@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,7 +47,12 @@ class TreatmentEntryRepositoryScheduledQueryTest {
     void setUp() {
         treatmentEntryRepository.deleteAll();
 
-        OffsetDateTime now = OffsetDateTime.now();
+        // DB kolonu timestamp(6) (mikrosaniye) — Java'nın nanosaniye hassasiyetiyle kaydedip
+        // tam hassasiyetle sorgularsak, insert sırasındaki mikrosaniyeye kırpma bazı
+        // platformlarda (ör. Linux CI, macOS'a göre farklı saat çözünürlüğü) sınır kaydını
+        // sorgu aralığının dışına düşürebilir (flaky test). Kaynağı mikrosaniyeye
+        // truncate ederek DB ile Java tarafını aynı hassasiyette tutuyoruz.
+        OffsetDateTime now = OffsetDateTime.now().truncatedTo(ChronoUnit.MICROS);
         windowStart = now.minusMinutes(5);
         windowEnd = now.plusMinutes(30);
 
