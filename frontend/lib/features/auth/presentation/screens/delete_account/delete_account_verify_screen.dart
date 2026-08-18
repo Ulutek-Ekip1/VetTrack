@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vettrack_frontend/core/constants/app_dimensions.dart';
 import 'package:vettrack_frontend/core/di/injection_container.dart';
-import 'package:vettrack_frontend/core/router/app_router.dart';
+import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/delete_account_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/delete_account_state.dart';
 
@@ -49,7 +49,7 @@ class _DeleteAccountVerifyScreenState extends State<DeleteAccountVerifyScreen> {
         body: BlocConsumer<DeleteAccountCubit, DeleteAccountState>(
           listener: (context, state) {
             if (state is DeleteAccountSuccess) {
-              context.go(AppRoutes.welcome);
+              context.read<AuthCubit>().signOut();
             }
 
             if (state is DeleteAccountError) {
