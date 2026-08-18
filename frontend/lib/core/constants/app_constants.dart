@@ -7,7 +7,10 @@ class AppConstants {
   static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const String supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
   static String get apiBaseUrl {
-    const url = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.0.2.2:8080');
+    const url = String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'https://vettrack-staging-a0fb.up.railway.app',
+    );
     return kIsWeb ? url.replaceAll('10.0.2.2', 'localhost') : url;
   }
   static const String googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
