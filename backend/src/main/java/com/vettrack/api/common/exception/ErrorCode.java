@@ -11,7 +11,6 @@ public enum ErrorCode {
     // 400 Bad Request
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST),
     MALFORMED_JSON(HttpStatus.BAD_REQUEST),
-    AI_SAFETY_VIOLATION(HttpStatus.BAD_REQUEST),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED),

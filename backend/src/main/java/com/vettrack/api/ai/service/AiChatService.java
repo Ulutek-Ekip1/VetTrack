@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -53,9 +54,9 @@ public class AiChatService {
         long startTime = System.currentTimeMillis();
         boolean isStaff = isStaffRole(userRole);
 
-        // 1. Açık Rıza (Opt-In) Doğrulaması
-        if (Boolean.FALSE.equals(request.getAiConsentGiven())) {
-            throw new AccessDeniedException("Yapay zeka asistanını kullanabilmek için açık rıza (opt-in) onayı gereklidir.");
+        // 1. Açık Rıza (Opt-In) Doğrulaması (AI_CONSENT_REQUIRED)
+        if (!Boolean.TRUE.equals(request.getAiConsentGiven())) {
+            throw new ApiException(ErrorCode.AI_CONSENT_REQUIRED, "Yapay zeka asistanını kullanabilmek için açık rıza (opt-in) onayı gereklidir.");
         }
 
         // 2. Günlük Mesaj Kotası / Rate Limit Denetimi (Son 24 saat)
@@ -71,8 +72,11 @@ public class AiChatService {
         // 3. Pet Ownership Check
         if (request.getPetId() != null && ownerId != null) {
             Optional<Pet> petOpt = petRepository.findById(request.getPetId());
-            if (petOpt.isPresent() && !isStaff && !petOpt.get().getOwnerId().equals(ownerId)) {
-                throw new AccessDeniedException("Bu hayvana ait sohbet başlatma erişim yetkiniz yoktur.");
+            if (petOpt.isPresent() && !isStaff) {
+                Pet pet = petOpt.get();
+                if (!pet.getOwnerId().equals(ownerId)) {
+                    throw new AccessDeniedException("Bu hayvana ait sohbet başlatma erişim yetkiniz yoktur.");
+                }
             }
         }
 
@@ -285,10 +289,10 @@ public class AiChatService {
         }
 
         List<ChatMessage> sorted = new ArrayList<>(dbMessages);
-        java.util.Collections.reverse(sorted);
+        Collections.reverse(sorted);
 
         return sorted.stream()
-                .map(m -> ChatMessageDto.builder()
+                .<ChatMessageDto>map((ChatMessage m) -> ChatMessageDto.builder()
                         .role(m.getRole())
                         .content(m.getContent())
                         .build())

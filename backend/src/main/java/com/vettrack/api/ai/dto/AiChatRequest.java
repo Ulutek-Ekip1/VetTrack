@@ -23,8 +23,7 @@ public class AiChatRequest {
     @NotBlank(message = "Mesaj boş olamaz.")
     private String message;
 
-    @Builder.Default
-    private Boolean aiConsentGiven = true;
+    private Boolean aiConsentGiven;
 
     @Builder.Default
     private List<ChatMessageDto> history = new ArrayList<>();
