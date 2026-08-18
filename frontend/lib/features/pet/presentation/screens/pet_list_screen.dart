@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../widgets/pet_card.dart';
-import '../../../notification/presentation/widgets/notification_badge_button.dart';
 
 class PetListScreen extends StatefulWidget {
   const PetListScreen({super.key});
