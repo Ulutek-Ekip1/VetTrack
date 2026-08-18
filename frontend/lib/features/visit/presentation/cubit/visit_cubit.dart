@@ -18,10 +18,10 @@ class VisitCubit extends Cubit<VisitState> {
     required this.repository,
   }) : super(VisitInitial());
 
-  Future<void> searchByCode(String code) async {
+  Future<void> searchByCode(String code, String clinicId) async {
     emit(VisitLoading());
     try {
-      final result = await searchByCodeUseCase(code);
+      final result = await searchByCodeUseCase(code, clinicId);
       emit(VisitSearchResult(result));
     } catch (e) {
       emit(VisitError(e.toString().replaceAll('Exception: ', '')));

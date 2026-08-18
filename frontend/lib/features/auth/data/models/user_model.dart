@@ -9,6 +9,7 @@ class UserModel extends UserEntity {
     super.phone,
     required super.role,
     required super.createdAt,
+    super.clinicId,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -53,7 +54,8 @@ class UserModel extends UserEntity {
 
     // CreatedAt parsing
     DateTime createdAtVal;
-    final createdAtStr = (json['createdAt'] as String?) ?? (json['created_at'] as String?);
+    final createdAtStr =
+        (json['createdAt'] as String?) ?? (json['created_at'] as String?);
     if (createdAtStr != null) {
       try {
         createdAtVal = DateTime.parse(createdAtStr);
@@ -66,6 +68,16 @@ class UserModel extends UserEntity {
 
     final idVal = (json['id'] as String?) ?? "";
 
+    String? clinicId;
+    if (json['clinicMemberships'] is List &&
+        (json['clinicMemberships'] as List).isNotEmpty) {
+      final firstMembership = (json['clinicMemberships'] as List).first;
+      if (firstMembership is Map) {
+        clinicId = (firstMembership['clinicId'] ?? firstMembership['clinic_id'])
+            ?.toString();
+      }
+    }
+
     return UserModel(
       id: idVal,
       authId: (json['authId'] as String?) ?? idVal,
@@ -74,6 +86,7 @@ class UserModel extends UserEntity {
       phone: phone,
       role: parsedRole,
       createdAt: createdAtVal,
+      clinicId: clinicId,
     );
   }
 
@@ -86,6 +99,7 @@ class UserModel extends UserEntity {
       if (phone != null) 'phone': phone,
       'role': role == UserRole.vet ? 'vet_staff' : 'owner',
       'createdAt': createdAt.toIso8601String(),
+      if (clinicId != null) 'clinicId': clinicId,
     };
   }
 }

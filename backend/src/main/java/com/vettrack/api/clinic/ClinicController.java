@@ -55,6 +55,9 @@ public class ClinicController {
             throw new ResourceNotFoundException("Klinik bulunamadı.");
         }
 
+        // Hekim davet kotası kontrolü
+        membershipService.validateClinicVetQuota(clinicId);
+
         String rawToken = newToken();
         String tokenHash = sha256(rawToken);
 
@@ -124,6 +127,9 @@ public class ClinicController {
             // Aktif değil ama kayıt var (ör. disabled) — mevcut davranış korunur.
             throw new IllegalArgumentException("Zaten bu kliniğin üyesisiniz.");
         }
+
+        // Davet kabul edilirken hekim kotası kontrolü
+        membershipService.validateClinicVetQuotaForAccept(invite.getClinicId());
 
         ClinicMembership membership = ClinicMembership.builder()
                 .userId(userId)

@@ -57,24 +57,31 @@ public class VisitController {
 
                 UUID userId = UUID.fromString(jwt.getSubject());
 
-        UUID clinicId = null;
-        if (request.getClinicId() != null) {
-            clinicId = request.getClinicId();
-        } else {
-            var memberships = membershipService.getMembershipsByUser(userId).stream().filter(m -> "active".equals(m.getStatus())).toList();
-            if (memberships.size() == 1) {
-                clinicId = memberships.get(0).getClinicId();
-            } else if (memberships.isEmpty()) {
-                throw new com.vettrack.api.common.exception.UnauthorizedException("Aktif klinik uyeliginiz bulunmamaktadir.");
-            } else {
-                throw new IllegalArgumentException("Birden fazla klinikte aktifsiniz, lutfen clinicId belirtin.");
-            }
-        }
-
+        UUID clinicId = resolveClinicId(userId, request.getClinicId());
         membershipService.getActiveMembership(userId, clinicId);
 
         Visit visit = visitService.createVisit(request.getPetId(), userId, clinicId, request.getChiefComplaint());
         return new ResponseEntity<>(visit, HttpStatus.CREATED);
+    }
+
+    /**
+     * clinicId istekte açıkça verilmemişse, kullanıcının tek bir aktif klinik üyeliği varsa
+     * onu otomatik kullanır. Birden fazla aktif üyelikte açık clinicId zorunlu kalır, hiç
+     * üyelik yoksa 401 döner.
+     */
+    private UUID resolveClinicId(UUID userId, UUID explicitClinicId) {
+        if (explicitClinicId != null) {
+            return explicitClinicId;
+        }
+        var memberships = membershipService.getMembershipsByUser(userId).stream()
+                .filter(m -> "active".equals(m.getStatus())).toList();
+        if (memberships.size() == 1) {
+            return memberships.get(0).getClinicId();
+        } else if (memberships.isEmpty()) {
+            throw new com.vettrack.api.common.exception.UnauthorizedException("Aktif klinik uyeliginiz bulunmamaktadir.");
+        } else {
+            throw new IllegalArgumentException("Birden fazla klinikte aktifsiniz, lutfen clinicId belirtin.");
+        }
     }
 
     @PutMapping("/{id}/close")
@@ -86,12 +93,18 @@ public class VisitController {
 
     @GetMapping("/code/{code}")
     @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Takip Kodu ile Hasta Ara",
+            description = "clinicId opsiyoneldir — verilmezse hekimin tek aktif klinik üyeliği "
+                    + "otomatik kullanılır. Birden fazla aktif üyelikte clinicId zorunludur.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<PatientSearchResponse> getPatientByCode(@AuthenticationPrincipal Jwt jwt,
                                                                     @PathVariable String code,
-                                                                    @RequestParam UUID clinicId) {
-        clinicAccessService.requireClinicAccess(UUID.fromString(jwt.getSubject()), clinicId);
+                                                                    @RequestParam(required = false) UUID clinicId) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID resolvedClinicId = resolveClinicId(userId, clinicId);
+        clinicAccessService.requireClinicAccess(userId, resolvedClinicId);
         Pet pet = petService.getPetByUniqueCode(code);
-        List<Visit> visits = visitService.getVisitsByPetIdAndClinicId(pet.getId(), clinicId);
+        List<Visit> visits = visitService.getVisitsByPetIdAndClinicId(pet.getId(), resolvedClinicId);
         return ResponseEntity.ok(new PatientSearchResponse(pet, visits));
     }
 

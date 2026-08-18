@@ -23,6 +23,7 @@ public enum ErrorCode {
     ROLE_MISMATCH(HttpStatus.FORBIDDEN),
     EDIT_WINDOW_EXPIRED(HttpStatus.FORBIDDEN),
     AI_CONSENT_REQUIRED(HttpStatus.FORBIDDEN),
+    SUBSCRIPTION_LIMIT_EXCEEDED(HttpStatus.FORBIDDEN),
 
     // 404 Not Found
     NOT_FOUND(HttpStatus.NOT_FOUND),

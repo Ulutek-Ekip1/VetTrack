@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_state.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_cubit.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_state.dart';
 
@@ -26,10 +27,25 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
   void _searchPatient() {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
-      _showMessage('Lütfen geçerli bir hasta erişim kodu girin.', isError: true);
+      _showMessage('Lütfen geçerli bir hasta erişim kodu girin.',
+          isError: true);
       return;
     }
-    context.read<VisitCubit>().searchByCode(code);
+
+    final authState = context.read<AuthCubit>().state;
+    if (authState is Authenticated) {
+      final clinicId = authState.user.clinicId;
+      if (clinicId != null && clinicId.isNotEmpty) {
+        context.read<VisitCubit>().searchByCode(code, clinicId);
+      } else {
+        _showMessage(
+            'Klinik üyeliği bilgisi bulunamadı. Lütfen girişinizi kontrol edin.',
+            isError: true);
+      }
+    } else {
+      _showMessage('Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.',
+          isError: true);
+    }
   }
 
   void _startVisit() {
@@ -91,48 +107,66 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Icon(Icons.local_hospital_rounded, size: 64, color: Colors.teal),
+                        const Icon(Icons.local_hospital_rounded,
+                            size: 64, color: Colors.teal),
                         const SizedBox(height: 16),
                         Text('Hasta Arama & Muayene',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.teal.shade800,
                                 ),
                             textAlign: TextAlign.center),
                         const SizedBox(height: 8),
-                        const Text('Hasta sahibinin paylaştığı erişim kodunu giriniz.',
+                        const Text(
+                            'Hasta sahibinin paylaştığı erişim kodunu giriniz.',
                             textAlign: TextAlign.center),
                         const SizedBox(height: 28),
                         TextField(
                           controller: _codeController,
                           textCapitalization: TextCapitalization.characters,
                           inputFormatters: [
-                            TextInputFormatter.withFunction((oldValue, newValue) => TextEditingValue(
-                                  text: newValue.text.toUpperCase(), selection: newValue.selection)),
+                            TextInputFormatter.withFunction(
+                                (oldValue, newValue) => TextEditingValue(
+                                    text: newValue.text.toUpperCase(),
+                                    selection: newValue.selection)),
                           ],
                           onSubmitted: (_) => _searchPatient(),
                           enabled: !isLoading,
                           textAlign: TextAlign.center,
                           decoration: const InputDecoration(
-                            labelText: 'Geçici Erişim Kodu', hintText: 'Örn: A8X23J',
-                            prefixIcon: Icon(Icons.qr_code_scanner), border: OutlineInputBorder(),
+                            labelText: 'Geçici Erişim Kodu',
+                            hintText: 'Örn: A8X23J',
+                            prefixIcon: Icon(Icons.qr_code_scanner),
+                            border: OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton.icon(
                           onPressed: isLoading ? null : _searchPatient,
-                          icon: isLoading ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search),
+                          icon: isLoading
+                              ? const SizedBox.square(
+                                  dimension: 18,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2))
+                              : const Icon(Icons.search),
                           label: const Text('Hastayı Ara'),
                         ),
-                        if (_searchResult != null && _searchResult!.result.activeVisit == null) ...[
+                        if (_searchResult != null &&
+                            _searchResult!.result.activeVisit == null) ...[
                           const Divider(height: 36),
                           Text(_searchResult!.result.pet.name,
                               style: Theme.of(context).textTheme.titleMedium),
-                          Text('${_searchResult!.result.visits.length} geçmiş ziyaret bulundu.'),
+                          Text(
+                              '${_searchResult!.result.visits.length} geçmiş ziyaret bulundu.'),
                           const SizedBox(height: 12),
                           ElevatedButton.icon(
                             onPressed: isLoading ? null : _startVisit,
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal,
+                                foregroundColor: Colors.white),
                             icon: const Icon(Icons.play_arrow_rounded),
                             label: const Text('Yeni Muayeneyi Başlat'),
                           ),

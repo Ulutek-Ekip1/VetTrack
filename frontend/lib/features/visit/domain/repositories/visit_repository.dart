@@ -3,7 +3,7 @@ import 'package:vettrack_frontend/features/visit/domain/entities/patient_search_
 import 'package:vettrack_frontend/features/visit/domain/entities/active_visit_context.dart';
 
 abstract class VisitRepository {
-  Future<PatientSearchResult> searchByCode(String code);
+  Future<PatientSearchResult> searchByCode(String code, String clinicId);
   Future<VisitEntity> startVisit(String petId);
   Future<void> closeVisit(String visitId);
   Future<List<VisitEntity>> getOwnerVisitHistory();
