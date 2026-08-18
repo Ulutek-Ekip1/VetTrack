@@ -64,14 +64,14 @@ class OpenApiContractTest {
 
         List<String> requiredPaths = List.of(
                 "/auth/register", "/auth/login", "/auth/me", "/auth/resend-verification",
-                "/profiles/me",
+                "/profiles/me", "/profiles/me/photo",
                 "/pets", "/pets/{id}", "/pets/{id}/weight-history", "/pets/{id}/photo", "/pets/{id}/visits", "/pets/{id}/recommendations",
                 "/visits", "/visits/owner", "/visits/vet", "/visits/code/{code}", "/visits/{id}/close",
                 "/visits/{visitId}/treatments", "/treatments/{id}",
                 "/visits/{visitId}/recommendations",
                 "/notifications", "/notifications/unread-count", "/notifications/{id}/read", "/notifications/read-all",
                 "/devices/register", "/devices/unregister",
-                "/clinics/{clinicId}/invites", "/clinics/invites/accept", "/clinics/invites/{inviteId}",
+                "/clinics/{clinicId}/invites", "/clinics/invites/accept", "/clinics/invites/validate", "/clinics/invites/{inviteId}",
                 "/api/v1/ai/chat", "/api/v1/ai/history", "/api/v1/ai/conversations/{conversationId}", "/api/v1/ai/messages/{id}"
         );
 

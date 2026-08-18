@@ -57,6 +57,7 @@ class GeminiServiceMockTest {
         AiChatRequest request = AiChatRequest.builder()
                 .petId(petId)
                 .message("Kedim için somonlu mama mı tavuklu mama mı daha iyidir?")
+                .aiConsentGiven(true)
                 .build();
 
         when(petRepository.findById(petId)).thenReturn(Optional.of(testPet));

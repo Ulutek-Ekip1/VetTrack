@@ -176,7 +176,7 @@ class OwnerProfileScreen extends StatelessWidget {
                           icon: Icons.security_outlined,
                           title: 'Gizlilik ve Güvenlik Sözleşmesi',
                           subtitle: 'Verilerin korunması ve yasal maddeler',
-                          onTap: () {},
+                          onTap: () => _showPrivacyPolicyBottomSheet(context),
                         ),
                       ],
                     ),
@@ -306,6 +306,170 @@ class OwnerProfileScreen extends StatelessWidget {
       ),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    );
+  }
+
+  void _showPrivacyPolicyBottomSheet(BuildContext context) {
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return Column(
+              children: [
+                // Tutamaç & Başlık
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF14B8A6).withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.security_outlined,
+                              color: Color(0xFF14B8A6),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Gizlilik ve Güvenlik Sözleşmesi',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF131B2E),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // İçerik
+                Expanded(
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      _buildPolicySection(
+                        title: '1. Veri Sorumlusu ve KVKK Aydınlatma Metni',
+                        content:
+                            'VetTrack Health Systems (“VetTrack”), 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) ve ilgili mevzuat hükümleri uyarınca “Veri Sorumlusu” sıfatıyla hareket etmektedir. Kullanıcılarımıza ait kimlik (ad, soyad), iletişim (e-posta, telefon numarası) ve sistem işlem güvenliği verileri; hizmet sözleşmesinin ifası, yasal yükümlülüklerin yerine getirilmesi ve meşru menfaatler kapsamında hukuka ve dürüstlük kurallarına uygun olarak işlenmektedir.',
+                      ),
+                      _buildPolicySection(
+                        title: '2. Evcil Hayvan Sağlık ve Tıbbi Kayıtlarının İşlenme Esasları',
+                        content:
+                            'Sistem üzerinde kayıt altına alınan evcil hayvan kimlik (çip numarası, ırk, doğum tarihi), aşı takvimi, muayene bulguları, teşhis, tedavi, reçete ve ağırlık geçmişi verileri; veteriner hekimlik hizmetlerinin sürekliliğini sağlamak, hasta takibini yürütmek ve acil müdahale süreçlerini desteklemek amacıyla işlenmekte ve yetkili klinik personeli ile paylaşılmaktadır.',
+                      ),
+                      _buildPolicySection(
+                        title: '3. Bilgi Güvenliği, Şifreleme ve Altyapı Tedbirleri',
+                        content:
+                            'VetTrack sistemleri üzerindeki tüm ağ trafiği aktarım sırasında TLS 1.3 şifreleme protokolü ile korunmaktadır. Kullanıcı kimlik doğrulama süreçleri ES256 asimetrik anahtar imzalı JSON Web Token (JWT) standartlarına tabi olup, şifre ve kritik güvenlik parametreleri SHA-256 kriptografik özetleme yöntemleri ile muhafaza edilmektedir. Yetkisiz erişimleri engellemek adına rol tabanlı erişim kontrolü (RBAC) ve nesne düzeyinde yetki denetimleri uygulanmaktadır.',
+                      ),
+                      _buildPolicySection(
+                        title: '4. Yapay Zekâ Destekli Sağlık Danışmanlığı Sorumluluk Reddi',
+                        content:
+                            'Uygulama içerisinde sunulan yapay zekâ (AI) destekli ön değerlendirme ve bilgilendirme hizmeti, kesin klinik teşhis ve tedavi niteliği taşımamaktadır. Yapay zekâ yanıtları yalnızca genel bilgilendirme ve acil durum yönlendirmesi amacına matuftur. Nihai klinik teşhis ve tedavi protokolleri münhasıran yetkili veteriner hekimin sorumluluğundadır. AI modülüne iletilen metinler ticari amaçlarla üçüncü şahıslara aktarılmamakta veya satılmamaktadır.',
+                      ),
+                      _buildPolicySection(
+                        title: '5. İlgili Kişi Hakları ve Verilerin Silinmesi',
+                        content:
+                            'KVKK’nın 11. maddesi kapsamında kullanıcılar; kişisel verilerinin işlenip işlenmediğini öğrenme, amaca uygun kullanılıp kullanılmadığını denetleme ve düzeltilmesini talep etme hakkına sahiptir. Kullanıcı, dilediği zaman Profil menüsü altında yer alan “Hesabımı Sil” işlevi aracılığıyla hesabını kapatabilir ve mevzuatın zorunlu kıldığı saklama süreleri haricindeki tüm kişisel verilerinin silinmesini sağlayabilir.',
+                      ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF131B2E),
+                            side: BorderSide(color: Colors.grey.shade300),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Kapat',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPolicySection({required String title, required String content}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Color(0xFF131B2E),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            content,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade700,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
