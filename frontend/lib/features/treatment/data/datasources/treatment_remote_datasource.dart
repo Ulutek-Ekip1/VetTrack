@@ -42,7 +42,10 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
   Future<List<TreatmentEntity>> getPetTreatments(String petId) async {
     try {
       final response = await dio.get('/pets/$petId/treatments');
-      return (response.data as List).map((json) => TreatmentEntryModel.fromJson(json as Map<String, dynamic>)).toList();
+      return (response.data as List)
+          .map((json) =>
+              TreatmentEntryModel.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw ServerException(e.message ?? 'Tedavi kayıtları alınamadı.');
     }
@@ -60,7 +63,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
       final response = await dio.post(
         '/visits/$visitId/treatments',
         data: {
-          'entryType': type,
+          'type': type,
           'title': title,
           if (description != null && description.isNotEmpty)
             'description': description,
