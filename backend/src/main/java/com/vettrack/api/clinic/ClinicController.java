@@ -1,15 +1,11 @@
 package com.vettrack.api.clinic;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.vettrack.api.clinic.dto.ClinicInviteResponse;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,32 +36,6 @@ public class ClinicController {
     private final ClinicInviteRepository inviteRepository;
     private final ClinicMembershipService membershipService;
     private static final SecureRandom TOKEN_RANDOM = new SecureRandom();
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ClinicInviteResponse {
-        private String message;
-        private String inviteToken;
-        private OffsetDateTime expiresAt;
-        private UUID clinicId;
-
-        @JsonProperty("invite_token")
-        public String getInviteTokenSnake() {
-            return inviteToken;
-        }
-
-        @JsonProperty("expires_at")
-        public String getExpiresAtSnake() {
-            return expiresAt != null ? expiresAt.toString() : null;
-        }
-
-        @JsonProperty("clinic_id")
-        public UUID getClinicIdSnake() {
-            return clinicId;
-        }
-    }
 
     @PostMapping("/{clinicId}/invites")
     @PreAuthorize("isAuthenticated()")
