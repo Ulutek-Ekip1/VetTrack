@@ -10,6 +10,7 @@ import com.vettrack.api.ai.service.EmergencySafetyService;
 import com.vettrack.api.ai.service.GeminiService;
 import com.vettrack.api.ai.service.PetContextService;
 import com.vettrack.api.common.exception.GlobalExceptionHandler;
+import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
 import com.vettrack.api.recommendation.Recommendation;
@@ -28,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.Map;
@@ -105,6 +107,51 @@ class Phase2IntegrationTest {
     }
 
     @Test
+    void testDeleteSingleMessage_Success() {
+        UUID ownerId = UUID.randomUUID();
+        UUID messageId = UUID.randomUUID();
+        ChatMessage message = ChatMessage.builder()
+                .id(messageId)
+                .ownerId(ownerId)
+                .content("Merhaba")
+                .build();
+
+        when(chatMessageRepository.findById(messageId)).thenReturn(Optional.of(message));
+        doNothing().when(chatMessageRepository).deleteByIdAndOwnerId(messageId, ownerId);
+
+        assertDoesNotThrow(() -> aiChatService.deleteSingleMessage(ownerId, messageId));
+        verify(chatMessageRepository, times(1)).deleteByIdAndOwnerId(messageId, ownerId);
+    }
+
+    @Test
+    void testDeleteSingleMessage_NotFound_ThrowsResourceNotFoundException() {
+        UUID ownerId = UUID.randomUUID();
+        UUID messageId = UUID.randomUUID();
+
+        when(chatMessageRepository.findById(messageId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> aiChatService.deleteSingleMessage(ownerId, messageId));
+        verify(chatMessageRepository, never()).deleteByIdAndOwnerId(any(), any());
+    }
+
+    @Test
+    void testDeleteSingleMessage_Forbidden_ThrowsAccessDeniedException() {
+        UUID ownerId = UUID.randomUUID();
+        UUID otherOwnerId = UUID.randomUUID();
+        UUID messageId = UUID.randomUUID();
+        ChatMessage message = ChatMessage.builder()
+                .id(messageId)
+                .ownerId(otherOwnerId)
+                .content("Başkasına ait mesaj")
+                .build();
+
+        when(chatMessageRepository.findById(messageId)).thenReturn(Optional.of(message));
+
+        assertThrows(AccessDeniedException.class, () -> aiChatService.deleteSingleMessage(ownerId, messageId));
+        verify(chatMessageRepository, never()).deleteByIdAndOwnerId(any(), any());
+    }
+
+    @Test
     void testGlobalExceptionHandler_GeminiApiException() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler();
         GeminiApiException ex = new GeminiApiException("Kota aşıldı", 429);
@@ -179,7 +226,5 @@ class Phase2IntegrationTest {
         RecommendationResponse created = recommendationService.createRecommendation(visitId, request, ownerId);
         assertNotNull(created);
         assertEquals("mama", created.getType());
-
-        // removed getRecommendationsByVisitId verification as it is now deleted
     }
 }

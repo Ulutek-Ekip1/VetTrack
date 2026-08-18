@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/core/utils/formatters.dart';
+import '../cubit/visit_cubit.dart';
+import '../cubit/visit_state.dart';
+import 'package:vettrack_frontend/features/visit/domain/entities/visit_entity.dart';
 
 class VetVisitHistoryScreen extends StatefulWidget {
   const VetVisitHistoryScreen({super.key});
@@ -11,91 +16,30 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'Tümü';
 
-  //Örnek Muayene Verileri
-  final List<Map<String, dynamic>> mockVisits = [
-    {
-      'id': 'VST-2001',
-      'patient': 'Pamuk',
-      'species': 'Kedi (Tekir)',
-      'owner': 'Zeynep Yılmaz',
-      'date': 'Bugün, 14:30',
-      'diagnosis': 'Rutin Aşılama & Genel Kontrol',
-      'status': 'Devam Ediyor',
-      'isOngoing': true,
-      'treatments': ['Karma Aşı (Doz 2)', 'Genel Fiziksel Muayene'],
-      'recommendations': [
-        'Bol su içmesi sağlansın',
-        'Aşı sonrası hafif halsizlik normaldir'
-      ],
-      'prescription': 'Gerek görülmedi',
-      'doctorNotes': 'Hasta gayet sağlıklı. Kilo: 3.8 kg, Ateş: 38.2°C',
-    },
-    {
-      'id': 'VST-1998',
-      'patient': 'Gölge',
-      'species': 'Köpek (Golden Retriever)',
-      'owner': 'Ahmet Kaya',
-      'date': '09.08.2026 - 11:00',
-      'diagnosis': 'Kulak Enfeksiyonu & İlaç Tedavisi',
-      'status': 'Tamamlandı',
-      'isOngoing': false,
-      'treatments': ['Kulak Temizliği', 'Topikal Antibiyotik'],
-      'recommendations': [
-        'Kulak kanalına su kaçırılmamalı',
-        '7 gün sonra kontrol'
-      ],
-      'prescription': 'Otic Drops 2x1 (7 Gün), PainRelief Tablet 1x1',
-      'doctorNotes':
-          'Sol kulakta belirgin akıntı ve kızarıklık mevcuttu. Dış kulak yolu temizlendi.',
-    },
-    {
-      'id': 'VST-1980',
-      'patient': 'Maviş',
-      'species': 'Kuş (Muhabbet Kuşu)',
-      'owner': 'Elif Demir',
-      'date': '27.07.2026 - 16:15',
-      'diagnosis': 'Tüy Dökümü & Vitamin Desteği',
-      'status': 'Tamamlandı',
-      'isOngoing': false,
-      'treatments': ['Vitamin B Kompleks Enjeksiyon', 'Deri Bakım Spreyi'],
-      'recommendations': [
-        'Tüy dökümü mevsimseldir, endişelenmeyin',
-        'Daha parlak tüyler için özel mama'
-      ],
-      'prescription': 'Suprävit 1ml (3 Günlük Kür)',
-      'doctorNotes':
-          'Kuşun genel durumu iyi. Stres kaynaklı tüy dökümü yaşanmış olabilir. Vitamin takviyesi yapıldı.',
-    },
-  ];
-
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
-  //Arama ve Filtreleme Mantığı
-  List<Map<String, dynamic>> get _filteredVisits {
-    return mockVisits.where((visit) {
+  // Arama ve Filtreleme Mantığı
+  List<VisitEntity> _getFilteredVisits(List<VisitEntity> visits) {
+    return visits.where((visit) {
       final query = _searchController.text.toLowerCase();
-      final matchesSearch =
-          visit['patient'].toString().toLowerCase().contains(query) ||
-              visit['owner'].toString().toLowerCase().contains(query) ||
-              visit['id'].toString().toLowerCase().contains(query) ||
-              visit['diagnosis'].toString().toLowerCase().contains(query);
+      final matchesSearch = visit.id.toLowerCase().contains(query) ||
+          (visit.chiefComplaint ?? '').toLowerCase().contains(query);
 
       if (_selectedFilter == 'Devam Edenler') {
-        return matchesSearch && visit['isOngoing'] == true;
+        return matchesSearch && visit.isOngoing;
       } else if (_selectedFilter == 'Tamamlananlar') {
-        return matchesSearch && visit['isOngoing'] == false;
+        return matchesSearch && !visit.isOngoing;
       }
       return matchesSearch;
     }).toList();
   }
 
-  //Muayene Detay
-  void _showVisitDetailsDialog(
-      BuildContext context, Map<String, dynamic> visit) {
+  // Muayene Detay Diyaloğu
+  void _showVisitDetailsDialog(BuildContext context, VisitEntity visit) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -116,7 +60,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                   const Icon(Icons.assignment_outlined, color: Colors.white),
                   const SizedBox(width: 8),
                   Text(
-                    'Muayene Detayı (${visit['id']})',
+                    'Muayene Detayı (${visit.id.toShortId()})',
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -158,13 +102,13 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${visit['patient']} (${visit['species']})',
+                              'Pet ID: ${visit.petId.toShortId()}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                                'Hasta Sahibi: ${visit['owner']} | Tarih: ${visit['date']}'),
+                                'Hekim: ${visit.vetStaffName ?? 'Bilinmeyen Hekim'} | Tarih: ${visit.startedAt.toLocal().toString().substring(0, 16)}'),
                           ],
                         ),
                       ),
@@ -173,33 +117,33 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                //Teşhis
-                _buildDetailSection('Teşhis / Klinik Bulgular',
-                    visit['diagnosis'], Icons.healing),
+                // Teşhis / Şikayet
+                _buildDetailSection('Teşhis / Şikayet',
+                    visit.chiefComplaint ?? 'Belirtilmemiş', Icons.healing),
                 const SizedBox(height: 16),
 
-                //Uygulanan Tedaviler
+                // Uygulanan Tedaviler
                 const Text('Uygulanan Tedaviler & Aşılar',
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 6),
-                Wrap(
+                const Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: (visit['treatments'] as List<String>)
-                      .map((t) => Chip(
-                            avatar: const Icon(Icons.check_circle,
-                                size: 16, color: Colors.teal),
-                            label: Text(t),
-                            backgroundColor: Colors.teal.shade50,
-                          ))
-                      .toList(),
+                  children: [
+                    Chip(
+                      avatar: Icon(Icons.check_circle,
+                          size: 16, color: Colors.teal),
+                      label: Text('Genel Fiziksel Muayene'),
+                      backgroundColor: Color(0xFFE0F2F1),
+                    )
+                  ],
                 ),
                 const SizedBox(height: 16),
 
                 // Reçete
-                _buildDetailSection('Reçete & İlaçlar', visit['prescription'],
-                    Icons.medication),
+                _buildDetailSection('Reçete & İlaçlar',
+                    'Geçmiş reçete kaydı bulunmamaktadır.', Icons.medication),
                 const SizedBox(height: 16),
 
                 // Ev İçin Öneriler
@@ -207,26 +151,30 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 6),
-                Column(
+                const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: (visit['recommendations'] as List<String>)
-                      .map((r) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.arrow_right,
-                                    color: Colors.teal),
-                                Expanded(child: Text(r)),
-                              ],
-                            ),
-                          ))
-                      .toList(),
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.arrow_right, color: Colors.teal),
+                          Expanded(
+                              child:
+                                  Text('Genel sağlık kurallarına uyulmalı.')),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
                 const SizedBox(height: 16),
 
-                // Klinik Notları
-                _buildDetailSection('Klinik Notları (Dahili)',
-                    visit['doctorNotes'], Icons.note_alt_outlined),
+                // Hekim Notları
+                _buildDetailSection(
+                    'Hekim Notları',
+                    visit.chiefComplaint ??
+                        'Hekim tarafından girilen not bulunmamaktadır.',
+                    Icons.note_alt_outlined),
               ],
             ),
           ),
@@ -244,7 +192,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
     );
   }
 
-  //Detay bölümü için yardımcı widget
+  // Detay bölümü için yardımcı widget
   Widget _buildDetailSection(String title, String content, IconData icon) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,18 +281,30 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
 
                 // Muayene Geçmişi Listesi
                 Expanded(
-                  child: _filteredVisits.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'Arama kriterlerine uygun muayene kaydı bulunamadı.',
-                            style: TextStyle(color: Colors.grey, fontSize: 16),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: _filteredVisits.length,
+                  child: BlocBuilder<VisitCubit, VisitState>(
+                    builder: (context, state) {
+                      if (state is VisitLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (state is VisitError) {
+                        return Center(child: Text(state.message));
+                      }
+                      if (state is VisitHistoryLoaded) {
+                        final filtered = _getFilteredVisits(state.visits);
+                        if (filtered.isEmpty) {
+                          return const Center(
+                            child: Text(
+                              'Arama kriterlerine uygun muayene kaydı bulunamadı.',
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 16),
+                            ),
+                          );
+                        }
+                        return ListView.builder(
+                          itemCount: filtered.length,
                           itemBuilder: (context, index) {
-                            final visit = _filteredVisits[index];
-                            final isOngoing = visit['isOngoing'] as bool;
+                            final visit = filtered[index];
+                            final isOngoing = visit.isOngoing;
 
                             return Card(
                               elevation: 1,
@@ -371,7 +331,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                 title: Row(
                                   children: [
                                     Text(
-                                      '${visit['patient']} (${visit['species']})',
+                                      visit.petId.toShortId(),
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16),
@@ -385,7 +345,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        visit['id'] as String,
+                                        visit.id.toShortId(),
                                         style: const TextStyle(
                                             fontSize: 11,
                                             color: Colors.black87),
@@ -396,7 +356,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 6.0),
                                   child: Text(
-                                    'Hasta Sahibi: ${visit['owner']}\nTeşhis: ${visit['diagnosis']} • Tarih: ${visit['date']}',
+                                    'Pet ID: ${visit.petId.toShortId()}\nŞikayet/Teşhis: ${visit.chiefComplaint ?? 'Belirtilmemiş'} • Tarih: ${visit.startedAt.toFormattedDateTime()}',
                                     style: const TextStyle(height: 1.3),
                                   ),
                                 ),
@@ -414,7 +374,9 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
-                                        visit['status'] as String,
+                                        isOngoing
+                                            ? 'Devam Ediyor'
+                                            : 'Tamamlandı',
                                         style: TextStyle(
                                           color: isOngoing
                                               ? Colors.orange.shade900
@@ -441,7 +403,11 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                               ),
                             );
                           },
-                        ),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                  ),
                 ),
               ],
             ),
@@ -451,4 +417,3 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
     );
   }
 }
-

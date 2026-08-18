@@ -14,6 +14,5 @@ public class TreatmentCreateRequest {
     private String title;
 
     private String description;
-    private String attachmentUrl;
     private TreatmentStatus status;
 }

@@ -44,6 +44,14 @@ class PetCubit extends Cubit<PetState> {
     int? age,
     String? breed,
     String? petPhotoUrl,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   }) async {
     emit(PetActionLoading());
     try {
@@ -52,6 +60,14 @@ class PetCubit extends Cubit<PetState> {
         gender: gender,
         age: age,
         breed: breed,
+        birthDate: birthDate,
+        weight: weight,
+        microchipNo: microchipNo,
+        isSpayedOrNeutered: isSpayedOrNeutered,
+        bloodType: bloodType,
+        color: color,
+        allergies: allergies,
+        chronicIllnesses: chronicIllnesses,
       );
       if (petPhotoUrl != null) {
         await updatePetPhotoUseCase.call(photoPath: petPhotoUrl, id: newPet.id);
@@ -85,6 +101,14 @@ class PetCubit extends Cubit<PetState> {
     String? breed,
     String? photoPath,
     bool removePhoto = false,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   }) async {
     emit(PetActionLoading());
     try {
@@ -94,6 +118,14 @@ class PetCubit extends Cubit<PetState> {
         gender: gender,
         age: age,
         breed: breed,
+        birthDate: birthDate,
+        weight: weight,
+        microchipNo: microchipNo,
+        isSpayedOrNeutered: isSpayedOrNeutered,
+        bloodType: bloodType,
+        color: color,
+        allergies: allergies,
+        chronicIllnesses: chronicIllnesses,
       );
 
       if (removePhoto) {

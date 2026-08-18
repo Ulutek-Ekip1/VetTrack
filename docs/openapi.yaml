@@ -48,6 +48,8 @@ tags:
     description: Bildirim yönetimi — listeleme, okundu işaretleme
   - name: Devices
     description: Cihaz yönetimi — FCM token kaydı
+  - name: AI Chat
+    description: Google Gemini tabanlı yapay zeka veteriner danışmanlığı ve sohbet geçmişi yönetimi
 
 # ================================================================
 # PATHS
@@ -352,7 +354,7 @@ paths:
           description: Sıralama alanı ve yönü (örn. recordedAt,asc)
       responses:
         '200':
-          description: Kilo geçmişi listesi (varsayılan: dizi, sayfalama talep edildiğinde Page nesnesi)
+          description: "Kilo geçmişi listesi (varsayılan: dizi, sayfalama talep edildiğinde Page nesnesi)"
           content:
             application/json:
               schema:
@@ -361,6 +363,30 @@ paths:
                     items:
                       $ref: '#/components/schemas/PetWeightHistoryResponse'
                   - $ref: '#/components/schemas/PagePetWeightHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /pets/{id}/health-history:
+    get:
+      tags: [Pets]
+      summary: Pet Sağlık Geçmişi ve Klinik Detaylarını Getir
+      description: |
+        Evcil hayvanın kilo geçmişi, muayene ziyaretleri, tedavi/ilaç kayıtları ve hekim önerilerini tek bir yanıtta döner.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Sağlık geçmişi başarıyla getirildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetHealthHistoryResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -507,6 +533,56 @@ paths:
           $ref: '#/components/responses/NotFound'
 
   # ---- Visits ----
+  /visits/owner:
+    get:
+      tags: [Visits]
+      summary: Sahibin tüm aktif petlerinin ziyaret geçmişi
+      description: |
+        Giriş yapmış sahibin (owner) sahip olduğu tüm AKTIF (soft-delete
+        edilmemiş, isActive=true) petlerinin ziyaretlerini tek listede döner.
+        Frontend'in her pet için ayrı istek atmasını (N+1) önler.
+        Yeniden eskiye (startedAt DESC) sıralı. Kayıt yoksa 200 + boş dizi ([]).
+        Sahip JWT subject'inden belirlenir; parametre almaz.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ziyaret listesi (kayıt yoksa boş dizi)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /visits/vet:
+    get:
+      tags: [Visits]
+      summary: Hekime atanmış tüm ziyaretler
+      description: |
+        Giriş yapmış veteriner hekime (vet_staff) atanmış tüm ziyaretleri
+        döner. Soft-delete edilmiş / pasif petlerin ziyaretleri hariç.
+        Yeniden eskiye (startedAt DESC) sıralı. Kayıt yoksa 200 + boş dizi ([]).
+        Hekim JWT subject'inden belirlenir; parametre almaz. Sadece VET_STAFF
+        veya ADMIN rolü erişebilir.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ziyaret listesi (kayıt yoksa boş dizi)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /visits/code/{code}:
     get:
       tags: [Visits]
@@ -844,7 +920,7 @@ paths:
                 timestamp: "2026-07-29T14:32:11Z"
 
   # ---- Notifications ----
-/notifications:
+  /notifications:
     get:
       tags: [Notifications]
       summary: Bildirim listesi
@@ -958,7 +1034,46 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+# ---- AI Chat ----
+  /api/v1/ai/messages/{id}:
+    delete:
+      tags: [AI Chat]
+      summary: Tekil sohbet mesajını sil
+      description: |
+        Kullanıcının kendine ait tekil bir sohbet mesajını siler.
+        Mesaj bulunamazsa 404, kullanıcıya ait değilse 403 döner.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Mesaj başarıyla silindi
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
+  /api/v1/ai/history:
+    delete:
+      tags: [AI Chat]
+      summary: Tüm sohbet geçmişini sil (KVKK Unutulma Hakkı)
+      description: |
+        Giriş yapmış kullanıcının tüm AI sohbet geçmişini veritabanından kalıcı olarak siler.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Tüm sohbet geçmişi başarıyla silindi
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 # ================================================================
 # COMPONENTS
 # ================================================================
@@ -1429,6 +1544,114 @@ components:
         empty:
           type: boolean
           example: false
+
+    PetHealthHistoryResponse:
+      type: object
+      properties:
+        petId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        species:
+          type: string
+        breed:
+          type: string
+        gender:
+          type: string
+        currentWeight:
+          type: number
+          format: double
+        bloodType:
+          type: string
+        microchipNo:
+          type: string
+        isSpayedOrNeutered:
+          type: boolean
+        allergies:
+          type: string
+        chronicIllnesses:
+          type: string
+        weightHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/PetWeightHistoryResponse'
+        visits:
+          type: array
+          items:
+            $ref: '#/components/schemas/VisitSummaryDto'
+        treatments:
+          type: array
+          items:
+            $ref: '#/components/schemas/TreatmentSummaryDto'
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendationSummaryDto'
+
+    VisitSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        vetStaffId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        chiefComplaint:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+
+    TreatmentSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        visitId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+
+    RecommendationSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        visitId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
     PetWithVisitsResponse:
       allOf:

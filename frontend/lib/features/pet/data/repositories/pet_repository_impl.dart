@@ -13,12 +13,28 @@ class PetRepositoryImpl implements PetRepository {
     required Gender gender,
     int? age,
     String? breed,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   }) async {
     return await remoteDataSource.addPet(
       name: name,
       gender: gender,
       age: age,
       breed: breed,
+      birthDate: birthDate,
+      weight: weight,
+      microchipNo: microchipNo,
+      isSpayedOrNeutered: isSpayedOrNeutered,
+      bloodType: bloodType,
+      color: color,
+      allergies: allergies,
+      chronicIllnesses: chronicIllnesses,
     );
   }
 
@@ -39,6 +55,14 @@ class PetRepositoryImpl implements PetRepository {
     Gender? gender,
     int? age,
     String? breed,
+    DateTime? birthDate,
+    double? weight,
+    String? microchipNo,
+    bool? isSpayedOrNeutered,
+    String? bloodType,
+    String? color,
+    String? allergies,
+    String? chronicIllnesses,
   }) async {
     return await remoteDataSource.updatePet(
       id: id,
@@ -46,6 +70,14 @@ class PetRepositoryImpl implements PetRepository {
       gender: gender,
       age: age,
       breed: breed,
+      birthDate: birthDate,
+      weight: weight,
+      microchipNo: microchipNo,
+      isSpayedOrNeutered: isSpayedOrNeutered,
+      bloodType: bloodType,
+      color: color,
+      allergies: allergies,
+      chronicIllnesses: chronicIllnesses,
     );
   }
 
@@ -62,5 +94,10 @@ class PetRepositoryImpl implements PetRepository {
   @override
   Future<void> deletePetPhoto(String id) async {
     await remoteDataSource.deletePetPhoto(id);
+  }
+
+  @override
+  Future<List<PetWeightEntity>> getWeightHistory(String petId) async {
+    return await remoteDataSource.getWeightHistory(petId);
   }
 }

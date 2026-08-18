@@ -5,6 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../../domain/entities/pet_entity.dart';
+import '../../../visit/presentation/cubit/visit_cubit.dart';
+import '../../../visit/presentation/cubit/visit_state.dart';
+import '../../../treatment/presentation/cubit/treatment_cubit.dart';
+import '../../../treatment/presentation/cubit/treatment_state.dart';
+import '../../../recommendation/presentation/cubit/recommendation_cubit.dart';
+import '../../../recommendation/presentation/cubit/recommendation_state.dart';
+import '../../../recommendation/domain/entities/recommendation_entity.dart';
+import '../cubit/weight_history_cubit.dart';
+import '../cubit/weight_history_state.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final String petId;
@@ -19,32 +28,6 @@ class _PetDetailScreenState extends State<PetDetailScreen>
   late TabController _tabController;
   final Color primaryBlue = const Color(0xFF004AC6);
   final Color bgGray = const Color(0xFFF8FAFC);
-  final List<Map<String, String>> _healthHistory = [
-    {
-      'date': '15.05.2026',
-      'title': 'Genel Muayene',
-      'clinic': 'Patili Veteriner Kliniği',
-      'type': 'medical_services'
-    },
-    {
-      'date': '10.05.2026',
-      'title': 'Ateş şikayeti ile muayene',
-      'clinic': 'Patili Veteriner Kliniği',
-      'type': 'thermostat'
-    },
-    {
-      'date': '15.02.2026',
-      'title': 'Dış parazit tedavisi',
-      'clinic': 'Patili Veteriner Kliniği',
-      'type': 'healing'
-    },
-    {
-      'date': '20.01.2026',
-      'title': 'Kulak enfeksiyonu tedavisi',
-      'clinic': 'Patili Veteriner Kliniği',
-      'type': 'medication'
-    },
-  ];
 
   @override
   void initState() {
@@ -262,20 +245,47 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   ? 'Erkek'
                   : (pet.gender == Gender.female ? 'Dişi' : 'Bilinmiyor')),
           const Divider(height: 24),
-          const Text('Ek Detaylar (Statik / Mock)',
+          const Text('Ek Detaylar',
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey)),
           const SizedBox(height: 12),
-          _buildInfoRow('Doğum Tarihi (Mock)', '12.04.2022'),
-          _buildInfoRow('Kilo (Mock)', '23 kg'),
-          _buildInfoRow('Mikroçip No (Mock)', '900215000123456'),
-          _buildInfoRow('Kısırlaştırma (Mock)', 'Evet'),
-          _buildInfoRow('Kan Grubu (Mock)', 'DEA 1.1 (+)'),
-          _buildInfoRow('Renk (Mock)', 'Golden'),
-          _buildInfoRow('Alerjiler (Mock)', 'Tavuk proteinine alerjisi var.'),
-          _buildInfoRow('Kronik Rahatsızlıklar (Mock)', 'Yok'),
+          _buildInfoRow(
+              'Doğum Tarihi',
+              pet.birthDate != null
+                  ? '${pet.birthDate!.day.toString().padLeft(2, '0')}.${pet.birthDate!.month.toString().padLeft(2, '0')}.${pet.birthDate!.year}'
+                  : 'Bilinmiyor'),
+          _buildInfoRow(
+            'Kilo',
+            pet.weight != null ? '${pet.weight} kg' : 'Bilinmiyor',
+          ),
+          _buildInfoRow(
+            'Mikroçip No',
+            pet.microchipNo ?? 'Belirtilmemiş',
+          ),
+          _buildInfoRow(
+            'Kısırlaştırma',
+            pet.isSpayedOrNeutered == true
+                ? 'Evet'
+                : (pet.isSpayedOrNeutered == false ? 'Hayır' : 'Bilinmiyor'),
+          ),
+          _buildInfoRow(
+            'Kan Grubu',
+            pet.bloodType ?? 'Belirtilmemiş',
+          ),
+          _buildInfoRow(
+            'Renk',
+            pet.color ?? 'Belirtilmemiş',
+          ),
+          _buildInfoRow(
+            'Alerjiler',
+            pet.allergies ?? 'Yok',
+          ),
+          _buildInfoRow(
+            'Kronik Rahatsızlıklar',
+            pet.chronicIllnesses ?? 'Yok',
+          ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -290,111 +300,175 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            height: 180,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 5,
-                  getDrawingHorizontalLine: (value) =>
-                      FlLine(color: Colors.grey.shade200, strokeWidth: 1),
-                ),
-                titlesData: FlTitlesData(
-                  rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 22,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        const style =
-                            TextStyle(color: Color(0xFF737686), fontSize: 10);
-                        Widget text;
-                        switch (value.toInt()) {
-                          case 0:
-                            text = const Text('Ara 2024', style: style);
-                            break;
-                          case 1:
-                            text = const Text('Oca 2025', style: style);
-                            break;
-                          case 2:
-                            text = const Text('Şub 2025', style: style);
-                            break;
-                          case 3:
-                            text = const Text('Mar 2025', style: style);
-                            break;
-                          case 4:
-                            text = const Text('Nis 2025', style: style);
-                            break;
-                          case 5:
-                            text = const Text('May 2025', style: style);
-                            break;
-                          default:
-                            text = const Text('', style: style);
-                            break;
-                        }
-                        return SideTitleWidget(
-                            axisSide: meta.axisSide, child: text);
-                      },
+          BlocBuilder<WeightHistoryCubit, WeightHistoryState>(
+            builder: (context, state) {
+              if (state is WeightHistoryLoading) {
+                return Container(
+                  height: 180,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: const CircularProgressIndicator(),
+                );
+              } else if (state is WeightHistoryLoaded) {
+                final history = state.history;
+                if (history.isEmpty) {
+                  return Container(
+                    height: 120,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Text(
+                      'Kilo geçmişi kaydı bulunmuyor.',
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    ),
+                  );
+                }
+
+                final spots = <FlSpot>[];
+                double minYVal = 0;
+                double maxYVal = 30;
+                double maxXVal = 5;
+
+                final sortedHistory = List<PetWeightEntity>.from(history)
+                  ..sort((a, b) => a.date.compareTo(b.date));
+
+                double minW = sortedHistory[0].weight;
+                double maxW = sortedHistory[0].weight;
+                for (int i = 0; i < sortedHistory.length; i++) {
+                  final record = sortedHistory[i];
+                  spots.add(FlSpot(i.toDouble(), record.weight));
+                  if (record.weight < minW) minW = record.weight;
+                  if (record.weight > maxW) maxW = record.weight;
+                }
+                minYVal = (minW - 2).clamp(0, double.infinity).toDouble();
+                maxYVal = maxW + 2;
+                maxXVal = (spots.length - 1).toDouble();
+                if (maxXVal == 0) maxXVal = 1.0;
+
+                return Container(
+                  height: 180,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: LineChart(
+                    LineChartData(
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: 5,
+                        getDrawingHorizontalLine: (value) =>
+                            FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+                      ),
+                      titlesData: FlTitlesData(
+                        rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 22,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              const style = TextStyle(
+                                  color: Color(0xFF737686), fontSize: 10);
+                              final index = value.toInt();
+                              if (index >= 0 && index < sortedHistory.length) {
+                                final date = sortedHistory[index].date;
+                                final months = [
+                                  'Oca',
+                                  'Şub',
+                                  'Mar',
+                                  'Nis',
+                                  'May',
+                                  'Haz',
+                                  'Tem',
+                                  'Ağu',
+                                  'Eyl',
+                                  'Eki',
+                                  'Kas',
+                                  'Ara'
+                                ];
+                                return SideTitleWidget(
+                                  axisSide: meta.axisSide,
+                                  child: Text(
+                                      '${months[date.month - 1]} ${date.year}',
+                                      style: style),
+                                );
+                              }
+                              return SideTitleWidget(
+                                  axisSide: meta.axisSide,
+                                  child: const Text(''));
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            interval: 5,
+                            getTitlesWidget: (value, meta) {
+                              return Text('${value.toInt()} kg',
+                                  style: const TextStyle(
+                                      color: Color(0xFF737686), fontSize: 10));
+                            },
+                            reservedSize: 32,
+                          ),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      minX: 0,
+                      maxX: maxXVal,
+                      minY: minYVal,
+                      maxY: maxYVal,
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: spots,
+                          isCurved: true,
+                          color: primaryBlue,
+                          barWidth: 2,
+                          isStrokeCapRound: true,
+                          dotData: const FlDotData(show: true),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: primaryBlue.withValues(alpha: 0.1),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 5,
-                      getTitlesWidget: (value, meta) {
-                        return Text('${value.toInt()} kg',
-                            style: const TextStyle(
-                                color: Color(0xFF737686), fontSize: 10));
-                      },
-                      reservedSize: 32,
-                    ),
+                );
+              } else if (state is WeightHistoryError) {
+                return Container(
+                  height: 120,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                ),
-                borderData: FlBorderData(show: false),
-                minX: 0,
-                maxX: 5,
-                minY: 10,
-                maxY: 25,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: const [
-                      FlSpot(0, 21),
-                      FlSpot(1, 22),
-                      FlSpot(2, 21.5),
-                      FlSpot(3, 22.5),
-                      FlSpot(4, 21.8),
-                      FlSpot(5, 23),
-                    ],
-                    isCurved: true,
-                    color: primaryBlue,
-                    barWidth: 2,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: true),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: primaryBlue.withValues(alpha: 0.1),
-                    ),
+                  child: Text(
+                    'Kilo geçmişi yüklenemedi: ${state.message}',
+                    style: const TextStyle(color: Colors.red, fontSize: 13),
                   ),
-                ],
-              ),
-            ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
           const SizedBox(height: 24),
           const Text('Son Aktivite',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -453,242 +527,132 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   // 2. SAĞLIK SEKMESİ
   Widget _buildSaglikTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Sağlık Geçmişi',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text('Tümü >',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: primaryBlue)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              children: [
-                if (_healthHistory.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24.0),
-                    child: Text('Herhangi bir sağlık geçmişi bulunmuyor.',
-                        style: TextStyle(color: Colors.grey)),
-                  )
-                else
-                  ..._healthHistory.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    IconData icon;
-                    switch (item['type']) {
-                      case 'thermostat':
-                        icon = Icons.thermostat_outlined;
-                        break;
-                      case 'healing':
-                        icon = Icons.healing_outlined;
-                        break;
-                      case 'medication':
-                        icon = Icons.medication_outlined;
-                        break;
-                      default:
-                        icon = Icons.medical_services_outlined;
-                    }
-                    return Column(
-                      children: [
-                        _buildHealthHistoryItem(icon, item['date']!,
-                            item['title']!, item['clinic']!),
-                        if (index < _healthHistory.length - 1)
-                          const Divider(height: 1, indent: 56),
-                      ],
-                    );
-                  }),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showAddHealthRecordBottomSheet(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Yeni Sağlık Kaydı Ekle',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: primaryBlue,
-                      side:
-                          BorderSide(color: primaryBlue.withValues(alpha: 0.5)),
-                      minimumSize: const Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text('Kronik Rahatsızlıklar',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.favorite_border, color: Colors.grey),
-                const SizedBox(width: 12),
-                Expanded(
-                    child: Text(
-                        'Şu anda kaydedilmiş kronik rahatsızlığı bulunmuyor.',
-                        style: TextStyle(
-                            color: Colors.grey.shade600, fontSize: 13))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
+    return BlocBuilder<VisitCubit, VisitState>(
+      builder: (context, visitState) {
+        return BlocBuilder<TreatmentCubit, TreatmentState>(
+          builder: (context, treatmentState) {
+            final List<Map<String, dynamic>> combinedHistory = [];
 
-  void _showAddHealthRecordBottomSheet(BuildContext context) {
-    final titleController = TextEditingController();
-    final clinicController = TextEditingController();
+            if (visitState is VisitHistoryLoaded) {
+              for (var visit in visitState.visits) {
+                combinedHistory.add({
+                  'date': visit.startedAt,
+                  'title':
+                      'Muayene: ${visit.chiefComplaint ?? 'Genel Kontrol'}',
+                  'subtitle': visit.vetStaffName ?? 'Klinik Hekimi',
+                  'icon': Icons.medical_services_outlined,
+                });
+              }
+            }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-            left: 24,
-            right: 24,
-            top: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            if (treatmentState is TreatmentLoaded) {
+              for (var treatment in treatmentState.treatments) {
+                combinedHistory.add({
+                  'date': treatment.createdAt,
+                  'title': 'Tedavi: ${treatment.title}',
+                  'subtitle':
+                      '${treatment.type} ${treatment.description != null ? "• ${treatment.description}" : ""}',
+                  'icon': Icons.healing_outlined,
+                });
+              }
+            }
+
+            // Sort descending (newest first)
+            combinedHistory.sort((a, b) =>
+                (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+
+            final isLoading = visitState is VisitLoading ||
+                treatmentState is TreatmentLoading;
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Yeni Sağlık Kaydı Ekle',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF131B2E),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Sağlık Geçmişi',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text('Tümü >',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: primaryBlue)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      children: [
+                        if (isLoading)
+                          const Padding(
+                            padding: EdgeInsets.all(24.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (combinedHistory.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(24.0),
+                            child: Text(
+                                'Herhangi bir sağlık geçmişi bulunmuyor.',
+                                style: TextStyle(color: Colors.grey)),
+                          )
+                        else
+                          ...combinedHistory.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final item = entry.value;
+                            final DateTime dateVal = item['date'] as DateTime;
+                            final dateStr =
+                                '${dateVal.day.toString().padLeft(2, '0')}.${dateVal.month.toString().padLeft(2, '0')}.${dateVal.year}';
+
+                            return Column(
+                              children: [
+                                _buildHealthHistoryItem(
+                                  item['icon'] as IconData,
+                                  dateStr,
+                                  item['title'] as String,
+                                  item['subtitle'] as String,
+                                ),
+                                if (index < combinedHistory.length - 1)
+                                  const Divider(height: 1, indent: 56),
+                              ],
+                            );
+                          }),
+                      ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.favorite_border, color: Colors.grey),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(
+                                'Şu anda kaydedilmiş kronik rahatsızlığı bulunmuyor.',
+                                style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 13))),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 40),
                 ],
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Rahatsızlık / Muayene Nedeni',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  hintText: 'Örn: Kusma şikayeti, aşı kontrolü',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Klinik / Hekim Adı',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: clinicController,
-                decoration: InputDecoration(
-                  hintText: 'Örn: Patili Veteriner Kliniği',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  if (titleController.text.trim().isEmpty ||
-                      clinicController.text.trim().isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Lütfen tüm alanları doldurun.'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                    return;
-                  }
-
-                  final now = DateTime.now();
-                  final dateStr =
-                      '${now.day.toString().padLeft(2, '0')}.${now.month.toString().padLeft(2, '0')}.${now.year}';
-
-                  setState(() {
-                    _healthHistory.insert(0, {
-                      'date': dateStr,
-                      'title': titleController.text.trim(),
-                      'clinic': clinicController.text.trim(),
-                      'type': 'medical_services',
-                    });
-                  });
-
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Sağlık kaydı başarıyla eklendi.'),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Kaydet',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -724,107 +688,119 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   // 4. NOTLAR SEKMESİ
   Widget _buildNotlarTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return BlocBuilder<RecommendationCubit, RecommendationState>(
+      builder: (context, state) {
+        if (state is RecommendationLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is RecommendationError) {
+          return Center(child: Text(state.message));
+        }
+
+        List<RecommendationEntity> recommendations = [];
+        if (state is RecommendationLoaded) {
+          recommendations = state.recommendations;
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Notlar',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Tümü',
+                  const Text('Hekim Önerileri',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('${recommendations.length} Öneri',
                       style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: primaryBlue)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.filter_alt_outlined, size: 18),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildNoteCard(
-              '15.05.2026',
-              'Genel durumu iyi, İştahı normal.\nKilo: 23 kg.',
-              'Dr. Ahmet Yılmaz',
-              true),
-          _buildNoteCard(
-              '20.04.2026',
-              'Bugün tüy dökümü biraz fazlaydı.\nŞampuan değiştirdim.',
-              null,
-              false),
-          _buildNoteCard(
-              '10.03.2026',
-              'Kulak temizliği yapıldı.\nAntibiyotik damla reçete edildi.',
-              'Dr. Ayşe Demir',
-              true),
-          _buildNoteCard(
-              '05.02.2026',
-              'İlaçlarını düzenli kullandı.\nHerhangi bir yan etkisi olmadı.',
-              null,
-              false),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoteCard(
-      String date, String content, String? doctor, bool isVetNote) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(date,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isVetNote
-                      ? const Color(0xFFFEF3C7)
-                      : const Color(0xFFDBEAFE),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  isVetNote ? 'Veteriner Notu' : 'Sahip Notu',
-                  style: TextStyle(
-                    color: isVetNote ? const Color(0xFFD97706) : primaryBlue,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(height: 16),
+              if (recommendations.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Center(
+                    child: Text(
+                      'Hayvana ait kaydedilmiş hekim önerisi bulunmuyor.',
+                      style: TextStyle(color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                ),
-              ),
+                )
+              else
+                ...recommendations.map((rec) {
+                  final DateTime dateVal = rec.createdAt;
+                  final dateStr =
+                      '${dateVal.day.toString().padLeft(2, '0')}.${dateVal.month.toString().padLeft(2, '0')}.${dateVal.year}';
+
+                  String recTitle = 'Genel Öneri';
+                  Color labelColor = primaryBlue;
+                  Color labelBgColor = const Color(0xFFDBEAFE);
+                  if (rec.type == 'food') {
+                    recTitle = 'Beslenme Önerisi';
+                    labelColor = Colors.orange.shade800;
+                    labelBgColor = const Color(0xFFFFECE5);
+                  } else if (rec.type == 'litter') {
+                    recTitle = 'Kum & Hijyen Önerisi';
+                    labelColor = Colors.blue.shade800;
+                    labelBgColor = const Color(0xFFE0F2FE);
+                  }
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(dateStr,
+                                style: TextStyle(
+                                    color: Colors.grey.shade500, fontSize: 12)),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: labelBgColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                recTitle,
+                                style: TextStyle(
+                                  color: labelColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(rec.description,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF131B2E),
+                                height: 1.4)),
+                      ],
+                    ),
+                  );
+                }),
+              const SizedBox(height: 40),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(content,
-              style: const TextStyle(
-                  fontSize: 14, color: Color(0xFF131B2E), height: 1.4)),
-          if (doctor != null) ...[
-            const SizedBox(height: 12),
-            Text(doctor,
-                style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500)),
-          ]
-        ],
-      ),
+        );
+      },
     );
   }
 }

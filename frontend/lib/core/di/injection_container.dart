@@ -24,6 +24,8 @@ import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_photo_
 import 'package:vettrack_frontend/features/pet/domain/usecases/delete_pet_photo_usecase.dart';
 import 'package:vettrack_frontend/features/pet/domain/usecases/update_pet_usecase.dart';
 import 'package:vettrack_frontend/features/pet/presentation/cubit/pet_cubit.dart';
+import 'package:vettrack_frontend/features/pet/domain/usecases/get_weight_history_usecase.dart';
+import 'package:vettrack_frontend/features/pet/presentation/cubit/weight_history_cubit.dart';
 
 // Visit Imports
 import 'package:vettrack_frontend/features/visit/data/datasources/visit_remote_datasource.dart';
@@ -49,6 +51,8 @@ import '../../features/auth/presentation/cubit/profile_cubit.dart';
 import 'package:vettrack_frontend/features/auth/domain/usecases/forgot_password_usecase.dart';
 import 'package:vettrack_frontend/features/auth/domain/usecases/resend_verification_email_usecase.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/delete_account_cubit.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/update_profile_photo_usecase.dart';
+import 'package:vettrack_frontend/features/auth/domain/usecases/delete_profile_photo_usecase.dart';
 
 // Treatment Imports
 import 'package:vettrack_frontend/features/treatment/domain/usecases/add_treatment_usecase.dart';
@@ -122,6 +126,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateOwnerProfileUseCase(sl()));
   sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
   sl.registerLazySingleton(() => ResendVerificationEmailUsecase(sl()));
+  sl.registerLazySingleton(() => UpdateProfilePhotoUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteProfilePhotoUseCase(sl()));
 
   sl.registerLazySingleton<AuthCubit>(
     () => AuthCubit(
@@ -139,9 +145,10 @@ Future<void> init() async {
 
   sl.registerFactory(
     () => ProfileCubit(
-      getOwnerProfile: sl(),
-      updateOwnerProfile: sl(),
-    ),
+        getOwnerProfile: sl(),
+        updateOwnerProfile: sl(),
+        updateProfilePhotoUseCase: sl(),
+        deleteProfilePhotoUseCase: sl()),
   );
 
   sl.registerFactory(
@@ -168,6 +175,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdatePetPhotoUseCase(sl()));
   sl.registerLazySingleton(() => DeletePetPhotoUseCase(sl()));
   sl.registerLazySingleton(() => DeletePetUseCase(sl()));
+  sl.registerLazySingleton(() => GetWeightHistoryUseCase(sl()));
+  sl.registerFactory(() => WeightHistoryCubit(getWeightHistoryUseCase: sl()));
 
   sl.registerFactory(
     () => PetCubit(
@@ -223,6 +232,7 @@ Future<void> init() async {
       addTreatmentUseCase: sl(),
       deleteTreatmentUseCase: sl(),
       getTreatmentUseCase: sl(),
+      repository: sl(),
     ),
   );
 

@@ -99,6 +99,18 @@ public class VisitService {
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId);
     }
 
+    /** Sahibin tüm aktif (soft-delete edilmemiş) petlerinin ziyaret geçmişi — tek sorgu. */
+    @Transactional(readOnly = true)
+    public List<Visit> getVisitsForOwner(UUID ownerId) {
+        return visitRepository.findVisitsForOwner(ownerId);
+    }
+
+    /** Veteriner hekime atanmış tüm ziyaretler (silinmiş/pasif petlerinki hariç). */
+    @Transactional(readOnly = true)
+    public List<Visit> getVisitsForVet(UUID vetStaffId) {
+        return visitRepository.findVisitsForVet(vetStaffId);
+    }
+
     @Transactional(readOnly = true)
     public List<Visit> getVisitsByPetIdAndClinicId(UUID petId, UUID clinicId) {
         return visitRepository.findByPetIdAndClinicIdOrderByStartedAtDesc(petId, clinicId);
