@@ -7,6 +7,7 @@ import '../../domain/entities/owner_entity.dart';
 import '../../../../core/utils/validators.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
+import '../cubit/auth_cubit.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -96,6 +97,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: BlocConsumer<ProfileCubit, ProfileState>(
         listener: (context, state) {
           if (state is ProfileUpdateSuccess) {
+            context.read<AuthCubit>().checkAuthStatus();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Profiliniz başarıyla güncellendi!'),
@@ -196,6 +198,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               controller: _nameController,
                               enabled: _isEditable,
                               style: theme.textTheme.bodyLarge,
+                              keyboardType: TextInputType.name,
+                              textCapitalization: TextCapitalization.words,
                               decoration: InputDecoration(
                                 labelText: "Ad",
                                 prefixIcon: const Icon(
@@ -225,7 +229,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ),
                                 ),
                               ),
-                              validator: Validators.validateName,
+                              validator: Validators.validateFirstName,
                             ),
 
                             const SizedBox(height: 16),
@@ -235,6 +239,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               controller: _surnameController,
                               enabled: _isEditable,
                               style: theme.textTheme.bodyLarge,
+                              keyboardType: TextInputType.name,
+                              textCapitalization: TextCapitalization.words,
                               decoration: InputDecoration(
                                 labelText: "Soyad",
                                 prefixIcon: const Icon(
@@ -264,6 +270,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ),
                                 ),
                               ),
+                              validator: Validators.validateSurname,
                             ),
 
                             const SizedBox(height: 16),

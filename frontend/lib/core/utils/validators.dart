@@ -41,6 +41,28 @@ class Validators {
     return null;
   }
 
+  /// Ad doğrulama (Opsiyonel, max 50 karakter)
+  static String? validateFirstName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null; // Opsiyonel
+    }
+    if (value.trim().length > 50) {
+      return 'Ad en fazla 50 karakter olabilir';
+    }
+    return null;
+  }
+
+  /// Soyad doğrulama (Opsiyonel, max 50 karakter)
+  static String? validateSurname(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null; // Opsiyonel
+    }
+    if (value.trim().length > 50) {
+      return 'Soyad en fazla 50 karakter olabilir';
+    }
+    return null;
+  }
+
   /// Telefon doğrulama (Opsiyonel, max 20 karakter)
   static String? validatePhone(String? value) {
     if (value == null || value.trim().isEmpty) {

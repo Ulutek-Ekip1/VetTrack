@@ -274,7 +274,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               context.push(
                                   '/owner/pets/${petState.pets.first.id}/treatments');
                             } else {
-                              context.push('/owner/pets');
+                              context.go('/owner/pets');
                             }
                           },
                         ),

@@ -118,36 +118,36 @@ class OwnerProfileScreen extends StatelessWidget {
 
                   const SizedBox(height: AppDimensions.spacingLg),
 
-                  // Hesap Ayarları Grubu
-                  _buildSectionHeader(context, 'Hesap Ayarları'),
-                  const SizedBox(height: AppDimensions.spacingSm),
-                  Card(
-                    elevation: 0,
-                    color: theme.colorScheme.surface,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                      side: BorderSide(color: Colors.grey.shade200, width: 1),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildProfileTile(
-                          context,
-                          icon: Icons.person_outline,
-                          title: 'Kişisel Bilgiler',
-                          subtitle: 'Ad soyad, telefon ve e-posta ayarları',
-                          onTap: () => context.push(AppRoutes.editProfile),
-                        ),
-                        _buildDivider(),
-                        _buildProfileTile(
-                          context,
-                          icon: Icons.pets_outlined,
-                          title: 'Evcil Hayvanlarım',
-                          subtitle: 'Kayıtlı evcil hayvanların listesi',
-                          onTap: () => context.push('/owner/pets'),
-                        ),
-                      ],
-                    ),
+                // Hesap Ayarları Grubu
+                _buildSectionHeader(context, 'Hesap Ayarları'),
+                const SizedBox(height: AppDimensions.spacingSm),
+                Card(
+                  elevation: 0,
+                  color: theme.colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                    side: BorderSide(color: Colors.grey.shade200, width: 1),
                   ),
+                  child: Column(
+                    children: [
+                      _buildProfileTile(
+                        context,
+                        icon: Icons.person_outline,
+                        title: 'Kişisel Bilgiler',
+                        subtitle: 'Ad soyad, telefon ve e-posta ayarları',
+                        onTap: () => context.push(AppRoutes.editProfile),
+                      ),
+                      _buildDivider(),
+                      _buildProfileTile(
+                        context,
+                        icon: Icons.pets_outlined,
+                        title: 'Evcil Hayvanlarım',
+                        subtitle: 'Kayıtlı evcil hayvanların listesi',
+                        onTap: () => context.push('/owner/pets'),
+                      ),
+                    ],
+                  ),
+                ),
 
                   const SizedBox(height: AppDimensions.spacingLg),
 

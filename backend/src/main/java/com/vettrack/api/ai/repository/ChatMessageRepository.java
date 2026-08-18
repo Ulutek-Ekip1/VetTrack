@@ -45,4 +45,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
     Optional<ChatMessage> findByIdAndOwnerId(UUID id, UUID ownerId);
 
     void deleteByIdAndOwnerId(UUID id, UUID ownerId);
+
+    long countByOwnerIdAndRoleAndCreatedAtGreaterThanEqual(UUID ownerId, String role, OffsetDateTime since);
 }
