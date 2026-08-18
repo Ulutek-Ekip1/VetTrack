@@ -23,13 +23,34 @@ public class Clinic {
     @Column(nullable = false)
     private String name;
 
-    private String address;
-
     private String phone;
 
+    private String email;
+
+    private String address;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(name = "subscription_tier", nullable = false)
+    private ClinicTier tier = ClinicTier.FREE;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(name = "subscription_status", nullable = false)
+    private SubscriptionStatus subscriptionStatus = SubscriptionStatus.ACTIVE;
+
+    @Column(name = "trial_ends_at")
+    private OffsetDateTime trialEndsAt;
+
+    @Builder.Default
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
     @CreationTimestamp
+    @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 }
