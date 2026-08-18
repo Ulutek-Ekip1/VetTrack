@@ -141,45 +141,53 @@ class AppRouter {
         final isLoggedIn = authState is Authenticated;
         final location = state.matchedLocation;
 
-        final isLoggingIn = location == AppRoutes.welcome ||
+        final isInviteRoute = location.startsWith('/vet/invite');
+        final isPublicAuthRoute = location == AppRoutes.welcome ||
             location == AppRoutes.login ||
             location == AppRoutes.register ||
             location == AppRoutes.forgotPassword ||
             location == AppRoutes.ownerEmailVerification ||
-            location == AppRoutes.resetPassword ||
-            location.startsWith('/vet/invite') ||
-            location == AppRoutes.noClinic;
+            location == AppRoutes.resetPassword;
 
+        // 1. Giriş yapılmamışsa:
         if (!isLoggedIn) {
-          return isLoggingIn ? null : AppRoutes.welcome;
+          if (isPublicAuthRoute || isInviteRoute || location == AppRoutes.noClinic) {
+            return null; // Public rotalara doğrudan izin ver
+          }
+          return AppRoutes.welcome;
+        }
+
+        // 2. Davet rotaları (/vet/invite, /vet/invite/register):
+        // Kullanıcı giriş yapmış olsa bile (owner veya vet) davet bağlantısını açıp kliniğe bağlanabilmelidir.
+        if (isInviteRoute) {
+          return null;
         }
 
         final user = authState.user;
 
-        // Web klinik paneli yalnız veterinerlere açıktır.
-        // Eğer kullanıcı Web üzerinde owner rolündeyse (yani aktif klinik üyeliği yoksa),
-        // /no-clinic sayfasına yönlendirilir.
+        // 3. Web klinik paneli yalnız veterinerlere açıktır.
+        // Eğer kullanıcı Web üzerinde owner rolündeyse (aktif klinik üyeliği yoksa) /no-clinic sayfasına yönlendirilir.
         if (AppPlatform.isVetWebExperience && user.role == UserRole.owner) {
-          if (location.startsWith('/vet/invite') || location == AppRoutes.noClinic) {
+          if (location == AppRoutes.noClinic) {
             return null;
           }
           return AppRoutes.noClinic;
         }
 
-        if (AppPlatform.isMobileExperience && user.role == UserRole.vet) {
-          return location == AppRoutes.welcome ? null : AppRoutes.welcome;
-        }
-
-        if (isLoggingIn) {
+        // 4. Giriş sayfalarından ana sayfaya yönlendirme:
+        if (isPublicAuthRoute) {
           return user.role == UserRole.owner
               ? AppRoutes.ownerHome
               : AppRoutes.vetSearch;
         }
 
-        if (user.role == UserRole.owner && location.startsWith('/vet') && !location.startsWith('/vet/invite')) {
+        // 5. Rol bazlı yetkilendirme korumaları:
+        // Owner rolündeki kullanıcı veteriner paneline erişemez (/vet/*)
+        if (user.role == UserRole.owner && location.startsWith('/vet')) {
           return AppRoutes.ownerHome;
         }
 
+        // Vet rolündeki kullanıcı hayvan sahibi paneline erişemez (/owner/*)
         if (user.role == UserRole.vet && location.startsWith('/owner')) {
           return AppRoutes.vetSearch;
         }

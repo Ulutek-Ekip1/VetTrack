@@ -86,13 +86,13 @@ class ClinicInviteCubit extends Cubit<ClinicInviteState> {
     emit(const ClinicInviteSubmitting());
 
     try {
-      // 1. Standart hesap kaydı oluşturulur (Supabase Auth & Profiles)
+      // 1. Veteriner hekim hesap kaydı oluşturulur (Supabase Auth & Profiles)
       await registerUseCase(
         email.trim(),
         password,
         name.trim(),
         phone?.trim(),
-        UserRole.owner, // Public auth kısıtını karşılar
+        UserRole.vet,
       );
 
       // 2. Hesaba klinik üyeliği bağlanır (clinic_memberships)

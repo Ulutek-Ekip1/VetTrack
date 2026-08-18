@@ -45,12 +45,14 @@ class MockClinicRepository implements ClinicRepository {
 
 class MockAuthRepository implements AuthRepository {
   int registerCallCount = 0;
+  UserRole? lastRegisteredRole;
   bool shouldFailRegister = false;
 
   @override
   Future<UserEntity> register(
       String email, String password, String name, String? phone, UserRole role) async {
     registerCallCount++;
+    lastRegisteredRole = role;
     if (shouldFailRegister) {
       throw const ServerException('E-posta zaten kullanımda', 409);
     }
@@ -142,6 +144,7 @@ void main() {
       );
 
       expect(mockAuthRepository.registerCallCount, 1);
+      expect(mockAuthRepository.lastRegisteredRole, UserRole.vet);
       expect(mockClinicRepository.acceptCallCount, 1);
       expect(mockClinicRepository.lastAcceptedToken, 'INV-TOKEN-99');
       expect(cubit.state, isA<ClinicInviteSuccess>());
