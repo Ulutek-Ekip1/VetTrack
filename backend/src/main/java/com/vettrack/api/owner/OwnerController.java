@@ -42,7 +42,7 @@ public class OwnerController {
         return ResponseEntity.ok(OwnerResponse.fromEntity(ownerService.getOwnerById(ownerId)));
     }
 
-    @PatchMapping("/me")
+    @RequestMapping(value = "/me", method = {RequestMethod.PUT, RequestMethod.PATCH})
     @Operation(
         summary = "Profil Bilgilerini Güncelle",
         description = "Kullanıcı profil bilgilerini (ad, soyad, telefon, adres) günceller. "
@@ -84,5 +84,23 @@ public class OwnerController {
     ) {
         UUID ownerId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(OwnerResponse.fromEntity(ownerService.uploadPhoto(ownerId, file)));
+    }
+
+    @DeleteMapping("/me/photo")
+    @PreAuthorize("hasAnyAuthority('OWNER', 'ROLE_OWNER')")
+    @Operation(
+        summary = "Profil Fotoğrafını Sil",
+        description = "Kullanıcının profil fotoğrafını sistemden kalıcı olarak siler.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Profil fotoğrafı başarıyla silindi"),
+        @ApiResponse(responseCode = "401", description = "Yetkisiz erişim"),
+        @ApiResponse(responseCode = "404", description = "Kullanıcı bulunamadı")
+    })
+    public ResponseEntity<Void> deletePhoto(@AuthenticationPrincipal Jwt jwt) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        ownerService.deletePhoto(ownerId);
+        return ResponseEntity.noContent().build();
     }
 }
