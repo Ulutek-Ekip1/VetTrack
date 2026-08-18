@@ -43,6 +43,10 @@ import '../../features/auth/presentation/screens/email_verification_screen.dart'
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/treatment/presentation/cubit/treatment_cubit.dart';
 import '../../features/recommendation/presentation/cubit/recommendation_cubit.dart';
+import '../../features/clinic/presentation/cubit/clinic_invite_cubit.dart';
+import '../../features/clinic/presentation/screens/vet_invite_code_screen.dart';
+import '../../features/clinic/presentation/screens/vet_invite_register_screen.dart';
+import '../../features/clinic/presentation/screens/no_clinic_membership_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription<dynamic> _subscription;
@@ -68,6 +72,11 @@ abstract class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String ownerEmailVerification = '/owner/email-verification';
   static const String resetPassword = '/reset-password';
+
+  // Clinic Davet & Onboarding Rotaları
+  static const String vetInvite = '/vet/invite';
+  static const String vetInviteRegister = '/vet/invite/register';
+  static const String noClinic = '/no-clinic';
 
   //Pet Modülü Rotaları
   static const String ownerHome = '/owner/home';
@@ -137,7 +146,9 @@ class AppRouter {
             location == AppRoutes.register ||
             location == AppRoutes.forgotPassword ||
             location == AppRoutes.ownerEmailVerification ||
-            location == AppRoutes.resetPassword;
+            location == AppRoutes.resetPassword ||
+            location.startsWith('/vet/invite') ||
+            location == AppRoutes.noClinic;
 
         if (!isLoggedIn) {
           return isLoggingIn ? null : AppRoutes.welcome;
@@ -145,13 +156,17 @@ class AppRouter {
 
         final user = authState.user;
 
-        // Web klinik paneli yalnız veterinerlere, mobil uygulama yalnız
-        // hayvan sahiplerine açıktır. AuthCubit oturumu da temizler; bu
-        // kontrol derin bağlantılarda ikinci koruma katmanıdır.
-        final hasInvalidPlatformRole =
-            (AppPlatform.isVetWebExperience && user.role == UserRole.owner) ||
-                (AppPlatform.isMobileExperience && user.role == UserRole.vet);
-        if (hasInvalidPlatformRole) {
+        // Web klinik paneli yalnız veterinerlere açıktır.
+        // Eğer kullanıcı Web üzerinde owner rolündeyse (yani aktif klinik üyeliği yoksa),
+        // /no-clinic sayfasına yönlendirilir.
+        if (AppPlatform.isVetWebExperience && user.role == UserRole.owner) {
+          if (location.startsWith('/vet/invite') || location == AppRoutes.noClinic) {
+            return null;
+          }
+          return AppRoutes.noClinic;
+        }
+
+        if (AppPlatform.isMobileExperience && user.role == UserRole.vet) {
           return location == AppRoutes.welcome ? null : AppRoutes.welcome;
         }
 
@@ -161,7 +176,7 @@ class AppRouter {
               : AppRoutes.vetSearch;
         }
 
-        if (user.role == UserRole.owner && location.startsWith('/vet')) {
+        if (user.role == UserRole.owner && location.startsWith('/vet') && !location.startsWith('/vet/invite')) {
           return AppRoutes.ownerHome;
         }
 
@@ -186,6 +201,37 @@ class AppRouter {
           path: AppRoutes.register,
           name: 'register',
           builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.vetInvite,
+          name: 'vetInvite',
+          builder: (context, state) {
+            final token = state.uri.queryParameters['token'];
+            return BlocProvider<ClinicInviteCubit>(
+              create: (context) => sl<ClinicInviteCubit>(),
+              child: VetInviteCodeScreen(initialToken: token),
+            );
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.vetInviteRegister,
+          name: 'vetInviteRegister',
+          builder: (context, state) {
+            final token = state.uri.queryParameters['token'] ?? '';
+            final clinicName = state.uri.queryParameters['clinicName'];
+            return BlocProvider<ClinicInviteCubit>(
+              create: (context) => sl<ClinicInviteCubit>(),
+              child: VetInviteRegisterScreen(
+                token: token,
+                initialClinicName: clinicName,
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.noClinic,
+          name: 'noClinic',
+          builder: (context, state) => const NoClinicMembershipScreen(),
         ),
         GoRoute(
           path: AppRoutes.forgotPassword,

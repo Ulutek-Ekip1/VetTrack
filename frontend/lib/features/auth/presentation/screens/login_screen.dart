@@ -365,74 +365,76 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 16),
+                                if (AppPlatform.isMobileExperience) ...[
+                                  const SizedBox(height: 16),
 
-                                // veya Ayracı
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Divider(
-                                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                                        thickness: 1,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                                      child: Text(
-                                        "veya",
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          color: AppColors.onSurfaceVariant,
+                                  // veya Ayracı
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Divider(
+                                          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                          thickness: 1,
                                         ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: Divider(
-                                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                                        thickness: 1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                // Google ile Giriş Yap Butonu
-                                SizedBox(
-                                  height: 52,
-                                  child: OutlinedButton(
-                                    onPressed: isLoading
-                                        ? null
-                                        : () {
-                                            context.read<AuthCubit>().signInWithGoogle();
-                                          },
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(
-                                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          "assets/icons/google_g.png",
-                                          height: 20,
-                                          width: 20,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          'Google ile Giriş Yap',
-                                          style: theme.textTheme.titleMedium?.copyWith(
-                                            color: AppColors.onSurface,
-                                            fontWeight: FontWeight.bold,
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        child: Text(
+                                          "veya",
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: AppColors.onSurfaceVariant,
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                      Expanded(
+                                        child: Divider(
+                                          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  // Google ile Giriş Yap Butonu
+                                  SizedBox(
+                                    height: 52,
+                                    child: OutlinedButton(
+                                      onPressed: isLoading
+                                          ? null
+                                          : () {
+                                              context.read<AuthCubit>().signInWithGoogle();
+                                            },
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            "assets/icons/google_g.png",
+                                            height: 20,
+                                            width: 20,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'Google ile Giriş Yap',
+                                            style: theme.textTheme.titleMedium?.copyWith(
+                                              color: AppColors.onSurface,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),
@@ -442,7 +444,32 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
 
                       // Kayıt Ol Yönlendirmesi
-                      Row(
+                      if (AppPlatform.isVetWebExperience) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Kliniğinize katılmak için davet kodunuz mu var?",
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                context.push(AppRoutes.vetInvite);
+                              },
+                              child: Text(
+                                "Davet Kodu ile Katılın",
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
@@ -465,6 +492,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
+                      ],
                       const SizedBox(height: 24),
 
                       // Footer
