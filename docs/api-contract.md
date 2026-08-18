@@ -69,6 +69,7 @@
 | 4 | GET | `/auth/me` | Mevcut kullanıcı bilgisi | owner, vet_staff |
 | 4a | GET | `/owners/me` | Kullanıcı profil bilgisi | owner |
 | 4b | PUT | `/owners/me` | Profil güncelle | owner |
+| 4c | DELETE | `/owners/me/photo` | Profil fotoğrafını sil | owner |
 | 5 | POST | `/pets` | Hayvan ekle | owner |
 | 6 | GET | `/pets` | Sahibin hayvanları | owner |
 | 7 | GET | `/pets/{id}` | Hayvan detayı | owner |
@@ -302,6 +303,20 @@ Kullanıcının kimlik bilgisini ve JIT (Just-In-Time) senkronize edilmiş profi
 **Response (200):** Güncellenmiş `OwnerResponse` (yukarıdaki şemayla aynı)
 
 **Hatalar:** 400, 401, 404
+
+---
+
+### DELETE /owners/me/photo — Profil fotoğrafını sil
+
+**Kim:** Sadece `owner` (`ROLE_OWNER`). JWT gerekli.
+
+Oturum açmış kullanıcının profil fotoğrafını siler: DB'deki `profiles.profile_photo_url` alanını NULL yapar ve Storage'daki fiziksel dosyayı kaldırır. Silinecek nesne, kullanıcının **kendi kaydındaki** `profile_photo_url`'den çözümlenir — istemci isteğinden gelen bir URL'e güvenilmez.
+
+**İdempotent:** Silinecek fotoğraf zaten yoksa (alan NULL) hiçbir şey yapmadan yine **204** döner. Fiziksel dosya storage'dan silinemese bile DB referansı kaldırılır (best-effort) ve 204 döner.
+
+**Response (204):** Gövde yok.
+
+**Hatalar:** 401 (JWT yok/geçersiz), 403 (`ROLE_OWNER` değil).
 
 ---
 

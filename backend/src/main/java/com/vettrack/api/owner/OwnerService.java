@@ -1,7 +1,10 @@
 package com.vettrack.api.owner;
 
 import com.vettrack.api.common.exception.RoleMismatchException;
+import com.vettrack.api.storage.StorageException;
+import com.vettrack.api.storage.StorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -11,11 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OwnerService {
 
     private final OwnerRepository ownerRepository;
+    private final StorageService storageService;
 
     @Transactional
     public Owner getOwnerById(UUID id) {
@@ -89,5 +94,32 @@ public class OwnerService {
         }
 
         return ownerRepository.save(owner);
+    }
+
+    /**
+     * Kullanıcının profil fotoğrafını siler (FR: DELETE /owners/me/photo).
+     * Idempotent: fotoğraf zaten yoksa hiçbir şey yapmadan döner. Fotoğraf varsa
+     * önce storage'daki fiziksel dosya (best-effort) silinir, ardından DB'deki
+     * profile_photo_url NULL yapılır. Storage silme hatası DB güncellemesini
+     * ve idempotent sonucu engellemez — kullanıcının niyeti fotoğrafı kaldırmaktır.
+     */
+    @Transactional
+    public void deleteProfilePhoto(UUID id) {
+        Owner owner = getOwnerById(id);
+
+        if (owner.getProfilePhotoUrl() == null || owner.getProfilePhotoUrl().isBlank()) {
+            return; // idempotent: silinecek fotoğraf yok
+        }
+
+        try {
+            storageService.deleteByPublicUrl(owner.getProfilePhotoUrl());
+        } catch (StorageException e) {
+            // Fiziksel dosya silinemese bile referansı DB'den kaldırıyoruz.
+            log.warn("Profil fotoğrafı storage'dan silinemedi (userId={}), DB referansı yine de kaldırılıyor: {}",
+                    id, e.getMessage());
+        }
+
+        owner.setProfilePhotoUrl(null);
+        ownerRepository.save(owner);
     }
 }

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -58,5 +59,25 @@ public class OwnerController {
     ) {
         UUID ownerId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(OwnerResponse.fromEntity(ownerService.updateOwner(ownerId, request)));
+    }
+
+    @DeleteMapping("/me/photo")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(
+        summary = "Profil Fotoğrafını Sil",
+        description = "Oturum açmış kullanıcının profil fotoğrafını siler: DB'deki profile_photo_url "
+                    + "alanını NULL yapar ve storage'daki fiziksel dosyayı kaldırır. Idempotenttir — "
+                    + "silinecek fotoğraf zaten yoksa da 204 döner.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Fotoğraf silindi (fotoğraf zaten yoksa da 204 döner)"),
+        @ApiResponse(responseCode = "401", description = "Yetkisiz erişim (JWT eksik veya geçersiz)"),
+        @ApiResponse(responseCode = "403", description = "Yetki yok (ROLE_OWNER gerekli)")
+    })
+    public ResponseEntity<Void> deleteMyPhoto(@AuthenticationPrincipal Jwt jwt) {
+        UUID ownerId = UUID.fromString(jwt.getSubject());
+        ownerService.deleteProfilePhoto(ownerId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -79,6 +79,50 @@ public class StorageService {
         }
     }
 
+    /**
+     * Verilen public storage URL'inden bucket + object key'i ayrıştırıp nesneyi siler.
+     * Profil fotoğrafı upload'ı frontend tarafında yapıldığı için (backend'de sabit key
+     * konvansiyonu yok), silme kullanıcının kendi DB kaydındaki profile_photo_url'inden
+     * türetilir — istemci isteğinden gelen bir URL'e güvenilmez. Supabase public URL
+     * kalıbına ({base}/object/public/{bucket}/{key}) uymuyorsa (ör. harici bir URL)
+     * sessizce atlanır; böylece çağıran taraf DB'yi NULL'layıp idempotent kalabilir.
+     */
+    public void deleteByPublicUrl(String publicUrl) {
+        if (publicUrl == null || publicUrl.isBlank()) {
+            return;
+        }
+        final String marker = "/object/public/";
+        int idx = publicUrl.indexOf(marker);
+        if (idx < 0) {
+            return; // Supabase public URL kalıbı değil — atla
+        }
+        String rest = publicUrl.substring(idx + marker.length());
+        int q = rest.indexOf('?');
+        if (q >= 0) {
+            rest = rest.substring(0, q); // ?v=... cache-busting parametresini at
+        }
+        int slash = rest.indexOf('/');
+        if (slash <= 0 || slash == rest.length() - 1) {
+            return; // bucket/key ayrıştırılamadı
+        }
+        String bucket = rest.substring(0, slash);
+        String objectKey = rest.substring(slash + 1);
+        try {
+            objectKey = java.net.URLDecoder.decode(objectKey, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException ignored) {
+            // decode edilemezse ham hali kullanılır
+        }
+
+        try {
+            storageClient.delete()
+                    .uri("/object/{bucket}/{path}", bucket, objectKey)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new StorageException("Supabase Storage silme isteği başarısız: " + e.getMessage(), e);
+        }
+    }
+
     public String generateSignedUploadUrl(String path, String contentType, long fileSize) {
         if (fileSize > MAX_FILE_SIZE) {
             throw new FileTooLargeException("Dosya boyutu 15MB'ı aşamaz");

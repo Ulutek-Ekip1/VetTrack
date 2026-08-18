@@ -478,6 +478,26 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /owners/me/photo:
+    delete:
+      tags: [Owners]
+      summary: Profil fotoğrafını sil
+      description: |
+        Oturum açmış kullanıcının profil fotoğrafını siler (ROLE_OWNER):
+        `profiles.profile_photo_url` alanı NULL yapılır ve Storage'daki fiziksel
+        dosya kaldırılır. Idempotenttir — silinecek fotoğraf zaten yoksa da 204 döner.
+        Silinecek nesne, kullanıcının kendi kaydındaki `profile_photo_url`'den
+        çözümlenir (istemci isteğinden gelen bir URL'e güvenilmez).
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Fotoğraf silindi (veya zaten yoktu)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /pets/{id}/visits:
     get:
       tags: [Visits]
