@@ -5,7 +5,7 @@ import 'package:vettrack_frontend/features/visit/data/models/patient_search_resu
 import 'package:vettrack_frontend/features/visit/data/models/active_visit_context_model.dart';
 
 abstract class VisitRemoteDataSource {
-  Future<PatientSearchResultModel> searchByCode(String code);
+  Future<PatientSearchResultModel> searchByCode(String code, String clinicId);
   Future<VisitModel> startVisit(String petId);
   Future<void> closeVisit(String visitId);
   Future<List<VisitModel>> getOwnerVisitHistory();
@@ -20,10 +20,13 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   VisitRemoteDataSourceImpl(this.dio);
 
   @override
-  Future<PatientSearchResultModel> searchByCode(String code) async {
+  Future<PatientSearchResultModel> searchByCode(
+      String code, String clinicId) async {
     try {
-      final response =
-          await dio.get('/visits/code/${Uri.encodeComponent(code)}');
+      final response = await dio.get(
+        '/visits/code/${Uri.encodeComponent(code)}',
+        queryParameters: {'clinicId': clinicId},
+      );
       return PatientSearchResultModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {

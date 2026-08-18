@@ -10,8 +10,8 @@ class VisitRepositoryImpl implements VisitRepository {
   VisitRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<PatientSearchResult> searchByCode(String code) async {
-    return await remoteDataSource.searchByCode(code);
+  Future<PatientSearchResult> searchByCode(String code, String clinicId) async {
+    return await remoteDataSource.searchByCode(code, clinicId);
   }
 
   @override
