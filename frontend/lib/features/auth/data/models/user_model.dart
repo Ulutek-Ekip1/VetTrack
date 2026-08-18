@@ -26,9 +26,11 @@ class UserModel extends UserEntity {
 
     // Name parsing (supporting top-level name/fullName, nested profile.fullName, and nested user_metadata name/full_name)
     String name = (json['name'] as String?) ?? (json['fullName'] as String?) ?? "";
+    if (name == "OAuth User") name = "";
     if (name.isEmpty && json['profile'] is Map) {
       final profile = json['profile'] as Map;
-      name = (profile['fullName'] as String?) ?? (profile['name'] as String?) ?? "";
+      final profName = (profile['fullName'] as String?) ?? (profile['name'] as String?) ?? "";
+      if (profName != "OAuth User") name = profName;
     }
     if (name.isEmpty && json['user_metadata'] is Map) {
       final meta = json['user_metadata'] as Map;
