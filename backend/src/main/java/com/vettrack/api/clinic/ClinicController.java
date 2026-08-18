@@ -1,26 +1,28 @@
 package com.vettrack.api.clinic;
 
-import com.vettrack.api.common.exception.UnauthorizedException;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
+import com.vettrack.api.common.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import java.time.OffsetDateTime;
+
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.time.OffsetDateTime;
 import java.util.Base64;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.UUID;
-import java.util.List;
 
 @RestController
 @RequestMapping({"/clinics", "/api/clinics"})
@@ -72,12 +74,16 @@ public class ClinicController {
 
     @PostMapping("/invites/accept")
     @PreAuthorize("isAuthenticated()") // any authenticated user (owner/vet/staff) may accept an invite for their account
-    @Operation(summary = "Klinik Davetini Kabul Et", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Klinik Davetini Kabul Et (Query Param)", security = @SecurityRequirement(name = "bearerAuth"))
     @Transactional
     public ResponseEntity<Map<String, String>> acceptInvite(
-            @RequestParam String token,
+            @RequestParam(required = false) String token,
             @AuthenticationPrincipal Jwt jwt
     ) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Davet token'ı boş olamaz.");
+        }
+
         String tokenHash = sha256(token);
         ClinicInvite invite = inviteRepository.findWithLockByTokenHash(tokenHash)
                 .orElseThrow(() -> new ResourceNotFoundException("Geçersiz davet token'ı."));
@@ -125,9 +131,37 @@ public class ClinicController {
         ));
     }
 
+    @PostMapping(value = "/invites/accept", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Klinik Davetini Kabul Et (JSON Body)", security = @SecurityRequirement(name = "bearerAuth"))
+    @Transactional
+    public ResponseEntity<Map<String, String>> acceptInviteJson(
+            @RequestBody Map<String, String> requestBody,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        String token = requestBody != null ? requestBody.get("token") : null;
+        return acceptInvite(token, jwt);
+    }
+
+    @DeleteMapping("/{clinicId}/invites/{inviteId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Klinik Davetini İptal Et (DELETE / Revoke)", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<Void> deleteInvite(
+            @PathVariable UUID clinicId,
+            @PathVariable UUID inviteId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return revokeInvite(clinicId, inviteId, jwt);
+    }
+
     @PostMapping("/{clinicId}/invites/{inviteId}/revoke")
-    public ResponseEntity<Void> revokeInvite(@PathVariable UUID clinicId, @PathVariable UUID inviteId,
-                                              @AuthenticationPrincipal Jwt jwt) {
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Klinik Davetini İptal Et (POST / Revoke)", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<Void> revokeInvite(
+            @PathVariable UUID clinicId,
+            @PathVariable UUID inviteId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
         membershipService.requireActiveClinicAdmin(UUID.fromString(jwt.getSubject()), clinicId);
         ClinicInvite invite = inviteRepository.findById(inviteId)
                 .filter(i -> i.getClinicId().equals(clinicId))
@@ -140,8 +174,12 @@ public class ClinicController {
     }
 
     @PatchMapping("/{clinicId}/members/{userId}/disable")
-    public ResponseEntity<Void> disableMember(@PathVariable UUID clinicId, @PathVariable UUID userId,
-                                               @AuthenticationPrincipal Jwt jwt) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> disableMember(
+            @PathVariable UUID clinicId,
+            @PathVariable UUID userId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
         membershipService.disableMembership(UUID.fromString(jwt.getSubject()), clinicId, userId);
         return ResponseEntity.noContent().build();
     }
@@ -154,8 +192,8 @@ public class ClinicController {
 
     private static String sha256(String value) {
         try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            return java.util.HexFormat.of().formatHex(digest);
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 kullanılamıyor", e);
         }
