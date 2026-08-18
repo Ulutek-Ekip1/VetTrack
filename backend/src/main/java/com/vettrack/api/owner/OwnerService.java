@@ -10,12 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
+import com.vettrack.api.storage.StorageService;
 
 @Service
 @RequiredArgsConstructor
 public class OwnerService {
 
     private final OwnerRepository ownerRepository;
+    private final StorageService storageService;
 
     @Transactional
     public Owner getOwnerById(UUID id) {
@@ -105,20 +108,20 @@ public class OwnerService {
             owner.setSurname(targetSurname.isEmpty() ? null : targetSurname);
         } else if (request.getFullName() != null) {
             String fullNameVal = request.getFullName().trim();
-            owner.setFullName(fullNameVal);
-
-            String extractedSurname = null;
-            if (!fullNameVal.isEmpty()) {
+            if (!fullNameVal.isBlank()) {
+                owner.setFullName(fullNameVal);
+                String extractedSurname = null;
                 int lastSpaceIndex = fullNameVal.lastIndexOf(' ');
                 if (lastSpaceIndex != -1) {
                     extractedSurname = fullNameVal.substring(lastSpaceIndex + 1).trim();
                 }
+                owner.setSurname(extractedSurname);
             }
-            owner.setSurname(extractedSurname);
         }
 
         if (request.getPhone() != null) {
-            owner.setPhone(request.getPhone());
+            String sanitizedPhone = request.getPhone().trim();
+            owner.setPhone(sanitizedPhone.isBlank() ? null : sanitizedPhone);
         }
 
         if (request.getAddress() != null) {
@@ -126,5 +129,36 @@ public class OwnerService {
         }
 
         return ownerRepository.save(owner);
+    }
+
+    @Transactional
+    public Owner uploadPhoto(UUID id, MultipartFile file) {
+        Owner owner = getOwnerById(id);
+
+        if (owner.getProfilePhotoUrl() != null) {
+            try {
+                storageService.deleteOwnerPhoto(id);
+            } catch (Exception e) {
+                // Ignore if it fails to delete the old photo
+            }
+        }
+
+        String photoUrl = storageService.uploadOwnerPhoto(file, id);
+        owner.setProfilePhotoUrl(photoUrl);
+        return ownerRepository.save(owner);
+    }
+
+    @Transactional
+    public void deletePhoto(UUID id) {
+        Owner owner = getOwnerById(id);
+        if (owner.getProfilePhotoUrl() != null) {
+            try {
+                storageService.deleteOwnerPhoto(id);
+            } catch (Exception e) {
+                // Ignore if it fails to delete the old photo
+            }
+            owner.setProfilePhotoUrl(null);
+            ownerRepository.save(owner);
+        }
     }
 }

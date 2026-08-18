@@ -24,6 +24,7 @@ public class StorageService {
     private final Tika tika = new Tika();
 
     private static final String BUCKET = "pet-photos";
+    private static final String OWNER_BUCKET = "owner-photos";
     private static final String TREATMENT_BUCKET = "treatment-attachments";
     private static final long MAX_FILE_SIZE = 15 * 1024 * 1024;
     private static final Set<String> ALLOWED_TYPES = Set.of(
@@ -72,6 +73,38 @@ public class StorageService {
         try {
             storageClient.delete()
                     .uri("/object/{bucket}/{path}", BUCKET, petId.toString())
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new StorageException("Supabase Storage silme isteği başarısız: " + e.getMessage(), e);
+        }
+    }
+
+    public String uploadOwnerPhoto(MultipartFile file, UUID ownerId) {
+        String canonicalMimeType = validateFile(file);
+        String filePath = ownerId.toString();
+
+        try {
+            storageClient.post()
+                    .uri("/object/{bucket}/{path}", OWNER_BUCKET, filePath)
+                    .contentType(MediaType.parseMediaType(canonicalMimeType))
+                    .header("x-upsert", "true")
+                    .body(file.getBytes())
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (IOException e) {
+            throw new StorageException("Dosya yüklenirken hata oluştu", e);
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new StorageException("Supabase Storage isteği başarısız: " + e.getMessage(), e);
+        }
+
+        return storageUrl + "/object/public/" + OWNER_BUCKET + "/" + filePath + "?v=" + System.currentTimeMillis();
+    }
+
+    public void deleteOwnerPhoto(UUID ownerId) {
+        try {
+            storageClient.delete()
+                    .uri("/object/{bucket}/{path}", OWNER_BUCKET, ownerId.toString())
                     .retrieve()
                     .toBodilessEntity();
         } catch (org.springframework.web.client.RestClientException e) {

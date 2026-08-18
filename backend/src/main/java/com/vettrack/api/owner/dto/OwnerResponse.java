@@ -23,6 +23,7 @@ public class OwnerResponse {
     private String address;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+    private String profilePhotoUrl;
 
     public static OwnerResponse fromEntity(Owner owner) {
         if (owner == null) {
@@ -37,6 +38,7 @@ public class OwnerResponse {
                 .address(owner.getAddress())
                 .createdAt(owner.getCreatedAt())
                 .updatedAt(owner.getUpdatedAt())
+                .profilePhotoUrl(owner.getProfilePhotoUrl())
                 .build();
     }
 }
