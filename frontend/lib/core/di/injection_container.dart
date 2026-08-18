@@ -84,6 +84,14 @@ import 'package:vettrack_frontend/features/notification/data/repositories/notifi
 import 'package:vettrack_frontend/features/notification/data/datasources/notification_remote_datasource.dart';
 import 'package:vettrack_frontend/features/notification/domain/repositories/notification_repository.dart';
 
+// Clinic Imports
+import 'package:vettrack_frontend/features/clinic/data/datasources/clinic_remote_datasource.dart';
+import 'package:vettrack_frontend/features/clinic/data/repositories/clinic_repository_impl.dart';
+import 'package:vettrack_frontend/features/clinic/domain/repositories/clinic_repository.dart';
+import 'package:vettrack_frontend/features/clinic/domain/usecases/validate_invite_usecase.dart';
+import 'package:vettrack_frontend/features/clinic/domain/usecases/accept_invite_usecase.dart';
+import 'package:vettrack_frontend/features/clinic/presentation/cubit/clinic_invite_cubit.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -297,5 +305,24 @@ Future<void> init() async {
   );
   sl.registerFactory(
     () => AiChatCubit(aiRepository: sl()),
+  );
+
+  // ---------------------------------------------------------------------------
+  // CLINIC FEATURE
+  // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<ClinicRemoteDataSource>(
+    () => ClinicRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<ClinicRepository>(
+    () => ClinicRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => ValidateInviteUseCase(sl()));
+  sl.registerLazySingleton(() => AcceptInviteUseCase(sl()));
+  sl.registerFactory(
+    () => ClinicInviteCubit(
+      validateInviteUseCase: sl(),
+      acceptInviteUseCase: sl(),
+      registerUseCase: sl(),
+    ),
   );
 }
