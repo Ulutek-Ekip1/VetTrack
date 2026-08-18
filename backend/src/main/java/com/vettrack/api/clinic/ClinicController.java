@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,9 @@ import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -89,6 +92,17 @@ public class ClinicController {
         ClinicInvite invite = inviteRepository.findWithLockByTokenHash(tokenHash)
                 .orElseThrow(() -> new ResourceNotFoundException("Geçersiz davet token'ı."));
 
+        UUID userId = UUID.fromString(jwt.getSubject());
+
+        // Idempotency (ağ kesintisi / retry): kullanıcı zaten bu kliniğin AKTİF üyesiyse
+        // hata değil 200 döner. Bu kontrol acceptedAt kontrolünden ÖNCE olmalı — başarılı ilk
+        // kabulde invite zaten "accepted" işaretlendiği için retry'da o kontrol tetiklenirdi.
+        Optional<ClinicMembership> existingMembership =
+                membershipRepository.findByUserIdAndClinicId(userId, invite.getClinicId());
+        if (existingMembership.isPresent() && "active".equalsIgnoreCase(existingMembership.get().getStatus())) {
+            return ResponseEntity.ok(Map.of("message", "Klinik üyeliği zaten aktif."));
+        }
+
         if (invite.getAcceptedAt() != null) {
             throw new IllegalArgumentException("Bu davet daha önce kullanılmış.");
         }
@@ -99,7 +113,6 @@ public class ClinicController {
             throw new IllegalArgumentException("Bu davetin süresi dolmuş.");
         }
 
-        UUID userId = UUID.fromString(jwt.getSubject());
         String inviteEmail = invite.getEmail();
         String userEmail = jwt.getClaimAsString("email");
         if (inviteEmail != null && !inviteEmail.isBlank()
@@ -107,7 +120,8 @@ public class ClinicController {
             throw new UnauthorizedException("Bu davet farklı bir e-posta adresi için oluşturulmuştur.");
         }
 
-        if (membershipRepository.findByUserIdAndClinicId(userId, invite.getClinicId()).isPresent()) {
+        if (existingMembership.isPresent()) {
+            // Aktif değil ama kayıt var (ör. disabled) — mevcut davranış korunur.
             throw new IllegalArgumentException("Zaten bu kliniğin üyesisiniz.");
         }
 
@@ -141,6 +155,45 @@ public class ClinicController {
     ) {
         String token = requestBody != null ? requestBody.get("token") : null;
         return acceptInvite(token, jwt);
+    }
+
+    @GetMapping("/invites/validate")
+    @Operation(summary = "Davet Kodunu Doğrula (Public)",
+            description = "Davet kodunu oturum açmadan doğrular. E-posta ifşa edilmez. "
+                    + "Geçerli: 200 {valid, clinicId, clinicName}. Geçersiz: 404, kullanılmış: 409, "
+                    + "iptal: 400, süresi dolmuş: 410.")
+    public ResponseEntity<Map<String, Object>> validateInvite(@RequestParam(required = false) String token) {
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Geçersiz davet kodu."));
+        }
+
+        String tokenHash = sha256(token.trim());
+        Optional<ClinicInvite> inviteOpt = inviteRepository.findByTokenHash(tokenHash);
+        if (inviteOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Geçersiz davet kodu."));
+        }
+
+        ClinicInvite invite = inviteOpt.get();
+        if (invite.getAcceptedAt() != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Bu davet kodu daha önce kullanılmış."));
+        }
+        if (invite.getRevokedAt() != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Bu davet iptal edilmiş."));
+        }
+        if (invite.getExpiresAt().isBefore(OffsetDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.GONE).body(Map.of("message", "Bu davet kodunun süresi dolmuş."));
+        }
+
+        String clinicName = clinicRepository.findById(invite.getClinicId())
+                .map(Clinic::getName)
+                .orElse(null);
+
+        // E-posta bilinçli olarak DÖNÜLMEZ (gizlilik/ifşa koruması).
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("valid", true);
+        body.put("clinicId", invite.getClinicId().toString());
+        body.put("clinicName", clinicName);
+        return ResponseEntity.ok(body);
     }
 
     @DeleteMapping({"/invites/{inviteId}", "/{clinicId}/invites/{inviteId}"})

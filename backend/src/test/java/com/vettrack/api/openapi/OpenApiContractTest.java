@@ -71,7 +71,7 @@ class OpenApiContractTest {
                 "/visits/{visitId}/recommendations",
                 "/notifications", "/notifications/unread-count", "/notifications/{id}/read", "/notifications/read-all",
                 "/devices/register", "/devices/unregister",
-                "/clinics/{clinicId}/invites", "/clinics/invites/accept", "/clinics/invites/{inviteId}",
+                "/clinics/{clinicId}/invites", "/clinics/invites/accept", "/clinics/invites/validate", "/clinics/invites/{inviteId}",
                 "/api/v1/ai/chat", "/api/v1/ai/history", "/api/v1/ai/conversations/{conversationId}", "/api/v1/ai/messages/{id}"
         );
 
