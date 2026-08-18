@@ -24,8 +24,12 @@ class UserModel extends UserEntity {
       parsedRole = UserRole.vet;
     }
 
-    // Name parsing (supporting top-level name and nested user_metadata name/full_name)
+    // Name parsing (supporting top-level name, nested profile name, and nested user_metadata name/full_name)
     String name = (json['name'] as String?) ?? "";
+    if (name.isEmpty && json['profile'] is Map) {
+      final profile = json['profile'] as Map;
+      name = (profile['fullName'] as String?) ?? "";
+    }
     if (name.isEmpty && json['user_metadata'] is Map) {
       final meta = json['user_metadata'] as Map;
       name = (meta['name'] as String?) ?? (meta['full_name'] as String?) ?? "";
@@ -36,6 +40,10 @@ class UserModel extends UserEntity {
 
     // Phone parsing
     String? phone = json['phone'] as String?;
+    if ((phone == null || phone.isEmpty) && json['profile'] is Map) {
+      final profile = json['profile'] as Map;
+      phone = profile['phone'] as String?;
+    }
     if ((phone == null || phone.isEmpty) && json['user_metadata'] is Map) {
       final meta = json['user_metadata'] as Map;
       phone = meta['phone'] as String?;
