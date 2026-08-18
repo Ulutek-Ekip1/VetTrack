@@ -129,6 +129,35 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
 
+  /auth/resend-verification:
+    post:
+      tags: [Auth]
+      summary: Doğrulama e-postasını tekrar gönder
+      description: Kayıt sonrası e-posta doğrulama linkini yeniden tetikler.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Doğrulama e-postası gönderildi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
   /auth/me:
     get:
       tags: [Auth]
@@ -421,6 +450,35 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /pets/{petId}/treatments:
+    get:
+      tags: [Treatments]
+      summary: Pet'in tüm tedavilerini listele
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tedavi listesi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TreatmentEntryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /pets/{id}/recommendations:
     get:
       tags: [Recommendations]
@@ -648,6 +706,58 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           description: 15 dakikalık silme penceresi doldu
+
+  /treatments/{id}/attachment/upload-url:
+    post:
+      tags: [Treatments]
+      summary: Tedavi eki için güvenli yükleme URL'i al
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileName, contentType]
+              properties:
+                fileName:
+                  type: string
+                contentType:
+                  type: string
+      responses:
+        '200':
+          description: Yükleme URL'i üretildi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploadUrl:
+                    type: string
+                  attachmentUrl:
+                    type: string
+
+  /treatments/{id}/attachment/read-url:
+    get:
+      tags: [Treatments]
+      summary: Tedavi ekini görüntülemek için imzalı okuma URL'i al
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Okuma URL'i
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  readUrl:
+                    type: string
 
   # ---- Recommendations ----
   /visits/{visitId}/recommendations:

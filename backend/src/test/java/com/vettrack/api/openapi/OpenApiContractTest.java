@@ -3,8 +3,6 @@ package com.vettrack.api.openapi;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
@@ -14,27 +12,10 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:contract_testdb;DB_CLOSE_DELAY=-1",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.flyway.enabled=false",
-        "spring.jpa.hibernate.ddl-auto=create-drop",
-        "SUPABASE_URL=https://localhost",
-        "SUPABASE_JWKS_URL=https://localhost/auth/v1/.well-known/jwks.json",
-        "SUPABASE_JWT_ISSUER=https://localhost/auth/v1",
-        "SUPABASE_STORAGE_URL=https://localhost/storage/v1",
-        "SUPABASE_SERVICE_KEY=mock-key",
-        "supabase.storage.url=https://localhost/storage/v1",
-        "FIREBASE_CREDENTIALS_PATH=mock",
-        "SENTRY_DSN=https://mock@mock.sentry.io/1234",
-        "GEMINI_API_KEY=mock",
-        "spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8080/.well-known/jwks.json",
-        "supabase.url=http://localhost:8080",
-        "supabase.service-key=test-key"
-})
-@ActiveProfiles("test")
 class OpenApiContractTest {
 
     private static Map<String, Object> openApiSpec;
@@ -82,7 +63,7 @@ class OpenApiContractTest {
         assertNotNull(paths, "Paths listesi boş olamaz.");
 
         List<String> requiredPaths = List.of(
-                "/auth/register", "/auth/login", "/auth/me",
+                "/auth/register", "/auth/login", "/auth/me", "/auth/resend-verification",
                 "/profiles/me",
                 "/pets", "/pets/{id}", "/pets/{id}/weight-history", "/pets/{id}/photo", "/pets/{id}/visits", "/pets/{id}/recommendations",
                 "/visits", "/visits/owner", "/visits/vet", "/visits/code/{code}", "/visits/{id}/close",

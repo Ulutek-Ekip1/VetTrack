@@ -1,10 +1,15 @@
 package com.vettrack.api.clinic;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,12 +41,38 @@ public class ClinicController {
     private final ClinicMembershipService membershipService;
     private static final SecureRandom TOKEN_RANDOM = new SecureRandom();
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ClinicInviteResponse {
+        private String message;
+        private String inviteToken;
+        private OffsetDateTime expiresAt;
+        private UUID clinicId;
+
+        @JsonProperty("invite_token")
+        public String getInviteTokenSnake() {
+            return inviteToken;
+        }
+
+        @JsonProperty("expires_at")
+        public String getExpiresAtSnake() {
+            return expiresAt != null ? expiresAt.toString() : null;
+        }
+
+        @JsonProperty("clinic_id")
+        public UUID getClinicIdSnake() {
+            return clinicId;
+        }
+    }
+
     @PostMapping("/{clinicId}/invites")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Yeni Klinik Daveti Oluştur", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<Map<String, String>> createInvite(
+    public ResponseEntity<ClinicInviteResponse> createInvite(
             @PathVariable UUID clinicId,
-            @RequestBody Map<String, String> request,
+            @RequestBody(required = false) Map<String, String> request,
             @AuthenticationPrincipal Jwt jwt
     ) {
         UUID adminId = UUID.fromString(jwt.getSubject());
@@ -56,24 +87,24 @@ public class ClinicController {
 
         ClinicInvite invite = ClinicInvite.builder()
                 .clinicId(clinicId)
-                .email(request.get("email"))
+                .email(request != null ? request.get("email") : null)
                 .tokenHash(tokenHash)
                 .expiresAt(OffsetDateTime.now().plusDays(7))
-                .createdBy(adminId) // store the user id of the admin who created the invite
+                .createdBy(adminId)
                 .build();
 
         inviteRepository.save(invite);
 
-        // MVP: Sadece token'ı dönüyoruz, admin linki WhatsApp'tan vs paylaşacak.
-        return ResponseEntity.ok(Map.of(
-                "message", "Davet oluşturuldu.",
-                "invite_token", rawToken,
-                "expires_at", invite.getExpiresAt().toString()
-        ));
+        return ResponseEntity.ok(ClinicInviteResponse.builder()
+                .message("Davet oluşturuldu.")
+                .inviteToken(rawToken)
+                .expiresAt(invite.getExpiresAt())
+                .clinicId(clinicId)
+                .build());
     }
 
     @PostMapping("/invites/accept")
-    @PreAuthorize("isAuthenticated()") // any authenticated user (owner/vet/staff) may accept an invite for their account
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Klinik Davetini Kabul Et (Query Param)", security = @SecurityRequirement(name = "bearerAuth"))
     @Transactional
     public ResponseEntity<Map<String, String>> acceptInvite(
@@ -106,7 +137,6 @@ public class ClinicController {
             throw new UnauthorizedException("Bu davet farklı bir e-posta adresi için oluşturulmuştur.");
         }
 
-        // Eğer zaten üyeyse
         if (membershipRepository.findByUserIdAndClinicId(userId, invite.getClinicId()).isPresent()) {
             throw new IllegalArgumentException("Zaten bu kliniğin üyesisiniz.");
         }
@@ -136,36 +166,39 @@ public class ClinicController {
     @Operation(summary = "Klinik Davetini Kabul Et (JSON Body)", security = @SecurityRequirement(name = "bearerAuth"))
     @Transactional
     public ResponseEntity<Map<String, String>> acceptInviteJson(
-            @RequestBody Map<String, String> requestBody,
+            @RequestBody(required = false) Map<String, String> requestBody,
             @AuthenticationPrincipal Jwt jwt
     ) {
         String token = requestBody != null ? requestBody.get("token") : null;
         return acceptInvite(token, jwt);
     }
 
-    @DeleteMapping("/{clinicId}/invites/{inviteId}")
+    @DeleteMapping({"/invites/{inviteId}", "/{clinicId}/invites/{inviteId}"})
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Klinik Davetini İptal Et (DELETE / Revoke)", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Void> deleteInvite(
-            @PathVariable UUID clinicId,
+            @PathVariable(required = false) UUID clinicId,
             @PathVariable UUID inviteId,
             @AuthenticationPrincipal Jwt jwt
     ) {
         return revokeInvite(clinicId, inviteId, jwt);
     }
 
-    @PostMapping("/{clinicId}/invites/{inviteId}/revoke")
+    @PostMapping({"/invites/{inviteId}/revoke", "/{clinicId}/invites/{inviteId}/revoke"})
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Klinik Davetini İptal Et (POST / Revoke)", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Void> revokeInvite(
-            @PathVariable UUID clinicId,
+            @PathVariable(required = false) UUID clinicId,
             @PathVariable UUID inviteId,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        membershipService.requireActiveClinicAdmin(UUID.fromString(jwt.getSubject()), clinicId);
+        UUID adminId = UUID.fromString(jwt.getSubject());
         ClinicInvite invite = inviteRepository.findById(inviteId)
-                .filter(i -> i.getClinicId().equals(clinicId))
                 .orElseThrow(() -> new ResourceNotFoundException("Davet bulunamadı."));
+
+        UUID targetClinicId = clinicId != null ? clinicId : invite.getClinicId();
+        membershipService.requireActiveClinicAdmin(adminId, targetClinicId);
+
         if (invite.getAcceptedAt() == null) {
             invite.setRevokedAt(OffsetDateTime.now());
             inviteRepository.save(invite);
