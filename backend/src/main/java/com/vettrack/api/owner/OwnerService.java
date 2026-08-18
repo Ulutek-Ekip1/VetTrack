@@ -63,8 +63,12 @@ public class OwnerService {
             }
         }
 
-        if (fullName == null || fullName.isBlank()) {
-            fullName = "OAuth User";
+        if (fullName == null || fullName.isBlank() || "OAuth User".equalsIgnoreCase(fullName)) {
+            if (email != null && email.contains("@")) {
+                fullName = email.split("@")[0];
+            } else {
+                fullName = "Kullanıcı";
+            }
         }
         if (email == null || email.isBlank()) {
             email = "oauth-" + id.toString() + "@vettrack.com";

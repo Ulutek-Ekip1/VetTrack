@@ -110,7 +110,41 @@ public class AuthService {
                     url, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
             );
 
-            return mapToAuthResponse(resp.getBody());
+            Map<String, Object> respBody = resp.getBody();
+
+            // Kayıt başarılı olunca Owner (profile) nesnesini veritabanına hemen ekle
+            if (respBody != null && ownerRepository != null) {
+                String userIdStr = null;
+                if (respBody.get("user") instanceof Map<?, ?> userMap) {
+                    Object idObj = userMap.get("id");
+                    if (idObj instanceof String s) userIdStr = s;
+                }
+                if (userIdStr == null && respBody.get("id") instanceof String s) {
+                    userIdStr = s;
+                }
+
+                if (userIdStr != null) {
+                    try {
+                        UUID userId = UUID.fromString(userIdStr);
+                        if (!ownerRepository.existsById(userId)) {
+                            Owner owner = Owner.builder()
+                                    .id(userId)
+                                    .email(request.getEmail())
+                                    .fullName(request.getName())
+                                    .phone(request.getPhone())
+                                    .role("owner")
+                                    .isActive(true)
+                                    .build();
+                            ownerRepository.save(owner);
+                            log.info("Owner profile saved during registration for userId={}, name={}", userId, request.getName());
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to create owner profile during registration: {}", e.getMessage());
+                    }
+                }
+            }
+
+            return mapToAuthResponse(respBody);
         } catch (HttpClientErrorException ex) {
             HttpStatusCode status = ex.getStatusCode();
             String responseBody = ex.getResponseBodyAsString();
