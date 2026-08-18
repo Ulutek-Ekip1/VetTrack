@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/owners")
+@RequestMapping({"/owners", "/profiles", "/api/owners", "/api/profiles"})
 @RequiredArgsConstructor
 @Tag(name = "Owner Profil Yönetimi", description = "Kullanıcı profil bilgilerini görüntüleme ve güncelleme API'leri")
 public class OwnerController {

@@ -135,45 +135,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Logo
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: SvgPicture.asset(
-                      "assets/icons/paw.svg",
-                      width: 40,
-                      height: 40,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.onPrimary,
-                        BlendMode.srcIn,
-                      ),
-                    ),
+                  SvgPicture.asset(
+                    "assets/icons/VetTrack.svg",
+                    width: 160,
+                    height: 160,
                   ),
 
                   const SizedBox(height: 16),
-
-                  // VetTrack Başlık
-                  Text(
-                    "VetTrack",
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: 28),
 
                   // Card Form Container
                   Card(

@@ -29,6 +29,12 @@ public class Owner {
     @Column(nullable = false)
     private String role;
 
+    @Column(length = 50)
+    private String surname;
+
+    @Column(columnDefinition = "TEXT")
+    private String address;
+
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;
@@ -44,7 +50,8 @@ public class Owner {
 
     @PrePersist
     protected void onCreate() {
-        if (this.createdAt == null) this.createdAt = OffsetDateTime.now();
+        if (this.createdAt == null)
+            this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
     }
 

@@ -33,46 +33,14 @@ class WelcomeScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo (Yuvarlatılmış Mavi Kutu İle İkon)
-                  Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.25),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: SvgPicture.asset(
-                      "assets/icons/paw.svg",
-                      width: 56,
-                      height: 56,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.onPrimary,
-                        BlendMode.srcIn,
-                      ),
-                    ),
+                  // Logo
+                  SvgPicture.asset(
+                    "assets/icons/VetTrack.svg",
+                    width: 240,
+                    height: 240,
                   ),
 
                   const SizedBox(height: 24),
-
-                  // VetTrack Başlık
-                  Text(
-                    "VetTrack",
-                    style: theme.textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
 
                   // Alt Açıklama
                   Text(
@@ -126,7 +94,8 @@ class WelcomeScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Giriş Yap',
-                                    style: theme.textTheme.titleMedium?.copyWith(
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -146,42 +115,43 @@ class WelcomeScreen extends StatelessWidget {
 
                           // Kayıt Ol Butonu (Şeftali - #FFB89C)
                           SizedBox(
-                              width: double.infinity,
-                              height: 56,
-                              child: ElevatedButton(
-                                onPressed: isLoading
-                                    ? null
-                                    : () {
-                                        context.push(AppRoutes.register);
-                                      },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFFB89C),
-                                  foregroundColor: const Color(0xFF131B2E),
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Kayıt Ol',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        color: const Color(0xFF131B2E),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Icon(
-                                      Icons.person_add_rounded,
-                                      size: 20,
-                                      color: Color(0xFF131B2E),
-                                    ),
-                                  ],
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () {
+                                      context.push(AppRoutes.register);
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFFB89C),
+                                foregroundColor: const Color(0xFF131B2E),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Kayıt Ol',
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      color: const Color(0xFF131B2E),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Icon(
+                                    Icons.person_add_rounded,
+                                    size: 20,
+                                    color: Color(0xFF131B2E),
+                                  ),
+                                ],
+                              ),
                             ),
+                          ),
 
                           const SizedBox(height: 20),
 
@@ -190,12 +160,14 @@ class WelcomeScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Divider(
-                                  color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                  color: AppColors.outlineVariant
+                                      .withValues(alpha: 0.5),
                                   thickness: 1,
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
                                   "veya",
                                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -205,7 +177,8 @@ class WelcomeScreen extends StatelessWidget {
                               ),
                               Expanded(
                                 child: Divider(
-                                  color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                  color: AppColors.outlineVariant
+                                      .withValues(alpha: 0.5),
                                   thickness: 1,
                                 ),
                               ),
@@ -222,11 +195,14 @@ class WelcomeScreen extends StatelessWidget {
                               onPressed: isLoading
                                   ? null
                                   : () {
-                                      context.read<AuthCubit>().signInWithGoogle();
+                                      context
+                                          .read<AuthCubit>()
+                                          .signInWithGoogle();
                                     },
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(
-                                  color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                  color: AppColors.outlineVariant
+                                      .withValues(alpha: 0.5),
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -242,7 +218,8 @@ class WelcomeScreen extends StatelessWidget {
                                       ),
                                     )
                                   : Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Image.asset(
                                           "assets/icons/google_g.png",
@@ -252,7 +229,8 @@ class WelcomeScreen extends StatelessWidget {
                                         const SizedBox(width: 12),
                                         Text(
                                           'Google ile Hızlı Giriş',
-                                          style: theme.textTheme.titleMedium?.copyWith(
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
                                             color: AppColors.onSurface,
                                             fontWeight: FontWeight.bold,
                                           ),

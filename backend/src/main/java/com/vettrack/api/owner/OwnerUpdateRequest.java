@@ -24,7 +24,6 @@ public class OwnerUpdateRequest {
     )
     @Schema(description = "Kullanıcının tam adı", example = "Ahmet Yılmaz")
     private String fullName;
-
     @Pattern(
         regexp = "^(\\+?[0-9]{10,15})?$",
         message = "Telefon numarası uluslararası formatta (E.164, örn: +905551234567) veya boş olmalıdır"
@@ -32,4 +31,8 @@ public class OwnerUpdateRequest {
     @Size(max = 20, message = "Telefon numarası en fazla 20 karakter olabilir")
     @Schema(description = "Kullanıcı telefon numarası (E.164 formatında)", example = "+905551234567")
     private String phone;
+    
+    private String name;
+    private String surname;
+    private String address;
 }
