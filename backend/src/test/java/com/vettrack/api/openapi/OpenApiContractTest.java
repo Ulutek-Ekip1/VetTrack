@@ -64,7 +64,7 @@ class OpenApiContractTest {
 
         List<String> requiredPaths = List.of(
                 "/auth/register", "/auth/login", "/auth/me", "/auth/resend-verification",
-                "/profiles/me",
+                "/profiles/me", "/profiles/me/photo",
                 "/pets", "/pets/{id}", "/pets/{id}/weight-history", "/pets/{id}/photo", "/pets/{id}/visits", "/pets/{id}/recommendations",
                 "/visits", "/visits/owner", "/visits/vet", "/visits/code/{code}", "/visits/{id}/close",
                 "/visits/{visitId}/treatments", "/treatments/{id}",
