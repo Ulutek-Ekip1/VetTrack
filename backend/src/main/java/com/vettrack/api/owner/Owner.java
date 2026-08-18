@@ -33,6 +33,9 @@ public class Owner {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "profile_photo_url", length = 512)
+    private String profilePhotoUrl;
+
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 

@@ -10,12 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
+import com.vettrack.api.storage.StorageService;
 
 @Service
 @RequiredArgsConstructor
 public class OwnerService {
 
     private final OwnerRepository ownerRepository;
+    private final StorageService storageService;
 
     @Transactional
     public Owner getOwnerById(UUID id) {
@@ -81,13 +84,31 @@ public class OwnerService {
     public Owner updateOwner(UUID id, OwnerUpdateRequest request) {
         Owner owner = getOwnerById(id);
 
-        if (request.getFullName() != null) {
-            owner.setFullName(request.getFullName());
+        if (request.getFullName() != null && !request.getFullName().trim().isBlank()) {
+            owner.setFullName(request.getFullName().trim());
         }
         if (request.getPhone() != null) {
-            owner.setPhone(request.getPhone());
+            String sanitizedPhone = request.getPhone().trim();
+            owner.setPhone(sanitizedPhone.isBlank() ? null : sanitizedPhone);
         }
 
+        return ownerRepository.save(owner);
+    }
+
+    @Transactional
+    public Owner uploadPhoto(UUID id, MultipartFile file) {
+        Owner owner = getOwnerById(id);
+
+        if (owner.getProfilePhotoUrl() != null) {
+            try {
+                storageService.deleteOwnerPhoto(id);
+            } catch (Exception e) {
+                // Ignore if it fails to delete the old photo
+            }
+        }
+
+        String photoUrl = storageService.uploadOwnerPhoto(file, id);
+        owner.setProfilePhotoUrl(photoUrl);
         return ownerRepository.save(owner);
     }
 }
