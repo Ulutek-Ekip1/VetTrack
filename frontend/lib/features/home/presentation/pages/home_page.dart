@@ -130,7 +130,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
                             return CircleAvatar(
                               radius: 26,
-                              backgroundColor: Colors.white.withValues(alpha: 0.2),
+                              backgroundColor:
+                                  Colors.white.withValues(alpha: 0.2),
                               backgroundImage: avatarImage,
                               child: avatarImage == null
                                   ? Text(

@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../widgets/pet_card.dart';
-import '../../../notification/presentation/widgets/notification_badge_button.dart';
 
 class PetListScreen extends StatefulWidget {
   const PetListScreen({super.key});
@@ -67,16 +65,6 @@ class _PetListScreenState extends State<PetListScreen> {
                   fontWeight: FontWeight.bold,
                 ),
           ),
-          actions: [
-            const NotificationBadgeButton(),
-            IconButton(
-              icon: const Icon(Icons.logout, color: Color(0xFF434655)),
-              tooltip: 'Çıkış Yap',
-              onPressed: () {
-                context.read<AuthCubit>().signOut();
-              },
-            ),
-          ],
         ),
         body: BlocConsumer<PetCubit, PetState>(
           buildWhen: (previous, current) {
@@ -145,8 +133,10 @@ class _PetListScreenState extends State<PetListScreen> {
                         controller: _searchController,
                         decoration: InputDecoration(
                           hintText: 'İsim veya 6 haneli kod ile ara...',
-                          hintStyle: const TextStyle(color: labelGray, fontSize: 14),
-                          prefixIcon: const Icon(Icons.search, color: labelGray),
+                          hintStyle:
+                              const TextStyle(color: labelGray, fontSize: 14),
+                          prefixIcon:
+                              const Icon(Icons.search, color: labelGray),
                           filled: true,
                           fillColor: Colors.white,
                           contentPadding: const EdgeInsets.symmetric(
@@ -155,15 +145,18 @@ class _PetListScreenState extends State<PetListScreen> {
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                            borderSide: BorderSide(
+                                color: Colors.grey.shade200, width: 1),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                            borderSide: BorderSide(
+                                color: Colors.grey.shade200, width: 1),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: const BorderSide(color: primaryBlue, width: 1.5),
+                            borderSide: const BorderSide(
+                                color: primaryBlue, width: 1.5),
                           ),
                         ),
                       ),
@@ -177,7 +170,8 @@ class _PetListScreenState extends State<PetListScreen> {
                           final pet = filteredPets[index];
                           return TweenAnimationBuilder<double>(
                             tween: Tween<double>(begin: 0.0, end: 1.0),
-                            duration: Duration(milliseconds: 300 + (index * 80)),
+                            duration:
+                                Duration(milliseconds: 300 + (index * 80)),
                             curve: Curves.easeOutCubic,
                             builder: (context, value, child) {
                               return Transform.translate(
@@ -217,13 +211,16 @@ class _PetListScreenState extends State<PetListScreen> {
                                           '${pet.name} isimli evcil hayvanı silmek istediğinize emin misiniz?'),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.of(dialogContext).pop(),
+                                          onPressed: () =>
+                                              Navigator.of(dialogContext).pop(),
                                           child: const Text('İptal'),
                                         ),
                                         FilledButton(
                                           style: FilledButton.styleFrom(
-                                            backgroundColor: theme.colorScheme.error,
-                                            foregroundColor: theme.colorScheme.onError,
+                                            backgroundColor:
+                                                theme.colorScheme.error,
+                                            foregroundColor:
+                                                theme.colorScheme.onError,
                                           ),
                                           onPressed: () {
                                             deleteConfirmed = true;
@@ -235,7 +232,9 @@ class _PetListScreenState extends State<PetListScreen> {
                                     ),
                                   );
                                   if (deleteConfirmed && context.mounted) {
-                                    context.read<PetCubit>().deletePet(id: pet.id);
+                                    context
+                                        .read<PetCubit>()
+                                        .deletePet(id: pet.id);
                                     return true;
                                   }
                                   return false;
@@ -255,7 +254,7 @@ class _PetListScreenState extends State<PetListScreen> {
                 ),
               );
             }
- 
+
             return const SizedBox.shrink();
           },
         ),
@@ -283,12 +282,14 @@ class _PetListScreenState extends State<PetListScreen> {
   }) {
     final theme = Theme.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 14.0), // PetCard alt boşluğuyla uyumlu
+      margin:
+          const EdgeInsets.only(bottom: 14.0), // PetCard alt boşluğuyla uyumlu
       padding: const EdgeInsets.symmetric(horizontal: 20),
       alignment: alignment,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(16.0), // PetCard köşe kavisiyle uyumlu
+        borderRadius:
+            BorderRadius.circular(16.0), // PetCard köşe kavisiyle uyumlu
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

@@ -60,8 +60,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
               _speciesController.text = parts[0];
               _breedController.text = parts[1];
             } else {
-              _speciesController.text = '';
-              _breedController.text = pet.breed!;
+              _speciesController.text = pet.breed!;
+              _breedController.text = '';
             }
           } else {
             _speciesController.text = '';
