@@ -210,6 +210,61 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /profiles/me/photo:
+    post:
+      tags: [Profile]
+      summary: Profil fotoğrafı yükle/güncelle
+      description: |
+        Kullanıcının profil fotoğrafını yükler veya günceller. Fotoğraf Supabase
+        Storage'daki `owner-photos` bucket'ına kullanıcı ID'si anahtarıyla (x-upsert)
+        yazılır; kullanıcının önceki fotoğrafı varsa önce silinir. Max 15MB; JPEG,
+        PNG, WebP kabul edilir. Aynı uç `/owners/me/photo`, `/api/profiles/me/photo`
+        ve `/api/owners/me/photo` alias'larından da erişilebilir.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Profil fotoğrafı yüklendi/güncellendi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnerResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: Dosya 15MB sınırını aşıyor (EC-06)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [Profile]
+      summary: Profil fotoğrafını sil
+      description: |
+        Kullanıcının profil fotoğrafını siler: `profiles.profile_photo_url` NULL
+        yapılır ve `owner-photos` bucket'ındaki dosya kaldırılır. Idempotenttir —
+        silinecek fotoğraf zaten yoksa da 204 döner.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Profil fotoğrafı silindi (veya zaten yoktu)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   # ---- Pets ----
   /pets:
     post:
@@ -1299,12 +1354,26 @@ components:
           type: string
           nullable: true
           example: "+905551234567"
+        surname:
+          type: string
+          nullable: true
+          example: "Yılmaz"
+        address:
+          type: string
+          nullable: true
+          example: "Kadıköy, İstanbul"
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+        profilePhotoUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: Profil fotoğrafının public URL'i (fotoğraf yoksa null)
+          example: "https://xxx.supabase.co/storage/v1/object/public/owner-photos/550e8400-...?v=1"
 
     ClinicMembershipResponse:
       type: object
