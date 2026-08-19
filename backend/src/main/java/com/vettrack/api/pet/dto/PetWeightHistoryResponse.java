@@ -19,6 +19,30 @@ public class PetWeightHistoryResponse {
     private LocalDate date;
     private Double weight;
 
+    public static PetWeightHistoryResponseBuilder builder() {
+        return new PetWeightHistoryResponseBuilder();
+    }
+
+    public static class PetWeightHistoryResponseBuilder {
+        private LocalDate date;
+        private Double weight;
+
+        public PetWeightHistoryResponseBuilder date(LocalDate date) { this.date = date; return this; }
+        public PetWeightHistoryResponseBuilder weight(Double weight) { this.weight = weight; return this; }
+
+        public PetWeightHistoryResponse build() {
+            PetWeightHistoryResponse r = new PetWeightHistoryResponse();
+            r.date = this.date;
+            r.weight = this.weight;
+            return r;
+        }
+    }
+
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
+    public Double getWeight() { return weight; }
+    public void setWeight(Double weight) { this.weight = weight; }
+
     public static PetWeightHistoryResponse fromEntity(PetWeightHistory entity) {
         if (entity == null) {
             return null;

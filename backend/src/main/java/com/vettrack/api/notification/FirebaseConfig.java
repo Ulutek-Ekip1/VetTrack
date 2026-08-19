@@ -12,6 +12,9 @@ import org.springframework.core.io.ResourceLoader;
 
 import java.io.InputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Slf4j
 @Configuration
 public class FirebaseConfig {

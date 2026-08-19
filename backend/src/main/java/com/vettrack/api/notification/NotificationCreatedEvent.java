@@ -20,4 +20,12 @@ public class NotificationCreatedEvent {
         this.notificationId = notificationId;
         this.ownerId = ownerId;
     }
+
+    public UUID getNotificationId() {
+        return notificationId;
+    }
+
+    public UUID getOwnerId() {
+        return ownerId;
+    }
 }

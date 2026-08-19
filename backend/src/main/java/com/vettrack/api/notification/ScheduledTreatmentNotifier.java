@@ -17,15 +17,27 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ScheduledTreatmentNotifier {
 
     private final TreatmentEntryRepository treatmentEntryRepository;
     private final VisitRepository visitRepository;
     private final PetRepository petRepository;
     private final NotificationService notificationService;
+
+    public ScheduledTreatmentNotifier(TreatmentEntryRepository treatmentEntryRepository,
+                                      VisitRepository visitRepository,
+                                      PetRepository petRepository,
+                                      NotificationService notificationService) {
+        this.treatmentEntryRepository = treatmentEntryRepository;
+        this.visitRepository = visitRepository;
+        this.petRepository = petRepository;
+        this.notificationService = notificationService;
+    }
 
     /**
      * Arka planda her 5 dakikada bir çalışarak zamanı yaklaşan tedavileri tarar

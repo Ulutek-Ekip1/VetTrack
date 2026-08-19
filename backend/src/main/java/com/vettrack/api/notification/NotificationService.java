@@ -22,9 +22,11 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class NotificationService {
 
     private static final int MAX_SEND_ATTEMPTS = 3;
@@ -33,6 +35,14 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final DeviceTokenRepository deviceTokenRepository;
     private final ApplicationEventPublisher eventPublisher;
+
+    public NotificationService(NotificationRepository notificationRepository,
+                               DeviceTokenRepository deviceTokenRepository,
+                               ApplicationEventPublisher eventPublisher) {
+        this.notificationRepository = notificationRepository;
+        this.deviceTokenRepository = deviceTokenRepository;
+        this.eventPublisher = eventPublisher;
+    }
 
     @Transactional
     public Notification sendNotificationToOwner(UUID ownerId,

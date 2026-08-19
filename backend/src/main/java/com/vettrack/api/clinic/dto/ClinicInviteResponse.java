@@ -33,4 +33,38 @@ public class ClinicInviteResponse {
     public UUID getClinicIdSnake() {
         return clinicId;
     }
+
+    public static ClinicInviteResponseBuilder builder() {
+        return new ClinicInviteResponseBuilder();
+    }
+
+    public static class ClinicInviteResponseBuilder {
+        private String message;
+        private String inviteToken;
+        private OffsetDateTime expiresAt;
+        private UUID clinicId;
+
+        public ClinicInviteResponseBuilder message(String message) { this.message = message; return this; }
+        public ClinicInviteResponseBuilder inviteToken(String inviteToken) { this.inviteToken = inviteToken; return this; }
+        public ClinicInviteResponseBuilder expiresAt(OffsetDateTime expiresAt) { this.expiresAt = expiresAt; return this; }
+        public ClinicInviteResponseBuilder clinicId(UUID clinicId) { this.clinicId = clinicId; return this; }
+
+        public ClinicInviteResponse build() {
+            ClinicInviteResponse r = new ClinicInviteResponse();
+            r.message = this.message;
+            r.inviteToken = this.inviteToken;
+            r.expiresAt = this.expiresAt;
+            r.clinicId = this.clinicId;
+            return r;
+        }
+    }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+    public String getInviteToken() { return inviteToken; }
+    public void setInviteToken(String inviteToken) { this.inviteToken = inviteToken; }
+    public OffsetDateTime getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(OffsetDateTime expiresAt) { this.expiresAt = expiresAt; }
+    public UUID getClinicId() { return clinicId; }
+    public void setClinicId(UUID clinicId) { this.clinicId = clinicId; }
 }
