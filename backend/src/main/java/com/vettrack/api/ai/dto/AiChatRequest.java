@@ -24,5 +24,8 @@ public class AiChatRequest {
     private String message;
 
     @Builder.Default
+    private Boolean aiConsentGiven = true;
+
+    @Builder.Default
     private List<ChatMessageDto> history = new ArrayList<>();
 }

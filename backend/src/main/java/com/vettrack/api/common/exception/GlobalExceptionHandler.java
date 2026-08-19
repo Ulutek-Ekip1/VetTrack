@@ -12,8 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
@@ -73,6 +75,20 @@ public class GlobalExceptionHandler {
         body.put("validationErrors", errors);
 
         return new ResponseEntity<>(body, ErrorCode.VALIDATION_ERROR.getStatus());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingParams(MissingServletRequestParameterException ex) {
+        String name = ex.getParameterName();
+        return buildResponse(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name(),
+                name + " parametresi zorunludur");
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String name = ex.getName();
+        return buildResponse(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name(),
+                name + " parametresinin tipi geçersiz");
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

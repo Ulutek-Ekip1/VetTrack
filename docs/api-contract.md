@@ -45,6 +45,7 @@
 | `FORBIDDEN` | 403 | Rol yetkisiz (owner/vet_staff ayrımı) | FR-02 |
 | `ROLE_MISMATCH` | 403 | JWT rolü ile erişilen profil endpoint'i uyumsuz | FR-02 |
 | `EDIT_WINDOW_EXPIRED` | 403 | 15 dakikalık düzenleme süresi doldu | EC-08 |
+| `AI_CONSENT_REQUIRED` | 403 | Yapay zeka asistanı için açık rıza (opt-in) onayı gerekli | — |
 | `NOT_FOUND` | 404 | Kayıt bulunamadı | — |
 | `PET_NOT_FOUND` | 404 | Kod ile arama sonuçsuz | EC-01 |
 | `EMAIL_ALREADY_EXISTS` | 409 | E-posta zaten kayıtlı | FR-01 |

@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import java.util.Map;
  *   <li>Tüm authenticated kullanıcılar için varsayılan yetki {@code ROLE_OWNER}'dır.</li>
  * </ul>
  */
+@Slf4j
 @Component
 public class CustomJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
@@ -68,8 +70,8 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
                 if (adminCount != null && adminCount > 0) {
                     isAdmin = true;
                 }
-            } catch (DataAccessException ignored) {
-                // DB hatası durumunda admin varsayılmaz
+            } catch (DataAccessException e) {
+                log.error("DB erişim hatası nedeniyle JWT 'admin' yetkisi kontrol edilemedi. userId: {}", userId, e);
             }
         }
 
@@ -92,8 +94,8 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
                         authorities.add(new SimpleGrantedAuthority("ROLE_CLINIC_ADMIN"));
                     }
                 }
-            } catch (DataAccessException ignored) {
-                // DB erişim hatası: authority eklenmeden devam edilir.
+            } catch (DataAccessException e) {
+                log.error("DB erişim hatası nedeniyle JWT 'vet_staff' yetkileri kontrol edilemedi. userId: {}", userId, e);
             }
         }
 

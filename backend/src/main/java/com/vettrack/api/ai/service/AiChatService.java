@@ -6,6 +6,8 @@ import com.vettrack.api.ai.dto.ChatMessageDto;
 import com.vettrack.api.ai.entity.ChatMessage;
 import com.vettrack.api.ai.exception.IdempotencyKeyReusedException;
 import com.vettrack.api.ai.repository.ChatMessageRepository;
+import com.vettrack.api.common.exception.ApiException;
+import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
@@ -49,6 +51,14 @@ public class AiChatService {
     public AiChatResponse processChat(UUID ownerId, String userRole, AiChatRequest request) {
         long startTime = System.currentTimeMillis();
         boolean isStaff = isStaffRole(userRole);
+
+        // 0. AI Consent (KVKK / Opt-In) Check
+        // OpenAPI sözleşmesi gereğince varsayılan değer true'dur. Frontend göndermediğinde veya null olduğunda true kabul edilir.
+        // Yalnızca istemci açıkça false gönderdiğinde 403 AI_CONSENT_REQUIRED hatası fırlatılır.
+        boolean consentGiven = request.getAiConsentGiven() != null ? request.getAiConsentGiven() : true;
+        if (!consentGiven) {
+            throw new ApiException(ErrorCode.AI_CONSENT_REQUIRED, "Yapay zeka asistanını kullanabilmek için açık rıza (opt-in) onayı gereklidir.");
+        }
 
         // 1. Pet Ownership Check
         if (request.getPetId() != null && ownerId != null) {
