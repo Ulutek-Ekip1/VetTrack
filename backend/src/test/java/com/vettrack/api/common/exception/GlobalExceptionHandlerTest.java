@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -48,5 +49,19 @@ class GlobalExceptionHandlerTest {
         String message = (String) response.getBody().get("message");
         assertTrue(message.contains("id"));
         assertTrue(message.contains("UUID"));
+    }
+
+    @Test
+    @DisplayName("Aşırı uzun bir değer tip uyuşmazlığına sebep olursa mesajda 50 karakterden sonrası kırpılmalı")
+    void whenTypeMismatchValueIsTooLong_thenMessageTruncatesValue() {
+        String hugeValue = "a".repeat(10_000);
+        MethodArgumentTypeMismatchException ex = new MethodArgumentTypeMismatchException(
+                hugeValue, UUID.class, "id", null, null);
+
+        ResponseEntity<Map<String, Object>> response = handler.handleTypeMismatch(ex);
+
+        String message = (String) response.getBody().get("message");
+        assertFalse(message.contains(hugeValue));
+        assertTrue(message.contains("a".repeat(50) + "..."));
     }
 }
