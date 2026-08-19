@@ -34,7 +34,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
               TreatmentEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Tedavi kayıtları alınamadı.');
+      throw ServerException.fromDio(e, defaultMessage: 'Tedavi kayıtları alınamadı.');
     }
   }
 
@@ -47,7 +47,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
               TreatmentEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Tedavi kayıtları alınamadı.');
+      throw ServerException.fromDio(e, defaultMessage: 'Tedavi kayıtları alınamadı.');
     }
   }
 
@@ -74,7 +74,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
       return TreatmentEntryModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Tedavi kaydı eklenemedi.');
+      throw ServerException.fromDio(e, defaultMessage: 'Tedavi kaydı eklenemedi.');
     }
   }
 
@@ -83,7 +83,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
     try {
       await dio.delete('/treatments/$treatmentId');
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Tedavi kaydı silinemedi.');
+      throw ServerException.fromDio(e, defaultMessage: 'Tedavi kaydı silinemedi.');
     }
   }
 }

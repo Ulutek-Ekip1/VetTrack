@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vettrack_frontend/core/utils/formatters.dart';
+import 'package:vettrack_frontend/core/widgets/app_error_widget.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_cubit.dart';
 import 'package:vettrack_frontend/features/visit/presentation/cubit/visit_state.dart';
 
@@ -21,7 +22,10 @@ class OwnerVisitHistoryListScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (state is VisitError) {
-            return Center(child: Text(state.message));
+            return AppErrorWidget(
+              message: state.message,
+              onRetry: () => context.read<VisitCubit>().fetchOwnerVisitHistory(),
+            );
           }
           if (state is VisitHistoryLoaded) {
             final visits = state.visits;

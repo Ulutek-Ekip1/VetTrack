@@ -28,7 +28,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final Map<String, dynamic> data = response.data as Map<String, dynamic>;
       return NotificationListModel.fromJson(data);
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Bildirimler alınamadı.');
+      throw ServerException.fromDio(e, defaultMessage: 'Bildirimler alınamadı.');
     }
   }
 
@@ -44,7 +44,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         },
       );
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Cihaz tokenı kaydedilemedi.');
+      throw ServerException.fromDio(e, defaultMessage: 'Cihaz tokenı kaydedilemedi.');
     }
   }
 
@@ -58,7 +58,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         },
       );
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Cihaz tokenı silinemedi.');
+      throw ServerException.fromDio(e, defaultMessage: 'Cihaz tokenı silinemedi.');
     }
   }
 
@@ -69,7 +69,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final data = response.data as Map<String, dynamic>;
       return data['unreadCount'] as int? ?? 0;
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Okunmamış sayı alınamadı.');
+      throw ServerException.fromDio(e, defaultMessage: 'Okunmamış bildirim sayısı alınamadı.');
     }
   }
 
@@ -78,7 +78,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
     try {
       await dio.patch('/notifications/$id/read');
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Bildirim okundu işaretlenemedi.');
+      throw ServerException.fromDio(e, defaultMessage: 'Bildirim okundu işaretlenemedi.');
     }
   }
 
@@ -87,7 +87,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
     try {
       await dio.patch('/notifications/read-all');
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Bildirimler okundu işaretlenemedi.');
+      throw ServerException.fromDio(e, defaultMessage: 'Bildirimler okundu işaretlenemedi.');
     }
   }
 }

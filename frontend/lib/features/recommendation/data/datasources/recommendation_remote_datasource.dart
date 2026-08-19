@@ -30,7 +30,7 @@ class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSour
               RecommendationModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Öneriler alınamadı.');
+      throw ServerException.fromDio(e, defaultMessage: 'Öneriler alınamadı.');
     }
   }
 
@@ -40,7 +40,7 @@ class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSour
       final response = await dio.get('/visits/$visitId/recommendations');
       return (response.data as List).map((json) => RecommendationModel.fromJson(json as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Öneriler alınamadı.');
+      throw ServerException.fromDio(e, defaultMessage: 'Öneriler alınamadı.');
     }
   }
 
@@ -62,7 +62,7 @@ class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSour
       return RecommendationModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Öneri eklenemedi.');
+      throw ServerException.fromDio(e, defaultMessage: 'Öneri eklenemedi.');
     }
   }
 }

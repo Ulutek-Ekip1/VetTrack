@@ -23,21 +23,9 @@ class ClinicRemoteDataSourceImpl implements ClinicRemoteDataSource {
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
         return InviteValidationModel.fromJson(response.data as Map<String, dynamic>);
       }
-      throw const ServerException('Geçersiz davet kodu.');
+      throw const ServerException('Geçersiz davet kodu.', 400);
     } on DioException catch (e) {
-      final status = e.response?.statusCode;
-      final serverMsg = e.response?.data is Map
-          ? (e.response?.data['message'] ?? e.response?.data['error'])?.toString()
-          : null;
-
-      if (status == 404) {
-        throw ServerException(serverMsg ?? 'Davet kodu bulunamadı veya geçersiz.', 404);
-      } else if (status == 410 || (serverMsg != null && serverMsg.toLowerCase().contains('dolmuş'))) {
-        throw ServerException(serverMsg ?? 'Bu davet kodunun süresi dolmuş.', 410);
-      } else if (status == 409 || (serverMsg != null && serverMsg.toLowerCase().contains('kullanılmış'))) {
-        throw ServerException(serverMsg ?? 'Bu davet kodu daha önce kullanılmış.', 409);
-      }
-      throw ServerException(serverMsg ?? e.message ?? 'Davet kodu doğrulanamadı.', status);
+      throw ServerException.fromDio(e, defaultMessage: 'Davet kodu doğrulanamadı.');
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException(e.toString());
@@ -56,10 +44,7 @@ class ClinicRemoteDataSourceImpl implements ClinicRemoteDataSource {
         throw ServerException('Davet kabul edilemedi: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map
-          ? (e.response?.data['message'] ?? e.response?.data['error'])?.toString()
-          : null;
-      throw ServerException(serverMsg ?? e.message ?? 'Klinik üyeliği kabul edilemedi.', e.response?.statusCode);
+      throw ServerException.fromDio(e, defaultMessage: 'Klinik üyeliği kabul edilemedi.');
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException(e.toString());
