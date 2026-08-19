@@ -14,7 +14,7 @@ void showFAQBottomSheet(BuildContext context) {
 
 // 2. Alttan açılan pencerenin (BottomSheet) ana tasarımı
 class FAQBottomSheet extends StatelessWidget {
-  const FAQBottomSheet({Key? key}) : super(key: key);
+  const FAQBottomSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
