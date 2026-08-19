@@ -244,10 +244,11 @@ class _AIChatbotViewState extends State<AIChatbotView> {
   }
 
   void _showHistoryBottomSheet(BuildContext parentContext) {
+    final theme = Theme.of(parentContext);
     showModalBottomSheet(
       context: parentContext,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: theme.colorScheme.surfaceContainerLowest,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -270,29 +271,29 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Row(
+                            Row(
                               children: [
                                 Icon(Icons.history,
-                                    color: Color(0xFF004AC6), size: 22),
-                                SizedBox(width: 8),
+                                    color: theme.colorScheme.primary, size: 22),
+                                const SizedBox(width: 8),
                                 Text(
                                   'Sohbet Geçmişiniz',
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF131B2E),
+                                    color: theme.colorScheme.onSurface,
                                   ),
                                 ),
                               ],
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close),
+                              icon: Icon(Icons.close, color: theme.colorScheme.onSurface),
                               onPressed: () => Navigator.pop(bottomSheetContext),
                             ),
                           ],
                         ),
                       ),
-                      const Divider(height: 1),
+                      Divider(height: 1, color: theme.colorScheme.outlineVariant),
 
                       // Body - Yükleme / Hata / Liste Durumları
                       Expanded(
@@ -320,15 +321,16 @@ class _AIChatbotViewState extends State<AIChatbotView> {
     ScrollController scrollController,
     BuildContext bottomSheetContext,
   ) {
+    final theme = Theme.of(context);
     if (state.isLoadingHistory) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 12),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 12),
             Text('Sohbet geçmişi yükleniyor...',
-                style: TextStyle(color: Colors.grey)),
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
           ],
         ),
       );
@@ -346,7 +348,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               Text(
                 state.historyErrorMessage ?? 'Geçmiş yüklenirken bir hata oluştu.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF131B2E), fontSize: 14),
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 14),
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
@@ -354,8 +356,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                 icon: const Icon(Icons.refresh, size: 18),
                 label: const Text('Tekrar Deneyin'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF004AC6),
-                  foregroundColor: Colors.white,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                 ),
               ),
             ],
@@ -365,15 +367,15 @@ class _AIChatbotViewState extends State<AIChatbotView> {
     }
 
     if (state.conversations.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history_toggle_off, size: 54, color: Colors.grey),
-            SizedBox(height: 12),
+            Icon(Icons.history_toggle_off, size: 54, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(height: 12),
             Text(
               'Henüz kaydedilmiş sohbet geçmişiniz bulunmuyor.',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 14),
             ),
           ],
         ),
@@ -389,7 +391,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
             itemCount:
                 state.conversations.length + (state.hasMoreHistory ? 1 : 0),
             separatorBuilder: (_, __) =>
-                const Divider(height: 1, indent: 16, endIndent: 16),
+                Divider(height: 1, indent: 16, endIndent: 16, color: theme.colorScheme.outlineVariant),
             itemBuilder: (context, index) {
               if (index == state.conversations.length) {
                 // Daha fazla yükle butonu
@@ -407,8 +409,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                             icon: const Icon(Icons.expand_more),
                             label: const Text('Daha Fazla Geçmiş Yükle'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF004AC6),
-                              side: const BorderSide(color: Color(0xFF004AC6)),
+                              foregroundColor: theme.colorScheme.primary,
+                              side: BorderSide(color: theme.colorScheme.primary),
                             ),
                           ),
                   ),
@@ -421,16 +423,16 @@ class _AIChatbotViewState extends State<AIChatbotView> {
 
               return ListTile(
                 selected: isSelected,
-                selectedTileColor: const Color(0xFFEFF6FF),
+                selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                 leading: CircleAvatar(
                   backgroundColor: isSelected
-                      ? const Color(0xFF004AC6)
-                      : Colors.grey.shade100,
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.surfaceContainerHighest,
                   child: Icon(
                     conv.petId != null
                         ? Icons.pets
                         : Icons.chat_bubble_outline,
-                    color: isSelected ? Colors.white : const Color(0xFF004AC6),
+                    color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.primary,
                     size: 20,
                   ),
                 ),
@@ -441,7 +443,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   style: TextStyle(
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                     fontSize: 14,
-                    color: const Color(0xFF131B2E),
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 subtitle: Row(
@@ -527,26 +529,21 @@ class _AIChatbotViewState extends State<AIChatbotView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const primaryBlue = Color(0xFF004AC6);
-    const peachBg = Color(0xFFFFECE5);
-    const peachText = Color(0xFFD9531E);
+    final primaryBlue = theme.colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surfaceDim,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        shadowColor: Colors.black12,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_comment_outlined, color: primaryBlue),
+            icon: Icon(Icons.add_comment_outlined, color: theme.colorScheme.primary),
             tooltip: 'Yeni Sohbet',
             onPressed: () {
               context.read<AiChatCubit>().startNewConversation();
             },
           ),
           IconButton(
-            icon: const Icon(Icons.history, color: Color(0xFF131B2E)),
+            icon: Icon(Icons.history, color: theme.colorScheme.onSurface),
             tooltip: 'Sohbet Geçmişi',
             onPressed: () => _showHistoryBottomSheet(context),
           ),
@@ -555,11 +552,11 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           children: [
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: peachBg,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondaryContainer,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.auto_awesome, color: peachText, size: 20),
+              child: Icon(Icons.auto_awesome, color: theme.colorScheme.onSecondaryContainer, size: 20),
             ),
             const SizedBox(width: 10),
             Column(
@@ -569,7 +566,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   'AI Sağlık Asistanı',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF131B2E),
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 Row(
@@ -578,16 +575,16 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                       width: 8,
                       height: 8,
                       decoration: const BoxDecoration(
-                        color: Colors.green,
+                        color: Color(0xFF10B981),
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Çevrimiçi',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade600,
-                        fontSize: 10,
+                      'VetTrack AI • Çevrimiçi',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 11,
                       ),
                     ),
                   ],
@@ -644,22 +641,22 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
+                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
                       CircleAvatar(
                         radius: 18,
-                        backgroundColor: const Color(0xFFDBEAFE),
+                        backgroundColor: theme.colorScheme.primaryContainer,
                         backgroundImage: _activePet?.photoUrl != null &&
                                 _activePet!.photoUrl!.isNotEmpty
                             ? NetworkImage(_activePet!.photoUrl!)
                             : null,
                         child: _activePet?.photoUrl == null ||
                                 _activePet!.photoUrl!.isEmpty
-                            ? const Icon(Icons.pets, size: 18, color: primaryBlue)
+                            ? Icon(Icons.pets, size: 18, color: primaryBlue)
                             : null,
                       ),
                       const SizedBox(width: 12),
@@ -669,17 +666,17 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                           children: [
                             Text(
                               'Aktif Bağlam: ${_activePet?.name ?? 'Evcil Hayvan'}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
-                                color: Color(0xFF1E3A8A),
+                                color: theme.colorScheme.onSurface,
                               ),
                             ),
                             Text(
                               'Sorular ${_activePet?.name ?? 'bu pet'} özelinde yanıtlanır',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF3B82F6),
+                                color: theme.colorScheme.primary,
                               ),
                             ),
                           ],
@@ -699,12 +696,12 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: theme.colorScheme.surface,
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFF93C5FD)),
+                              border: Border.all(color: theme.colorScheme.outlineVariant),
                             ),
-                            child: const Icon(Icons.close,
-                                size: 16, color: Color(0xFF1E3A8A)),
+                            child: Icon(Icons.close,
+                                size: 16, color: theme.colorScheme.onSurface),
                           ),
                         ),
                       ),
@@ -793,8 +790,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                                   _messageController.text = tag;
                                   _onSendPressed();
                                 },
-                          backgroundColor: Colors.white,
-                          labelStyle: const TextStyle(
+                          backgroundColor: theme.colorScheme.surface,
+                          labelStyle: TextStyle(
                               color: primaryBlue,
                               fontSize: 12,
                               fontWeight: FontWeight.bold),
@@ -813,23 +810,34 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                 width: double.infinity,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFFBEB),
+                decoration: BoxDecoration(
+                  color: theme.brightness == Brightness.dark
+                      ? theme.colorScheme.surfaceContainerHighest
+                      : const Color(0xFFFFFBEB),
                   border: Border(
-                    top: BorderSide(color: Color(0xFFFDE68A), width: 1),
+                    top: BorderSide(
+                        color: theme.brightness == Brightness.dark
+                            ? theme.colorScheme.outlineVariant
+                            : const Color(0xFFFDE68A),
+                        width: 1),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(Icons.info_outline,
-                        size: 15, color: Color(0xFFB45309)),
-                    SizedBox(width: 8),
+                        size: 15,
+                        color: theme.brightness == Brightness.dark
+                            ? theme.colorScheme.primary
+                            : const Color(0xFFB45309)),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'YASAL UYARI: Yapay zeka yanıtları yalnızca genel bilgilendirme amaçlıdır. Teşhis veya reçeteli tedavi yerine geçmez.',
                         style: TextStyle(
                           fontSize: 10.5,
-                          color: Color(0xFF92400E),
+                          color: theme.brightness == Brightness.dark
+                              ? theme.colorScheme.onSurfaceVariant
+                              : const Color(0xFF92400E),
                           fontWeight: FontWeight.w500,
                           height: 1.3,
                         ),
@@ -858,10 +866,10 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16.0, vertical: 12.0),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLowest,
                   border: Border(
-                    top: BorderSide(color: Color(0xFFF1F5F9), width: 1.5),
+                    top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1.5),
                   ),
                 ),
                 child: SafeArea(
@@ -875,15 +883,17 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                           onSubmitted: (_) {
                             if (canSend) _onSendPressed();
                           },
+                          style: TextStyle(color: theme.colorScheme.onSurface),
                           decoration: InputDecoration(
                             hintText: isSending
                                 ? 'Yanıt bekleniyor...'
                                 : 'Mesajınızı yazın...',
+                            hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
                             disabledBorder: InputBorder.none,
-                            fillColor: Colors.grey.shade50,
+                            fillColor: theme.colorScheme.surfaceContainerHigh,
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 10),
                           ),
@@ -896,12 +906,16 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: canSend ? primaryBlue : Colors.grey.shade300,
+                            color: canSend
+                                ? primaryBlue
+                                : theme.colorScheme.surfaceContainerHighest,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.send,
-                            color: canSend ? Colors.white : Colors.grey.shade500,
+                            color: canSend
+                                ? theme.colorScheme.onPrimary
+                                : theme.colorScheme.onSurfaceVariant,
                             size: 20,
                           ),
                         ),
@@ -918,6 +932,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
   }
 
   Widget _buildWelcomeBubble(Color primaryBlue) {
+    final theme = Theme.of(context);
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
@@ -927,13 +942,14 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           maxWidth: MediaQuery.of(context).size.width * 0.82,
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.colorScheme.surfaceContainerLowest,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
             bottomLeft: Radius.circular(4),
             bottomRight: Radius.circular(16),
           ),
+          border: Border.all(color: theme.colorScheme.outlineVariant, width: 1.0),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -942,10 +958,10 @@ class _AIChatbotViewState extends State<AIChatbotView> {
             ),
           ],
         ),
-        child: const Text(
+        child: Text(
           'Merhaba! Ben VetTrack Yapay Zeka Sağlık Asistanıyım. Evcil hayvanınızın sağlığı, beslenmesi veya aşıları hakkında bana her şeyi sorabilirsiniz. 🐾',
           style: TextStyle(
-            color: Color(0xFF1E293B),
+            color: theme.colorScheme.onSurface,
             fontSize: 14.0,
             height: 1.4,
           ),
@@ -1245,6 +1261,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
     }
 
     // AI (Model) Yanıtı - Normal Standart Balon
+    final theme = Theme.of(context);
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
@@ -1254,14 +1271,14 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           maxWidth: MediaQuery.of(context).size.width * 0.85,
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.colorScheme.surfaceContainerLowest,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
             bottomLeft: Radius.circular(4),
             bottomRight: Radius.circular(16),
           ),
-          border: Border.all(color: Colors.grey.shade200, width: 1.0),
+          border: Border.all(color: theme.colorScheme.outlineVariant, width: 1.0),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -1275,8 +1292,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           children: [
             SelectableText(
               msg.content,
-              style: const TextStyle(
-                color: Color(0xFF1E293B),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
                 fontSize: 14.0,
                 height: 1.4,
               ),
@@ -1287,7 +1304,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               child: Text(
                 _formatTime(msg.createdAt),
                 style: TextStyle(
-                  color: Colors.grey.shade500,
+                  color: theme.colorScheme.onSurfaceVariant,
                   fontSize: 10,
                 ),
               ),
