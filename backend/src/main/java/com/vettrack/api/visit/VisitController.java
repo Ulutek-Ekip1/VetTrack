@@ -67,7 +67,7 @@ public class VisitController {
     /**
      * clinicId istekte açıkça verilmemişse, kullanıcının tek bir aktif klinik üyeliği varsa
      * onu otomatik kullanır. Birden fazla aktif üyelikte açık clinicId zorunlu kalır, hiç
-     * üyelik yoksa 401 döner.
+     * üyelik yoksa 403 (Forbidden) döner.
      */
     private UUID resolveClinicId(UUID userId, UUID explicitClinicId) {
         if (explicitClinicId != null) {
@@ -78,7 +78,7 @@ public class VisitController {
         if (memberships.size() == 1) {
             return memberships.get(0).getClinicId();
         } else if (memberships.isEmpty()) {
-            throw new com.vettrack.api.common.exception.UnauthorizedException("Aktif klinik uyeliginiz bulunmamaktadir.");
+            throw new org.springframework.security.access.AccessDeniedException("Aktif klinik uyeliginiz bulunmamaktadir.");
         } else {
             throw new IllegalArgumentException("Birden fazla klinikte aktifsiniz, lutfen clinicId belirtin.");
         }
