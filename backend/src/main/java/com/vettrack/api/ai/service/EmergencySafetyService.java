@@ -6,13 +6,16 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class EmergencySafetyService {
 
-    public static final String RULE_VERSION = "v1.2-emergency";
+    public static final String RULE_VERSION = "v1.3-security-guardrail";
 
     public static final String EMERGENCY_DISCLAIMER =
             "ACİL DURUM UYARISI: Tespit edilen semptomlar hayati tehlike oluşturabilir. Yapay zeka tavsiyesi beklenmeden derhal en yakın acil veteriner kliniğine başvurulmalıdır.";
@@ -30,23 +33,31 @@ public class EmergencySafetyService {
     );
 
     private static final List<String> PROMPT_INJECTION_KEYWORDS = Arrays.asList(
-            "önceki talimatları yok say", "ignore previous instructions", "system prompt", "act as developer", "bütün kuralları unut"
+            "önceki talimatları yok say", "ignore previous instructions", "system prompt",
+            "act as developer", "bütün kuralları unut", "dan mode", "jailbreak", "sudo mode",
+            "veteriner hekim gibi davranıp reçete yaz", "sistem kurallarını listele"
     );
 
-    /**
-     * Evaluates message against safety matrix in sub-5ms.
-     * Returns Optional containing emergency response if critical symptom is matched, empty otherwise.
-     */
+    private static final Pattern INJECTION_PATTERN = Pattern.compile(
+            PROMPT_INJECTION_KEYWORDS.stream()
+                    .<String>map(kw -> Pattern.quote(kw))
+                    .collect(Collectors.joining("|")),
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
+    );
+
+    private static final Pattern PHONE_PATTERN = Pattern.compile("(?:\\+?90|0)?[5][0-9]{9}|(?:\\+?90|0)?\\s*[0-9]{3}\\s*[0-9]{3}\\s*[0-9]{2}\\s*[0-9]{2}");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}");
+
     public Optional<AiChatResponse> checkEmergency(String message) {
         if (message == null || message.isBlank()) {
             return Optional.empty();
         }
 
-        String lowerMessage = message.toLowerCase(java.util.Locale.forLanguageTag("tr-TR"));
+        String lowerMessage = message.toLowerCase(Locale.forLanguageTag("tr-TR"));
 
-        boolean isRespiratory = RESPIRATORY_KEYWORDS.stream().anyMatch(lowerMessage::contains);
-        boolean isToxicology = TOXICOLOGY_KEYWORDS.stream().anyMatch(lowerMessage::contains);
-        boolean isTrauma = TRAUMA_KEYWORDS.stream().anyMatch(lowerMessage::contains);
+        boolean isRespiratory = RESPIRATORY_KEYWORDS.stream().anyMatch(kw -> lowerMessage.contains(kw));
+        boolean isToxicology = TOXICOLOGY_KEYWORDS.stream().anyMatch(kw -> lowerMessage.contains(kw));
+        boolean isTrauma = TRAUMA_KEYWORDS.stream().anyMatch(kw -> lowerMessage.contains(kw));
 
         if (isRespiratory || isToxicology || isTrauma) {
             String emergencyType = isRespiratory ? "SOLUNUM KRİZİ" : (isToxicology ? "ZEHİRLENME ŞÜPHESİ" : "TRAVMA / ŞİDDETLİ KANAMA");
@@ -75,15 +86,14 @@ public class EmergencySafetyService {
         return Optional.empty();
     }
 
-    /**
-     * Sanitizes user input against prompt injection attempts.
-     */
     public String sanitizePromptInput(String message) {
         if (message == null) return "";
         String sanitized = message;
-        for (String attack : PROMPT_INJECTION_KEYWORDS) {
-            sanitized = sanitized.replaceAll("(?i)" + attack, "[FİLTRELENDİ]");
-        }
-        return sanitized;
+
+        sanitized = PHONE_PATTERN.matcher(sanitized).replaceAll("[TELEFON GİZLENDİ]");
+        sanitized = EMAIL_PATTERN.matcher(sanitized).replaceAll("[E-POSTA GİZLENDİ]");
+        sanitized = INJECTION_PATTERN.matcher(sanitized).replaceAll("[GÜVENLİK_FİLTRESİ]");
+
+        return sanitized.trim();
     }
 }

@@ -4,10 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vettrack_frontend/core/utils/app_snackbar.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/utils/validators.dart';
+
 import '../../../../core/utils/app_platform.dart';
 import '../../domain/entities/user_entity.dart';
 
@@ -56,13 +56,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.surfaceContainerLow,
-              AppColors.surface,
+              theme.colorScheme.surfaceContainerLow,
+              theme.colorScheme.surface,
             ],
           ),
         ),
@@ -127,12 +127,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
                           side: BorderSide(
-                            color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                             width: 1,
                           ),
                         ),
-                          color: AppColors.surfaceContainerLowest,
-                          child: Padding(
+                        color: theme.colorScheme.surfaceContainerLowest,
+                        child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Form(
                             key: _formKey,
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   style:
                                       theme.textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF14B8A6),
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
 
@@ -156,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Text(
                                   "Devam etmek için e-posta ve şifrenizle giriş yapın",
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                                 if (AppPlatform.isVetWebExperience) ...[
@@ -164,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Text(
                                     "Klinik yönetim paneline erişmek için personel hesabınızı kullanın.",
                                     style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppColors.primary,
+                                      color: theme.colorScheme.primary,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -181,23 +181,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                   decoration: InputDecoration(
                                     labelText: "E-posta Adresi",
                                     hintText: "E-posta adresinizi giriniz",
-                                    prefixIcon: const Icon(
+                                    prefixIcon: Icon(
                                       Icons.mail_outline,
-                                      color: AppColors.outline,
+                                      color: theme.colorScheme.outline,
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.outlineVariant,
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: Color(0xFF14B8A6),
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.primary,
                                         width: 2,
                                       ),
                                     ),
@@ -216,23 +216,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                   decoration: InputDecoration(
                                     labelText: 'Şifre',
                                     hintText: 'Şifrenizi giriniz',
-                                    prefixIcon: const Icon(
+                                    prefixIcon: Icon(
                                       Icons.lock_outline,
-                                      color: AppColors.outline,
+                                      color: theme.colorScheme.outline,
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.outlineVariant,
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: Color(0xFF14B8A6),
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.primary,
                                         width: 2,
                                       ),
                                     ),
@@ -241,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         _obscurePassword
                                             ? Icons.visibility_off_outlined
                                             : Icons.visibility_outlined,
-                                        color: AppColors.outline,
+                                        color: theme.colorScheme.outline,
                                       ),
                                       onPressed: () {
                                         setState(() {
@@ -268,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       width: 24,
                                       child: Checkbox(
                                         value: _rememberMe,
-                                        activeColor: const Color(0xFF14B8A6),
+                                        activeColor: theme.colorScheme.primary,
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(4),
@@ -291,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         "Beni Hatırla",
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
-                                          color: AppColors.onSurface,
+                                          color: theme.colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -309,7 +309,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         'Şifremi Unuttum?',
                                         style: theme.textTheme.labelMedium
                                             ?.copyWith(
-                                          color: const Color(0xFF14B8A6),
+                                          color: theme.colorScheme.primary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -319,26 +319,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                 const SizedBox(height: 20),
 
-                                // Giriş Yap Butonu (Loading Durumu Destekli)
+                                // Giriş Yap Butonu
                                 SizedBox(
                                   height: 52,
                                   child: ElevatedButton(
                                     onPressed: isLoading ? null : _onLogin,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF14B8A6),
-                                      foregroundColor: Colors.white,
+                                      backgroundColor: theme.colorScheme.primary,
+                                      foregroundColor: theme.colorScheme.onPrimary,
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                     ),
                                     child: isLoading
-                                        ? const SizedBox(
+                                        ? SizedBox(
                                             width: 24,
                                             height: 24,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2.5,
-                                              color: Colors.white,
+                                              color: theme.colorScheme.onPrimary,
                                             ),
                                           )
                                         : Row(
@@ -350,89 +350,91 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
-                                                  color: Colors.white,
+                                                  color: theme.colorScheme.onPrimary,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
-                                              const Icon(
+                                              Icon(
                                                 Icons.arrow_forward,
                                                 size: 20,
-                                                color: Colors.white,
+                                                color: theme.colorScheme.onPrimary,
                                               ),
                                             ],
                                           ),
                                   ),
                                 ),
 
-                                const SizedBox(height: 16),
+                                if (AppPlatform.isMobileExperience) ...[
+                                  const SizedBox(height: 16),
 
-                                // veya Ayracı
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Divider(
-                                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                                        thickness: 1,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                                      child: Text(
-                                        "veya",
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          color: AppColors.onSurfaceVariant,
+                                  // veya Ayracı
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Divider(
+                                          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                          thickness: 1,
                                         ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: Divider(
-                                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                                        thickness: 1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                // Google ile Giriş Yap Butonu
-                                SizedBox(
-                                  height: 52,
-                                  child: OutlinedButton(
-                                    onPressed: isLoading
-                                        ? null
-                                        : () {
-                                            context.read<AuthCubit>().signInWithGoogle();
-                                          },
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(
-                                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          "assets/icons/google_g.png",
-                                          height: 20,
-                                          width: 20,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          'Google ile Giriş Yap',
-                                          style: theme.textTheme.titleMedium?.copyWith(
-                                            color: AppColors.onSurface,
-                                            fontWeight: FontWeight.bold,
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        child: Text(
+                                          "veya",
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant,
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                      Expanded(
+                                        child: Divider(
+                                          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  // Google ile Giriş Yap Butonu
+                                  SizedBox(
+                                    height: 52,
+                                    child: OutlinedButton(
+                                      onPressed: isLoading
+                                          ? null
+                                          : () {
+                                              context.read<AuthCubit>().signInWithGoogle();
+                                            },
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            "assets/icons/google_g.png",
+                                            height: 20,
+                                            width: 20,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'Google ile Giriş Yap',
+                                            style: theme.textTheme.titleMedium?.copyWith(
+                                              color: theme.colorScheme.onSurface,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),
@@ -442,13 +444,38 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
 
                       // Kayıt Ol Yönlendirmesi
-                      Row(
+                      if (AppPlatform.isVetWebExperience) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Kliniğinize katılmak için davet kodunuz mu var?",
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                context.push(AppRoutes.vetInvite);
+                              },
+                              child: Text(
+                                "Davet Kodu ile Katılın",
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               "Hesabınız yok mu?",
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: AppColors.onSurfaceVariant,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             TextButton(
@@ -458,20 +485,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Text(
                                 "Kayıt Ol",
                                 style: theme.textTheme.labelLarge?.copyWith(
-                                  color: const Color(0xFF14B8A6),
+                                  color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ],
                         ),
+                      ],
                       const SizedBox(height: 24),
 
                       // Footer
                       Text(
                         "© 2026 VetTrack Health Systems. All rights reserved.",
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.outline,
+                          color: theme.colorScheme.outline,
                         ),
                         textAlign: TextAlign.center,
                       ),

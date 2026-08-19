@@ -49,7 +49,7 @@ public class PetContextService {
             List<Pet> ownerPets = petRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(ownerId);
             if (!ownerPets.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
-                sb.append("=== KULLANICININ SİSTEMDE KAYITLI EVCİL HAYVANLARI ===\n");
+                sb.append("=== EVCİL HAYVAN TIBBİ PROFİLLERİ ===\n");
                 for (Pet pet : ownerPets) {
                     sb.append(formatSinglePetContext(pet)).append("\n");
                 }
@@ -57,26 +57,39 @@ public class PetContextService {
             }
         }
 
-        return "Sistemde kayıtlı belirli bir evcil hayvan bilgisi bulunmamaktadır. Genel veterinerlik bilgisi ile yardımcı olunuz.";
+        return "Sistemde kayıtlı belirli bir evcil hayvan bilgisi bulunmamaktadır. Genel veterinerlik danışmanlığı ile yardımcı olunuz.";
     }
 
     private String formatSinglePetContext(Pet pet) {
         StringBuilder sb = new StringBuilder();
-        sb.append("=== EVCİL HAYVAN PROFİLİ VE TIBBİ BAĞLAMI ===\n");
+        sb.append("--- Hayvan Profili ---\n");
         sb.append("Adı: ").append(pet.getName()).append("\n");
         sb.append("Tür: ").append(pet.getSpecies()).append("\n");
         sb.append("Irk: ").append(pet.getBreed() != null ? pet.getBreed() : "Bilinmiyor").append("\n");
         sb.append("Cinsiyet: ").append(pet.getGender() != null ? pet.getGender() : "Bilinmiyor").append("\n");
+        sb.append("Kısırlaştırılma Durumu: ").append(Boolean.TRUE.equals(pet.getIsSpayedOrNeutered()) ? "Kısırlaştırılmış" : "Kısırlaştırılmamış/Bilinmiyor").append("\n");
+
+        if (pet.getWeight() != null) {
+            sb.append("Kilo: ").append(pet.getWeight()).append(" kg\n");
+        }
+
+        if (pet.getAllergies() != null && !pet.getAllergies().isBlank()) {
+            sb.append("Alerjiler: ").append(pet.getAllergies()).append("\n");
+        }
+
+        if (pet.getChronicIllnesses() != null && !pet.getChronicIllnesses().isBlank()) {
+            sb.append("Kronik Rahatsızlıklar: ").append(pet.getChronicIllnesses()).append("\n");
+        }
 
         if (pet.getBirthDate() != null) {
             int ageYears = Period.between(pet.getBirthDate(), LocalDate.now()).getYears();
-            sb.append("Doğum Tarihi: ").append(pet.getBirthDate()).append(" (Yaklaşık ").append(ageYears).append(" yaşında)\n");
+            sb.append("Yaş: Yaklaşık ").append(ageYears).append(" yaşında\n");
         } else if (pet.getEstimatedBirthYear() != null) {
             int ageYears = LocalDate.now().getYear() - pet.getEstimatedBirthYear();
-            sb.append("Tahmini Yaş: ").append(ageYears).append(" yaşında\n");
+            sb.append("Yaş: Yaklaşık ").append(ageYears).append(" yaşında\n");
         }
 
-        // Fetch recent visits and treatment entries
+        // Fetch recent visits and treatment entries (strictly minimal metadata, no staff PII)
         List<Visit> visits = visitRepository.findByPetIdOrderByStartedAtDesc(pet.getId());
         List<TreatmentEntry> allTreatments = new ArrayList<>();
 
@@ -86,23 +99,18 @@ public class PetContextService {
         }
 
         if (!allTreatments.isEmpty()) {
-            sb.append("\n=== GEÇMİŞ TIBBİ TEDAVİ VE AŞI KAYITLARI ===\n");
+            sb.append("Geçmiş Tıbbi/Aşı Kayıtları:\n");
             int count = 0;
             for (TreatmentEntry entry : allTreatments) {
-                if (count++ >= 10) break; // Limit to 10 most recent entries for context budget
-                sb.append("- [").append(entry.getType()).append("] ")
-                        .append(entry.getTitle())
-                        .append(" (Durum: ").append(entry.getStatus()).append(")");
+                if (count++ >= 8) break; // Token & privacy budget limit
+                sb.append("- [").append(entry.getType()).append("] ").append(entry.getTitle());
                 if (entry.getDescription() != null && !entry.getDescription().isBlank()) {
-                    sb.append(": ").append(entry.getDescription());
+                    sb.append(" (").append(entry.getDescription()).append(")");
                 }
                 sb.append("\n");
             }
-        } else {
-            sb.append("\nKayıtlı aktif veya geçmiş tedavi kaydı bulunmamaktadır.\n");
         }
 
-        sb.append("=============================================\n");
         return sb.toString();
     }
 }

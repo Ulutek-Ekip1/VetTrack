@@ -102,7 +102,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   clipper: WaveClipper(),
                   child: Container(
                     height: 185,
-                    color: const Color(0xFF004AC6),
+                    color: theme.colorScheme.primary,
                     padding: const EdgeInsets.only(
                       left: 24,
                       right: 24,
@@ -130,15 +130,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
                             return CircleAvatar(
                               radius: 26,
-                              backgroundColor: Colors.white.withValues(alpha: 0.2),
+                              backgroundColor:
+                                  theme.colorScheme.onPrimary.withValues(alpha: 0.2),
                               backgroundImage: avatarImage,
                               child: avatarImage == null
                                   ? Text(
                                       userName.isNotEmpty
                                           ? userName[0].toUpperCase()
                                           : 'U',
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: theme.colorScheme.onPrimary,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
                                       ),
@@ -156,15 +157,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               Text(
                                 'Merhaba,',
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.8),
+                                  color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
                                   fontSize: 14,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 '$userName 👋',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: theme.colorScheme.onPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 22,
                                 ),
@@ -173,9 +174,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           ),
                         ),
                         NotificationBadgeButton(
-                          iconColor: Colors.white,
+                          iconColor: theme.colorScheme.onPrimary,
                           iconSize: 22,
-                          backgroundColor: Colors.white.withValues(alpha: 0.15),
+                          backgroundColor: theme.colorScheme.onPrimary.withValues(alpha: 0.15),
                         ),
                       ],
                     ),
@@ -214,7 +215,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                  const SizedBox(height: 16), // Boşluk daraltıldı (24 -> 16)
+                  const SizedBox(height: 16),
 
                   // Hızlı İşlemler
                   Padding(
@@ -224,12 +225,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       'Hızlı İşlemler',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF131B2E),
+                        color: theme.colorScheme.onSurface,
                         fontSize: 16,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8), // Boşluk daraltıldı (12 -> 8)
+                  const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppDimensions.containerMargin),
@@ -290,7 +291,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     ),
                   ),
 
-                  const SizedBox(height: 24), // Boşluk daraltıldı (28 -> 24)
+                  const SizedBox(height: 24),
 
                   // Dostlarım Bölümü
                   Padding(
@@ -303,7 +304,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           'Sevgili Dostlarım',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF131B2E),
+                            color: theme.colorScheme.onSurface,
                             fontSize: 16,
                           ),
                         ),
@@ -340,7 +341,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               child: Text(
                                 'Kayıtlı evcil hayvanınız bulunmuyor.',
                                 style: theme.textTheme.bodyMedium
-                                    ?.copyWith(color: Colors.grey),
+                                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                               ),
                             );
                           }
@@ -356,13 +357,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 width: 215,
                                 margin: const EdgeInsets.only(right: 12),
                                 decoration: BoxDecoration(
-                                  color: const Color(
-                                      0xFFEFF6FF), // Eşleşen açık mavi renk
+                                  color: theme.colorScheme.surfaceContainerLow,
                                   borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: theme.colorScheme.outlineVariant
+                                        .withValues(alpha: 0.5),
+                                    width: 1,
+                                  ),
                                 ),
                                 child: InkWell(
                                   onTap: () =>
-                                      context.push('/owner/pets/${pet.id}'),
+                                      context.go('/owner/pets/${pet.id}'),
                                   borderRadius: BorderRadius.circular(20),
                                   splashColor: theme.colorScheme.primary
                                       .withValues(alpha: 0.08),
@@ -375,7 +380,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                         CircleAvatar(
                                           radius: 30,
                                           backgroundColor:
-                                              const Color(0xFFDBEAFE),
+                                              theme.colorScheme.primaryContainer,
                                           backgroundImage:
                                               pet.photoUrl != null &&
                                                       pet.photoUrl!.isNotEmpty
@@ -404,7 +409,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                     ?.copyWith(
                                                   fontWeight: FontWeight.bold,
                                                   color:
-                                                      const Color(0xFF131B2E),
+                                                      theme.colorScheme.onSurface,
                                                   fontSize: 16,
                                                 ),
                                                 maxLines: 1,
@@ -416,7 +421,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                     'Tür Belirtilmemiş',
                                                 style: theme.textTheme.bodySmall
                                                     ?.copyWith(
-                                                  color: Colors.grey.shade600,
+                                                  color: theme.colorScheme.onSurfaceVariant,
                                                 ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
@@ -424,8 +429,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                               const SizedBox(height: 6),
                                               Text(
                                                 '${pet.age ?? 0} yaşında',
-                                                style: const TextStyle(
-                                                  color: Color(0xFF004AC6),
+                                                style: TextStyle(
+                                                  color: theme.colorScheme.primary,
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 13,
                                                 ),
@@ -465,26 +470,37 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final cardBgColor = isDark
+        ? theme.colorScheme.surfaceContainerLowest
+        : theme.colorScheme.surfaceContainerLowest;
+    final badgeBgColor = isDark
+        ? iconColor.withValues(alpha: 0.2)
+        : color;
+
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20), // 20px oval köşeler
-        // Degradeli modern kart arka planı (Soluk uygun ton geçişi)
+        borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
           colors: [
-            Colors.white,
-            color.withValues(alpha: 0.25),
+            cardBgColor,
+            isDark
+                ? iconColor.withValues(alpha: 0.12)
+                : color.withValues(alpha: 0.25),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        // İkon rengiyle uyumlu daha belirgin çerçeve
         border: Border.all(
-          color: iconColor.withValues(alpha: 0.20),
+          color: isDark
+              ? theme.colorScheme.outlineVariant
+              : iconColor.withValues(alpha: 0.20),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: iconColor.withValues(alpha: 0.03),
+            color: iconColor.withValues(alpha: isDark ? 0.08 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -495,7 +511,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
-          // Dinamik eşleşen hover ve splash dalgalanma efekti
           splashColor: iconColor.withValues(alpha: 0.15),
           hoverColor: iconColor.withValues(alpha: 0.08),
           highlightColor: iconColor.withValues(alpha: 0.04),
@@ -506,7 +521,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: color,
+                    color: badgeBgColor,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: iconColor, size: 24),
@@ -521,7 +536,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         title,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF131B2E),
+                          color: theme.colorScheme.onSurface,
                           fontSize: 15,
                         ),
                         maxLines: 1,
@@ -531,7 +546,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       Text(
                         subtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade500,
+                          color: theme.colorScheme.onSurfaceVariant,
                           fontSize: 11,
                         ),
                         maxLines: 2,

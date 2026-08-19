@@ -23,6 +23,8 @@ public class AiChatRequest {
     @NotBlank(message = "Mesaj boş olamaz.")
     private String message;
 
+    private Boolean aiConsentGiven;
+
     @Builder.Default
     private Boolean aiConsentGiven = true;
 

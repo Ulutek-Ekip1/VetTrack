@@ -210,6 +210,61 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /profiles/me/photo:
+    post:
+      tags: [Profile]
+      summary: Profil fotoğrafı yükle/güncelle
+      description: |
+        Kullanıcının profil fotoğrafını yükler veya günceller. Fotoğraf Supabase
+        Storage'daki `owner-photos` bucket'ına kullanıcı ID'si anahtarıyla (x-upsert)
+        yazılır; kullanıcının önceki fotoğrafı varsa önce silinir. Max 15MB; JPEG,
+        PNG, WebP kabul edilir. Aynı uç `/owners/me/photo`, `/api/profiles/me/photo`
+        ve `/api/owners/me/photo` alias'larından da erişilebilir.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Profil fotoğrafı yüklendi/güncellendi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnerResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: Dosya 15MB sınırını aşıyor (EC-06)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [Profile]
+      summary: Profil fotoğrafını sil
+      description: |
+        Kullanıcının profil fotoğrafını siler: `profiles.profile_photo_url` NULL
+        yapılır ve `owner-photos` bucket'ındaki dosya kaldırılır. Idempotenttir —
+        silinecek fotoğraf zaten yoksa da 204 döner.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Profil fotoğrafı silindi (veya zaten yoktu)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   # ---- Pets ----
   /pets:
     post:
@@ -542,6 +597,10 @@ paths:
     get:
       tags: [Visits]
       summary: 6 haneli kod ile hasta bul
+      description: |
+        `clinicId` opsiyoneldir. Verilmezse hekimin tek bir aktif klinik üyeliği varsa
+        otomatik kullanılır (`VisitController.createVisit` ile aynı desen). Birden fazla
+        aktif üyelikte `clinicId` zorunludur (400), hiç aktif üyelik yoksa 401 döner.
       security:
         - bearerAuth: []
       parameters:
@@ -550,6 +609,13 @@ paths:
           required: true
           schema:
             type: string
+        - name: clinicId
+          in: query
+          required: false
+          description: Belirtilmezse hekimin tek aktif klinik üyeliğinden otomatik çözümlenir.
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
           description: Hasta bilgisi ve geçmiş ziyaretleri
@@ -557,6 +623,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PetWithVisitsResponse'
+        '400':
+          description: clinicId verilmedi ve hekim birden fazla klinikte aktif — clinicId zorunlu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -961,6 +1033,78 @@ paths:
         '404':
           description: Geçersiz veya süresi dolmuş davet token'ı
 
+  /clinics/invites/validate:
+    get:
+      tags: [Clinics]
+      summary: Davet kodunu doğrula (Public)
+      description: |
+        Davet kodunu oturum açmadan doğrular (frontend onboarding ön-kontrolü).
+        Gizlilik gereği yanıt gövdesinde davet e-postası DÖNÜLMEZ.
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Ham davet kodu (rawToken)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Davet geçerli
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: true
+                  clinicId:
+                    type: string
+                    format: uuid
+                  clinicName:
+                    type: string
+                    example: "Kadıköy Veteriner Kliniği"
+        '400':
+          description: Davet iptal edilmiş
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Bu davet iptal edilmiş."
+        '404':
+          description: Geçersiz davet kodu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Geçersiz davet kodu."
+        '409':
+          description: Davet kodu daha önce kullanılmış
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Bu davet kodu daha önce kullanılmış."
+        '410':
+          description: Davet kodunun süresi dolmuş
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Bu davet kodunun süresi dolmuş."
+
   /clinics/invites/{inviteId}:
     delete:
       tags: [Clinics]
@@ -1299,12 +1443,26 @@ components:
           type: string
           nullable: true
           example: "+905551234567"
+        surname:
+          type: string
+          nullable: true
+          example: "Yılmaz"
+        address:
+          type: string
+          nullable: true
+          example: "Kadıköy, İstanbul"
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+        profilePhotoUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: Profil fotoğrafının public URL'i (fotoğraf yoksa null)
+          example: "https://xxx.supabase.co/storage/v1/object/public/owner-photos/550e8400-...?v=1"
 
     ClinicMembershipResponse:
       type: object

@@ -60,8 +60,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
               _speciesController.text = parts[0];
               _breedController.text = parts[1];
             } else {
-              _speciesController.text = '';
-              _breedController.text = pet.breed!;
+              _speciesController.text = pet.breed!;
+              _breedController.text = '';
             }
           } else {
             _speciesController.text = '';
@@ -144,8 +144,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
                     side: const BorderSide(color: Colors.grey),
                   ),
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('İptal',
-                      style: TextStyle(color: Color(0xFF131B2E))),
+                  child: Text('İptal',
+                      style: TextStyle(color: Theme.of(dialogContext).colorScheme.onSurface)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -173,17 +173,23 @@ class _EditPetScreenState extends State<EditPetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF004AC6);
-    const buttonBlue = Color(0xFF2563EB);
     final theme = Theme.of(context);
+    final primaryBlue = theme.colorScheme.primary;
+    final buttonBlue = theme.colorScheme.primary;
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Dostu Düzenle',
-            style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Dostu Düzenle',
+          style: TextStyle(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Color(0xFFEF4444)),
+            icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
             tooltip: 'Evcil Hayvanı Sil',
             onPressed: () => _showDeleteConfirmation(context),
           ),
@@ -195,7 +201,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: const Color(0xFF006B5F),
+                backgroundColor: theme.colorScheme.primary,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -204,7 +210,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: const Color(0xFFEF4444),
+                backgroundColor: theme.colorScheme.error,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -269,7 +275,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                             },
                             child: Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 color: primaryBlue,
                                 shape: BoxShape.circle,
                               ),

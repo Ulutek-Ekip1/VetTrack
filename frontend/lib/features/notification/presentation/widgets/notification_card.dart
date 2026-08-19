@@ -17,40 +17,40 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const primaryBlue = Color(0xFF004AC6);
+    final primaryBlue = theme.colorScheme.primary;
 
     final bool isRead = notification.isRead;
 
     final (iconData, iconColor, iconBgColor) = switch (notification.type) {
       "SYSTEM" => (
           Icons.info_outline_rounded,
-          const Color(0xFF2689E8),
-          const Color(0xFFF1F7FE),
+          theme.colorScheme.primary,
+          theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
         ),
       "VACCINE" => (
           Icons.vaccines_rounded,
-          const Color(0xFF28B3B0),
-          const Color(0xFFF0FAFB),
+          theme.colorScheme.secondary,
+          theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
         ),
       "TREATMENT" => (
           Icons.healing_rounded,
-          const Color(0xFF69B451),
-          const Color(0xFFF6FAF3),
+          const Color(0xFF10B981),
+          const Color(0xFF10B981).withValues(alpha: 0.15),
         ),
       "RECOMMENDATION" => (
           Icons.tips_and_updates_rounded,
-          const Color(0xFFA06AEF),
-          const Color(0xFFF6F0FE),
+          theme.colorScheme.tertiary,
+          theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
         ),
       "VISIT" => (
           Icons.calendar_month_rounded,
-          const Color(0xFFF0A43C),
-          const Color(0xFFFFF8EE),
+          const Color(0xFFF59E0B),
+          const Color(0xFFF59E0B).withValues(alpha: 0.15),
         ),
       _ => (
           Icons.notifications_none_outlined,
           primaryBlue,
-          const Color(0xFFEFF6FF),
+          theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
         ),
     };
 
@@ -59,15 +59,17 @@ class NotificationCard extends StatelessWidget {
       margin: const EdgeInsets.only(
         bottom: AppDimensions.spacingSm,
       ),
-      color: isRead ? theme.colorScheme.surface : const Color(0xFFF1F5F9),
+      color: isRead
+          ? theme.colorScheme.surfaceContainerLowest
+          : theme.colorScheme.primaryContainer.withValues(alpha: 0.15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(
           AppDimensions.radiusMd,
         ),
         side: BorderSide(
           color: isRead
-              ? Colors.grey.shade200
-              : primaryBlue.withValues(alpha: 0.15),
+              ? theme.colorScheme.outlineVariant.withValues(alpha: 0.5)
+              : primaryBlue.withValues(alpha: 0.3),
         ),
       ),
       child: InkWell(
@@ -110,9 +112,7 @@ class NotificationCard extends StatelessWidget {
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight:
                                   isRead ? FontWeight.bold : FontWeight.w900,
-                              color: isRead
-                                  ? const Color(0xFF334155)
-                                  : const Color(0xFF131B2E),
+                              color: theme.colorScheme.onSurface,
                               fontSize: 15,
                             ),
                           ),
@@ -121,7 +121,7 @@ class NotificationCard extends StatelessWidget {
                           Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: primaryBlue,
                               shape: BoxShape.circle,
                             ),
@@ -132,9 +132,7 @@ class NotificationCard extends StatelessWidget {
                     Text(
                       notification.body,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isRead
-                            ? Colors.grey.shade600
-                            : const Color(0xFF1E293B),
+                        color: theme.colorScheme.onSurfaceVariant,
                         fontSize: 13,
                         height: 1.35,
                       ),
@@ -145,7 +143,7 @@ class NotificationCard extends StatelessWidget {
                         '${notification.sentAt!.hour.toString().padLeft(2, '0')}:'
                         '${notification.sentAt!.minute.toString().padLeft(2, '0')}',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade500,
+                          color: theme.colorScheme.outline,
                           fontSize: 11,
                         ),
                       ),

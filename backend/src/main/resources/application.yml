@@ -4,6 +4,7 @@ spring:
     username: ${SUPABASE_DB_USER}
     password: ${SUPABASE_DB_PASSWORD}
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
     show-sql: true
@@ -70,3 +71,17 @@ gemini:
 
 server:
   port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,liveness,readiness
+  endpoint:
+    health:
+      show-details: ${MANAGEMENT_HEALTH_SHOW_DETAILS:when-authorized}
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: ${MANAGEMENT_HEALTH_REDIS_ENABLED:false}

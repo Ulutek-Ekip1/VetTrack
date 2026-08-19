@@ -1,12 +1,12 @@
 package com.vettrack.api.clinic;
 
-import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.ConflictException;
+import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -17,6 +17,8 @@ import java.util.UUID;
 public class ClinicMembershipService {
 
     private final ClinicMembershipRepository membershipRepository;
+    private final ClinicRepository clinicRepository;
+    private final ClinicInviteRepository inviteRepository;
 
     public boolean hasActiveMembership(UUID userId) {
         return !getMembershipsByUser(userId).stream().filter(m -> "active".equals(m.getStatus())).toList().isEmpty();
@@ -39,6 +41,45 @@ public class ClinicMembershipService {
         ClinicMembership membership = getActiveMembership(userId, clinicId);
         if (!Boolean.TRUE.equals(membership.getIsClinicAdmin())) {
             throw new UnauthorizedException("Bu işlem için bu klinikte clinic_admin olmalısınız.");
+        }
+    }
+
+    /**
+     * Yeni davet oluşturulurken kota kontrolü yapar.
+     */
+    public void validateClinicVetQuota(UUID clinicId) {
+        Clinic clinic = clinicRepository.findById(clinicId)
+                .orElseThrow(() -> new ResourceNotFoundException("Klinik bulunamadı."));
+
+        long activeMembersCount = membershipRepository.findByClinicId(clinicId).stream()
+                .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
+                .count();
+
+        long pendingInvitesCount = inviteRepository
+                .countByClinicIdAndAcceptedAtIsNullAndRevokedAtIsNullAndExpiresAtAfter(clinicId, OffsetDateTime.now());
+
+        int limit = clinic.getTier() != null ? clinic.getTier().getDefaultMaxVets() : ClinicTier.FREE.getDefaultMaxVets();
+
+        if ((activeMembersCount + pendingInvitesCount) >= limit) {
+            throw new AccessDeniedException("Klinik hekim kotası doldu. Yeni üye eklemek veya davet göndermek için paketinizi yükseltin.");
+        }
+    }
+
+    /**
+     * Mevcut bir davet kabul edilirken sadece aktif üyeleri kontrol eder (davet zaten oluşturulurken kotadan ayrılmıştı).
+     */
+    public void validateClinicVetQuotaForAccept(UUID clinicId) {
+        Clinic clinic = clinicRepository.findById(clinicId)
+                .orElseThrow(() -> new ResourceNotFoundException("Klinik bulunamadı."));
+
+        long activeMembersCount = membershipRepository.findByClinicId(clinicId).stream()
+                .filter(m -> "active".equalsIgnoreCase(m.getStatus()))
+                .count();
+
+        int limit = clinic.getTier() != null ? clinic.getTier().getDefaultMaxVets() : ClinicTier.FREE.getDefaultMaxVets();
+
+        if (activeMembersCount >= limit) {
+            throw new AccessDeniedException("Klinik hekim kotası doldu. Yeni üye eklemek için paketinizi yükseltin.");
         }
     }
 

@@ -5,7 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_platform.dart';
+
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -16,13 +17,13 @@ class WelcomeScreen extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.surfaceContainerLow,
-              AppColors.surface,
+              theme.colorScheme.surfaceContainerLow,
+              theme.colorScheme.surface,
             ],
           ),
         ),
@@ -44,9 +45,11 @@ class WelcomeScreen extends StatelessWidget {
 
                   // Alt Açıklama
                   Text(
-                    "Evcil hayvanınızın sağlık, bakım ve muayene süreçlerini tek bir yerden kolayca takip edin.",
+                    AppPlatform.isVetWebExperience
+                        ? "Veteriner Klinik Yönetim Portalı\nHasta kabul, muayene, aşı ve tedavi süreçlerini kolayca yönetin."
+                        : "Evcil hayvanınızın sağlık, bakım ve muayene süreçlerini tek bir yerden kolayca takip edin.",
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: AppColors.onSurfaceVariant,
+                      color: theme.colorScheme.onSurfaceVariant,
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,
@@ -71,7 +74,7 @@ class WelcomeScreen extends StatelessWidget {
 
                       return Column(
                         children: [
-                          // Giriş Yap Butonu (Turkuaz - #14B8A6)
+                          // Giriş Yap Butonu
                           SizedBox(
                             width: double.infinity,
                             height: 56,
@@ -82,8 +85,8 @@ class WelcomeScreen extends StatelessWidget {
                                       context.push(AppRoutes.login);
                                     },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF14B8A6),
-                                foregroundColor: Colors.white,
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -93,18 +96,20 @@ class WelcomeScreen extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Giriş Yap',
+                                    AppPlatform.isVetWebExperience
+                                        ? 'Personel Girişi'
+                                        : 'Giriş Yap',
                                     style:
                                         theme.textTheme.titleMedium?.copyWith(
-                                      color: Colors.white,
+                                      color: theme.colorScheme.onPrimary,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Icon(
+                                  Icon(
                                     Icons.login_rounded,
                                     size: 20,
-                                    color: Colors.white,
+                                    color: theme.colorScheme.onPrimary,
                                   ),
                                 ],
                               ),
@@ -113,7 +118,7 @@ class WelcomeScreen extends StatelessWidget {
 
                           const SizedBox(height: 16),
 
-                          // Kayıt Ol Butonu (Şeftali - #FFB89C)
+                          // İkinci Buton: Web'de Klinik Davet Kodu, Mobil'de Kayıt Ol
                           SizedBox(
                             width: double.infinity,
                             height: 56,
@@ -121,11 +126,15 @@ class WelcomeScreen extends StatelessWidget {
                               onPressed: isLoading
                                   ? null
                                   : () {
-                                      context.push(AppRoutes.register);
+                                      if (AppPlatform.isVetWebExperience) {
+                                        context.push(AppRoutes.vetInvite);
+                                      } else {
+                                        context.push(AppRoutes.register);
+                                      }
                                     },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFFB89C),
-                                foregroundColor: const Color(0xFF131B2E),
+                                backgroundColor: theme.colorScheme.secondaryContainer,
+                                foregroundColor: theme.colorScheme.onSecondaryContainer,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -135,110 +144,116 @@ class WelcomeScreen extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Kayıt Ol',
+                                    AppPlatform.isVetWebExperience
+                                        ? 'Davet Kodu ile Katıl'
+                                        : 'Kayıt Ol',
                                     style:
                                         theme.textTheme.titleMedium?.copyWith(
-                                      color: const Color(0xFF131B2E),
+                                      color: theme.colorScheme.onSecondaryContainer,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Icon(
-                                    Icons.person_add_rounded,
+                                  Icon(
+                                    AppPlatform.isVetWebExperience
+                                        ? Icons.vpn_key_rounded
+                                        : Icons.person_add_rounded,
                                     size: 20,
-                                    color: Color(0xFF131B2E),
+                                    color: theme.colorScheme.onSecondaryContainer,
                                   ),
                                 ],
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: 20),
+                          if (AppPlatform.isMobileExperience) ...[
+                            const SizedBox(height: 20),
 
-                          // veya Ayracı
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  color: AppColors.outlineVariant
-                                      .withValues(alpha: 0.5),
-                                  thickness: 1,
-                                ),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  "veya",
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
+                            // veya Ayracı
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Divider(
+                                    color: theme.colorScheme.outlineVariant
+                                        .withValues(alpha: 0.5),
+                                    thickness: 1,
                                   ),
                                 ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  color: AppColors.outlineVariant
-                                      .withValues(alpha: 0.5),
-                                  thickness: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Google ile Giriş Yap Butonu
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: OutlinedButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () {
-                                      context
-                                          .read<AuthCubit>()
-                                          .signInWithGoogle();
-                                    },
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(
-                                  color: AppColors.outlineVariant
-                                      .withValues(alpha: 0.5),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: isLoading
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: Color(0xFF14B8A6),
-                                      ),
-                                    )
-                                  : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          "assets/icons/google_g.png",
-                                          height: 20,
-                                          width: 20,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          'Google ile Hızlı Giriş',
-                                          style: theme.textTheme.titleMedium
-                                              ?.copyWith(
-                                            color: AppColors.onSurface,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    "veya",
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Divider(
+                                    color: theme.colorScheme.outlineVariant
+                                        .withValues(alpha: 0.5),
+                                    thickness: 1,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+
+                            const SizedBox(height: 20),
+
+                            // Google ile Giriş Yap Butonu
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: OutlinedButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : () {
+                                        context
+                                            .read<AuthCubit>()
+                                            .signInWithGoogle();
+                                      },
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: theme.colorScheme.outlineVariant
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: isLoading
+                                    ? SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            "assets/icons/google_g.png",
+                                            height: 20,
+                                            width: 20,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'Google ile Hızlı Giriş',
+                                            style: theme.textTheme.titleMedium
+                                                ?.copyWith(
+                                              color: theme.colorScheme.onSurface,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ],
                         ],
                       );
                     },
@@ -250,7 +265,7 @@ class WelcomeScreen extends StatelessWidget {
                   Text(
                     "© 2026 VetTrack Health Systems. All rights reserved.",
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: AppColors.outline,
+                      color: theme.colorScheme.outline,
                     ),
                     textAlign: TextAlign.center,
                   ),

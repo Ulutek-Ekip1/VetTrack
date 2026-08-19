@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/utils/validators.dart';
+
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -37,13 +37,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.surfaceContainerLow,
-              AppColors.surface,
+              theme.colorScheme.surfaceContainerLow,
+              theme.colorScheme.surface,
             ],
           ),
         ),
@@ -67,7 +67,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         content: Text(
                           '${state.email} adresine şifre sıfırlama bağlantısı gönderildi!',
                         ),
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: theme.colorScheme.primary,
                       ),
                     );
                     context.go(AppRoutes.login);
@@ -92,11 +92,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       Card(
                         elevation: 2,
                         shadowColor:
-                            AppColors.onSurface.withValues(alpha: 0.08),
+                            theme.colorScheme.onSurface.withValues(alpha: 0.08),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        color: AppColors.surfaceContainerLowest,
+                        color: theme.colorScheme.surfaceContainerLowest,
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Form(
@@ -109,7 +109,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   style:
                                       theme.textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
 
@@ -118,7 +118,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 Text(
                                   "E-posta adresinizi girin, size bir şifre sıfırlama bağlantısı gönderelim.",
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
 
@@ -132,23 +132,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   style: theme.textTheme.bodyLarge,
                                   decoration: InputDecoration(
                                     labelText: "E-posta Adresi",
-                                    prefixIcon: const Icon(
+                                    prefixIcon: Icon(
                                       Icons.mail_outline,
-                                      color: AppColors.outline,
+                                      color: theme.colorScheme.outline,
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.outlineVariant,
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.primary,
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.primary,
                                         width: 2,
                                       ),
                                     ),
@@ -166,20 +166,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                     onPressed:
                                         isLoading ? null : _onResetPassword,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-                                      foregroundColor: AppColors.onPrimary,
+                                      backgroundColor: theme.colorScheme.primary,
+                                      foregroundColor: theme.colorScheme.onPrimary,
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
                                     child: isLoading
-                                        ? const SizedBox(
+                                        ? SizedBox(
                                             width: 24,
                                             height: 24,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2.5,
-                                              color: AppColors.onPrimary,
+                                              color: theme.colorScheme.onPrimary,
                                             ),
                                           )
                                         : Row(
@@ -191,15 +191,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
-                                                  color: AppColors.onPrimary,
+                                                  color: theme.colorScheme.onPrimary,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
-                                              const Icon(
+                                              Icon(
                                                 Icons.send_rounded,
                                                 size: 20,
-                                                color: AppColors.onPrimary,
+                                                color: theme.colorScheme.onPrimary,
                                               ),
                                             ],
                                           ),
@@ -218,15 +218,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         onPressed: () {
                           context.push(AppRoutes.login);
                         },
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back,
                           size: 20,
-                          color: AppColors.primary,
+                          color: theme.colorScheme.primary,
                         ),
                         label: Text(
                           "Giriş Ekranına Dön",
                           style: theme.textTheme.labelLarge?.copyWith(
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -238,7 +238,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       Text(
                         "© 2026 VetTrack Health Systems. All rights reserved.",
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.outline,
+                          color: theme.colorScheme.outline,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -253,3 +253,5 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 }
+
+

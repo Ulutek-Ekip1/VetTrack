@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/pet_cubit.dart';
 import '../cubit/pet_state.dart';
 import '../widgets/pet_card.dart';
-import '../../../notification/presentation/widgets/notification_badge_button.dart';
 
 class PetListScreen extends StatefulWidget {
   const PetListScreen({super.key});
@@ -47,41 +45,24 @@ class _PetListScreenState extends State<PetListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF004AC6);
-    const labelGray = Color(0xFF737686);
-    const bgGray = Color(0xFFF1F5F9);
+    final theme = Theme.of(context);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        backgroundColor: bgGray,
+        backgroundColor: theme.colorScheme.surfaceDim,
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 1,
-          shadowColor: Colors.black12,
           title: Text(
             'Hayvanlarım',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: primaryBlue,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          actions: [
-            const NotificationBadgeButton(),
-            IconButton(
-              icon: const Icon(Icons.logout, color: Color(0xFF434655)),
-              tooltip: 'Çıkış Yap',
-              onPressed: () {
-                context.read<AuthCubit>().signOut();
-              },
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.bold,
             ),
-          ],
+          ),
         ),
         body: BlocConsumer<PetCubit, PetState>(
           buildWhen: (previous, current) {
-            // Aksiyon durumlarında (PetActionLoading, PetActionError vb.)
-            // ana listeyi sıfırlamamak/kaybetmemek için ekranı yeniden çizme.
             return current is PetLoading ||
                 current is PetLoaded ||
                 current is PetError;
@@ -91,7 +72,7 @@ class _PetListScreenState extends State<PetListScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
-                  backgroundColor: const Color(0xFF006B5F),
+                  backgroundColor: theme.colorScheme.primary,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -99,7 +80,7 @@ class _PetListScreenState extends State<PetListScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
-                  backgroundColor: const Color(0xFFEF4444),
+                  backgroundColor: theme.colorScheme.error,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -133,7 +114,7 @@ class _PetListScreenState extends State<PetListScreen> {
               }
 
               return RefreshIndicator(
-                color: primaryBlue,
+                color: theme.colorScheme.primary,
                 onRefresh: () => context.read<PetCubit>().fetchPets(),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -143,32 +124,50 @@ class _PetListScreenState extends State<PetListScreen> {
                       // Arama Çubuğu
                       TextField(
                         controller: _searchController,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'İsim veya 6 haneli kod ile ara...',
-                          hintStyle: const TextStyle(color: labelGray, fontSize: 14),
-                          prefixIcon: const Icon(Icons.search, color: labelGray),
+                          hintStyle: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 14,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: theme.colorScheme.surfaceContainerLowest,
                           contentPadding: const EdgeInsets.symmetric(
                             vertical: 12,
                             horizontal: 16,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                            borderSide: BorderSide(
+                              color: theme.colorScheme.outlineVariant,
+                              width: 1,
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                            borderSide: BorderSide(
+                              color: theme.colorScheme.outlineVariant,
+                              width: 1,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: const BorderSide(color: primaryBlue, width: 1.5),
+                            borderSide: BorderSide(
+                              color: theme.colorScheme.primary,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // Hayvan Kartları Listesi (Kademeli Animasyon ve Swipe to Action ile)
+                      // Hayvan Kartları Listesi
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -177,7 +176,8 @@ class _PetListScreenState extends State<PetListScreen> {
                           final pet = filteredPets[index];
                           return TweenAnimationBuilder<double>(
                             tween: Tween<double>(begin: 0.0, end: 1.0),
-                            duration: Duration(milliseconds: 300 + (index * 80)),
+                            duration:
+                                Duration(milliseconds: 300 + (index * 80)),
                             curve: Curves.easeOutCubic,
                             builder: (context, value, child) {
                               return Transform.translate(
@@ -193,19 +193,18 @@ class _PetListScreenState extends State<PetListScreen> {
                               background: _buildSwipeBackground(
                                 context: context,
                                 alignment: Alignment.centerLeft,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: theme.colorScheme.secondary,
                                 icon: Icons.edit,
                                 label: 'Düzenle',
                               ),
                               secondaryBackground: _buildSwipeBackground(
                                 context: context,
                                 alignment: Alignment.centerRight,
-                                color: Theme.of(context).colorScheme.error,
+                                color: theme.colorScheme.error,
                                 icon: Icons.delete_forever,
                                 label: 'Sil',
                               ),
                               confirmDismiss: (direction) async {
-                                final theme = Theme.of(context);
                                 if (direction == DismissDirection.endToStart) {
                                   // Silme
                                   bool deleteConfirmed = false;
@@ -217,13 +216,16 @@ class _PetListScreenState extends State<PetListScreen> {
                                           '${pet.name} isimli evcil hayvanı silmek istediğinize emin misiniz?'),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.of(dialogContext).pop(),
+                                          onPressed: () =>
+                                              Navigator.of(dialogContext).pop(),
                                           child: const Text('İptal'),
                                         ),
                                         FilledButton(
                                           style: FilledButton.styleFrom(
-                                            backgroundColor: theme.colorScheme.error,
-                                            foregroundColor: theme.colorScheme.onError,
+                                            backgroundColor:
+                                                theme.colorScheme.error,
+                                            foregroundColor:
+                                                theme.colorScheme.onError,
                                           ),
                                           onPressed: () {
                                             deleteConfirmed = true;
@@ -235,14 +237,16 @@ class _PetListScreenState extends State<PetListScreen> {
                                     ),
                                   );
                                   if (deleteConfirmed && context.mounted) {
-                                    context.read<PetCubit>().deletePet(id: pet.id);
+                                    context
+                                        .read<PetCubit>()
+                                        .deletePet(id: pet.id);
                                     return true;
                                   }
                                   return false;
                                 } else {
                                   // Düzenleme
                                   context.push('/owner/pets/${pet.id}/edit');
-                                  return false; // listeden silinmesin
+                                  return false;
                                 }
                               },
                               child: PetCard(pet: pet),
@@ -255,7 +259,7 @@ class _PetListScreenState extends State<PetListScreen> {
                 ),
               );
             }
- 
+
             return const SizedBox.shrink();
           },
         ),
@@ -263,11 +267,12 @@ class _PetListScreenState extends State<PetListScreen> {
           onPressed: () {
             context.push(AppRoutes.addPet);
           },
-          backgroundColor: primaryBlue,
-          icon: const Icon(Icons.add, color: Colors.white),
+          backgroundColor: theme.colorScheme.primary,
+          foregroundColor: theme.colorScheme.onPrimary,
+          icon: const Icon(Icons.add),
           label: const Text(
             'Yeni Hayvan Ekle',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -283,12 +288,12 @@ class _PetListScreenState extends State<PetListScreen> {
   }) {
     final theme = Theme.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 14.0), // PetCard alt boşluğuyla uyumlu
+      margin: const EdgeInsets.only(bottom: 14.0),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       alignment: alignment,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(16.0), // PetCard köşe kavisiyle uyumlu
+        borderRadius: BorderRadius.circular(16.0),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -321,13 +326,14 @@ class _PetListScreenState extends State<PetListScreen> {
 }
 
 // ==========================================
-// 1. SKELETON LOADING YARIMCI WIDGET
+// 1. SKELETON LOADING YARDIMCI WIDGET
 // ==========================================
 class SkeletonLoadingView extends StatelessWidget {
   const SkeletonLoadingView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Column(
@@ -335,17 +341,20 @@ class SkeletonLoadingView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.colorScheme.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.search, color: Color(0xFF737686)),
-                SizedBox(width: 8),
+                Icon(Icons.search, color: theme.colorScheme.onSurfaceVariant),
+                const SizedBox(width: 8),
                 Text(
                   'İsim veya 6 haneli kod ile ara...',
-                  style: TextStyle(color: Color(0xFF737686), fontSize: 14),
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
@@ -360,17 +369,17 @@ class SkeletonLoadingView extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: theme.colorScheme.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
                 ),
                 child: Row(
                   children: [
                     Container(
                       width: 64,
                       height: 64,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF1F5F9),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -380,14 +389,16 @@ class SkeletonLoadingView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                              width: double.infinity,
-                              height: 16,
-                              color: const Color(0xFFF1F5F9)),
+                            width: double.infinity,
+                            height: 16,
+                            color: theme.colorScheme.surfaceContainerHighest,
+                          ),
                           const SizedBox(height: 8),
                           Container(
-                              width: 100,
-                              height: 12,
-                              color: const Color(0xFFF1F5F9)),
+                            width: 100,
+                            height: 12,
+                            color: theme.colorScheme.surfaceContainerHighest,
+                          ),
                         ],
                       ),
                     ),
@@ -412,6 +423,7 @@ class EmptyDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -421,25 +433,32 @@ class EmptyDashboardView extends StatelessWidget {
             Container(
               width: 200,
               height: 200,
-              decoration: const BoxDecoration(
-                color: Color(0xFFDBEAFE),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.pets, size: 72, color: Color(0xFF004AC6)),
+              child: Icon(
+                Icons.pets,
+                size: 72,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Henüz bir evcil hayvan eklemedin',
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF131B2E)),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Aşağıdaki "Yeni Hayvan Ekle" butonuna basarak ilk evcil hayvanınızın profilini oluşturun.',
-              style: TextStyle(fontSize: 14, color: Color(0xFF434655)),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -448,16 +467,18 @@ class EmptyDashboardView extends StatelessWidget {
               height: 54,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF004AC6),
-                  foregroundColor: Colors.white,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30)),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
                 onPressed: onAddTap,
                 icon: const Icon(Icons.add),
-                label: const Text('Yeni Hayvan Ekle',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                label: const Text(
+                  'Yeni Hayvan Ekle',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
@@ -482,19 +503,24 @@ class OfflineErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         Container(
-          color: const Color(0xFFF59E0B),
+          color: theme.colorScheme.errorContainer,
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.wifi_off, color: Colors.white, size: 18),
-              SizedBox(width: 8),
-              Text('Çevrimdışı moddasınız',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
+              Icon(Icons.wifi_off, color: theme.colorScheme.onErrorContainer, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                'Çevrimdışı moddasınız',
+                style: TextStyle(
+                  color: theme.colorScheme.onErrorContainer,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -505,27 +531,28 @@ class OfflineErrorView extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.cloud_off,
-                      size: 80, color: Color(0xFF737686)),
+                  Icon(Icons.cloud_off,
+                      size: 80, color: theme.colorScheme.outline),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Bağlantı Hatası',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF131B2E)),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'VetTrack sunucularına şu anda ulaşılamıyor. Hata: $errorMessage. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Color(0xFF434655)),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -544,3 +571,4 @@ class OfflineErrorView extends StatelessWidget {
     );
   }
 }
+

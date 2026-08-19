@@ -24,25 +24,22 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const primaryBlue = Color(0xFF004AC6);
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surfaceDim,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        shadowColor: Colors.black12,
-        title: const Text(
+        title: Text(
           'Bildirimler',
           style: TextStyle(
-            color: primaryBlue,
+            color: theme.colorScheme.primary,
             fontWeight: FontWeight.bold,
             fontSize: 28,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.mark_chat_read_outlined,
-                color: Color(0xFF434655)),
+            icon: Icon(Icons.mark_chat_read_outlined,
+                color: theme.colorScheme.onSurface),
             tooltip: 'Tümünü Okundu Yap',
             onPressed: context.read<NotificationCubit>().markAllAsRead,
           ),
@@ -81,12 +78,12 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.notifications_off_outlined,
-                        size: 64, color: Colors.grey.shade400),
+                        size: 64, color: theme.colorScheme.outline),
                     const SizedBox(height: 16),
                     Text(
                       'Henüz bildiriminiz yok',
                       style: theme.textTheme.titleMedium
-                          ?.copyWith(color: Colors.grey.shade600),
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -113,34 +110,34 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
             return RefreshIndicator(
               onRefresh: () => context.read<NotificationCubit>().refresh(),
               child: ListView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(AppDimensions.containerMargin),
-              children: groups.entries.map((entry) {
-                final groupName = entry.key;
-                final items = entry.value;
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.all(AppDimensions.containerMargin),
+                children: groups.entries.map((entry) {
+                  final groupName = entry.key;
+                  final items = entry.value;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 4.0, bottom: 8.0, top: 12.0),
-                      child: Text(
-                        groupName,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF131B2E),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 4.0, bottom: 8.0, top: 12.0),
+                        child: Text(
+                          groupName,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
                       ),
-                    ),
-                    ...items.map((currentNotification) {
-                      return NotificationCard(
-                        notification: currentNotification,
-                      );
-                    }),
-                  ],
-                );
-              }).toList(),
+                      ...items.map((currentNotification) {
+                        return NotificationCard(
+                          notification: currentNotification,
+                        );
+                      }),
+                    ],
+                  );
+                }).toList(),
               ),
             );
           }

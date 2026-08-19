@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
+  // ===========================================================================
+  // LIGHT MODE PALETTE
+  // ===========================================================================
   // Surface
   static const Color surface = Color(0xFFFAF8FF);
   static const Color surfaceDim = Color(0xFFD2D9F4);
@@ -69,4 +72,54 @@ class AppColors {
   // Background
   static const Color background = Color(0xFFFAF8FF);
   static const Color onBackground = Color(0xFF131B2E);
+
+  // ===========================================================================
+  // DARK MODE PALETTE
+  // ===========================================================================
+  // Surface Dark
+  static const Color darkSurface = Color(0xFF0F172A);
+  static const Color darkSurfaceDim = Color(0xFF090D16);
+  static const Color darkSurfaceBright = Color(0xFF1E293B);
+  static const Color darkSurfaceContainerLowest = Color(0xFF1E293B);
+  static const Color darkSurfaceContainerLow = Color(0xFF151F32);
+  static const Color darkSurfaceContainer = Color(0xFF1A263D);
+  static const Color darkSurfaceContainerHigh = Color(0xFF24334F);
+  static const Color darkSurfaceContainerHighest = Color(0xFF2D3F60);
+  static const Color darkOnSurface = Color(0xFFF8FAFC);
+  static const Color darkOnSurfaceVariant = Color(0xFF94A3B8);
+  static const Color darkInverseSurface = Color(0xFFE2E8F0);
+  static const Color darkInverseOnSurface = Color(0xFF0F172A);
+
+  // Outline Dark
+  static const Color darkOutline = Color(0xFF64748B);
+  static const Color darkOutlineVariant = Color(0xFF334155);
+
+  // Primary Dark
+  static const Color darkPrimary = Color(0xFF3B82F6);
+  static const Color darkOnPrimary = Color(0xFFFFFFFF);
+  static const Color darkPrimaryContainer = Color(0xFF1D4ED8);
+  static const Color darkOnPrimaryContainer = Color(0xFFDBEAFE);
+
+  // Secondary Dark
+  static const Color darkSecondary = Color(0xFF14B8A6);
+  static const Color darkOnSecondary = Color(0xFFFFFFFF);
+  static const Color darkSecondaryContainer = Color(0xFF0F766E);
+  static const Color darkOnSecondaryContainer = Color(0xFFCCFBF1);
+
+  // Tertiary Dark
+  static const Color darkTertiary = Color(0xFFF97316);
+  static const Color darkOnTertiary = Color(0xFFFFFFFF);
+  static const Color darkTertiaryContainer = Color(0xFFC2410C);
+  static const Color darkOnTertiaryContainer = Color(0xFFFFEDD5);
+
+  // Error Dark
+  static const Color darkError = Color(0xFFEF4444);
+  static const Color darkOnError = Color(0xFFFFFFFF);
+  static const Color darkErrorContainer = Color(0xFF991B1B);
+  static const Color darkOnErrorContainer = Color(0xFFFEE2E2);
+
+  // Background Dark
+  static const Color darkBackground = Color(0xFF0B0F19);
+  static const Color darkOnBackground = Color(0xFFF8FAFC);
 }
+

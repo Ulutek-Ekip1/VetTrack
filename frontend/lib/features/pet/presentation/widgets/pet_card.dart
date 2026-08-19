@@ -23,13 +23,11 @@ class _PetCardState extends State<PetCard> {
 
   void _showUniqueCodeDialog(BuildContext context) {
     final theme = Theme.of(context);
-    const peachBg = Color(0xFFFFECE5);
-    const peachAccent = Color(0xFFFFB89C);
-    const peachText = Color(0xFFD9531E);
 
     showDialog(
       context: context,
       builder: (dialogContext) => Dialog(
+        backgroundColor: theme.colorScheme.surfaceContainerLowest,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -42,23 +40,26 @@ class _PetCardState extends State<PetCard> {
                 widget.pet.name,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
+              const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16)),
                 child: QrImageView(
-                  data: widget.pet.uniqueCode, version: QrVersions.auto,
-                  size: 180.0, // QR kodun büyüklüğü
+                  data: widget.pet.uniqueCode,
+                  version: QrVersions.auto,
+                  size: 180.0,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               Text(
                 'Eşsiz Kimlik Kodu',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.outline,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 10),
@@ -67,10 +68,10 @@ class _PetCardState extends State<PetCard> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: peachBg,
+                  color: theme.colorScheme.tertiaryContainer,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: peachAccent,
+                    color: theme.colorScheme.tertiary,
                     width: 1.5,
                   ),
                 ),
@@ -79,7 +80,7 @@ class _PetCardState extends State<PetCard> {
                   textAlign: TextAlign.center,
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: peachText,
+                    color: theme.colorScheme.onTertiaryContainer,
                     letterSpacing: 2.0,
                   ),
                 ),
@@ -122,8 +123,8 @@ class _PetCardState extends State<PetCard> {
                         );
                       },
                       style: FilledButton.styleFrom(
-                        backgroundColor: peachText,
-                        foregroundColor: Colors.white,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -145,9 +146,6 @@ class _PetCardState extends State<PetCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const peachBg = Color(0xFFFFECE5);
-    const peachBorder = Color(0xFFFFB89C);
-    const peachText = Color(0xFFD9531E);
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _scale = 0.98),
@@ -159,9 +157,14 @@ class _PetCardState extends State<PetCard> {
         transformAlignment: Alignment.center,
         child: Card(
           elevation: 2,
+          color: theme.colorScheme.surfaceContainerLowest,
           margin: const EdgeInsets.only(bottom: 14.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.0),
+            side: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            ),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(16.0),
@@ -235,11 +238,10 @@ class _PetCardState extends State<PetCard> {
                           widget.pet.name,
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF131B2E),
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ),
-
                     ],
                   ),
                   if (widget.pet.uniqueCode.isNotEmpty) ...[
@@ -254,35 +256,35 @@ class _PetCardState extends State<PetCard> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: peachBg,
+                              color: theme.colorScheme.tertiaryContainer,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: peachBorder,
+                                color: theme.colorScheme.tertiary.withValues(alpha: 0.5),
                                 width: 1.2,
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.tag_rounded,
                                   size: 16,
-                                  color: peachText,
+                                  color: theme.colorScheme.onTertiaryContainer,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   widget.pet.uniqueCode,
                                   style: theme.textTheme.labelLarge?.copyWith(
-                                    color: peachText,
+                                    color: theme.colorScheme.onTertiaryContainer,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 0.5,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                const Icon(
+                                Icon(
                                   Icons.open_in_full,
                                   size: 14,
-                                  color: peachText,
+                                  color: theme.colorScheme.onTertiaryContainer,
                                 ),
                               ],
                             ),

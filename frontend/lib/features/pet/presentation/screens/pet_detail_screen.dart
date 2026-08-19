@@ -26,8 +26,9 @@ class PetDetailScreen extends StatefulWidget {
 class _PetDetailScreenState extends State<PetDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final Color primaryBlue = const Color(0xFF004AC6);
-  final Color bgGray = const Color(0xFFF8FAFC);
+
+  Color get primaryBlue => Theme.of(context).colorScheme.primary;
+  Color get bgGray => Theme.of(context).colorScheme.surface;
 
   @override
   void initState() {
@@ -43,20 +44,21 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.colorScheme.surfaceDim,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Color(0xFF131B2E), size: 20),
+          icon: Icon(Icons.arrow_back_ios_new,
+              color: theme.colorScheme.onSurface, size: 20),
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.auto_awesome, color: Color(0xFFD9531E)),
+            icon: Icon(Icons.auto_awesome, color: theme.colorScheme.primary),
             tooltip: "AI'ya Sor",
             onPressed: () {
               final petState = context.read<PetCubit>().state;
@@ -73,7 +75,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             },
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Color(0xFF131B2E)),
+            icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurface),
             onPressed: () {},
           ),
         ],
@@ -120,10 +122,10 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                             children: [
                               Text(
                                 pet.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 26,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF131B2E),
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
                               IconButton(
@@ -138,9 +140,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                           // Künye Bilgileri
                           Text(
                             '$breedText  •  ${pet.age ?? '?'} Yaş  •  ${pet.gender.name == 'male' ? 'Erkek' : 'Dişi'}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF737686),
+                              color: theme.colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -174,8 +176,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                             borderRadius: BorderRadius.circular(20),
                             color: primaryBlue,
                           ),
-                          labelColor: Colors.white,
-                          unselectedLabelColor: const Color(0xFF737686),
+                          labelColor: theme.colorScheme.onPrimary,
+                          unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
                           dividerColor: Colors.transparent,
                           labelStyle: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 13),
@@ -218,6 +220,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   // 1. GENEL SEKMESİ
   Widget _buildGenelTab(PetEntity pet) {
+    final theme = Theme.of(context);
     String speciesVal = 'Bilinmiyor';
     String breedVal = pet.breed ?? 'Bilinmiyor';
     if (pet.breed != null && pet.breed!.contains(' / ')) {
@@ -231,8 +234,11 @@ class _PetDetailScreenState extends State<PetDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Genel Bilgiler',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text('Genel Bilgiler',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface)),
           const SizedBox(height: 12),
           _buildInfoRow('Benzersiz Kod', pet.uniqueCode),
           _buildInfoRow('Türü', speciesVal),
@@ -244,12 +250,12 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               pet.gender == Gender.male
                   ? 'Erkek'
                   : (pet.gender == Gender.female ? 'Dişi' : 'Bilinmiyor')),
-          const Divider(height: 24),
-          const Text('Ek Detaylar',
+          Divider(height: 24, color: theme.colorScheme.outlineVariant),
+          Text('Ek Detaylar',
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey)),
+                  color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: 12),
           _buildInfoRow(
               'Doğum Tarihi',
@@ -290,8 +296,11 @@ class _PetDetailScreenState extends State<PetDetailScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Kilo Grafiği',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text('Kilo Grafiği',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface)),
               Text('Tümü',
                   style: TextStyle(
                       fontSize: 14,
@@ -307,9 +316,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   height: 180,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.colorScheme.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: const CircularProgressIndicator(),
                 );
@@ -320,14 +329,14 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                     height: 120,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.colorScheme.surfaceContainerLowest,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: theme.colorScheme.outlineVariant),
                     ),
                     child: Text(
                       'Kilo geçmişi kaydı bulunmuyor.',
                       style:
-                          TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                          TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13),
                     ),
                   );
                 }
@@ -357,9 +366,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   height: 180,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.colorScheme.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: LineChart(
                     LineChartData(
@@ -368,7 +377,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                         drawVerticalLine: false,
                         horizontalInterval: 5,
                         getDrawingHorizontalLine: (value) =>
-                            FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+                            FlLine(color: theme.colorScheme.outlineVariant, strokeWidth: 1),
                       ),
                       titlesData: FlTitlesData(
                         rightTitles: const AxisTitles(
@@ -502,6 +511,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
   }
 
   Widget _buildInfoRow(String label, String value) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
@@ -510,15 +520,15 @@ class _PetDetailScreenState extends State<PetDetailScreen>
           Expanded(
             flex: 2,
             child: Text(label,
-                style: const TextStyle(color: Color(0xFF737686), fontSize: 13)),
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
           ),
           Expanded(
             flex: 3,
             child: Text(value,
-                style: const TextStyle(
+                style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: Color(0xFF131B2E))),
+                    color: theme.colorScheme.onSurface)),
           ),
         ],
       ),
@@ -564,6 +574,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             final isLoading = visitState is VisitLoading ||
                 treatmentState is TreatmentLoading;
 
+            final theme = Theme.of(context);
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -572,9 +583,11 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Sağlık Geçmişi',
+                      Text('Sağlık Geçmişi',
                           style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold)),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface)),
                       Text('Tümü >',
                           style: TextStyle(
                               fontSize: 14,
@@ -585,9 +598,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   const SizedBox(height: 12),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.colorScheme.surfaceContainerLowest,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: theme.colorScheme.outlineVariant),
                     ),
                     child: Column(
                       children: [
@@ -597,11 +610,11 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                             child: Center(child: CircularProgressIndicator()),
                           )
                         else if (combinedHistory.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.all(24.0),
+                          Padding(
+                            padding: const EdgeInsets.all(24.0),
                             child: Text(
                                 'Herhangi bir sağlık geçmişi bulunmuyor.',
-                                style: TextStyle(color: Colors.grey)),
+                                style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                           )
                         else
                           ...combinedHistory.asMap().entries.map((entry) {
@@ -620,7 +633,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                                   item['subtitle'] as String,
                                 ),
                                 if (index < combinedHistory.length - 1)
-                                  const Divider(height: 1, indent: 56),
+                                  Divider(height: 1, indent: 56, color: theme.colorScheme.outlineVariant),
                               ],
                             );
                           }),
@@ -631,19 +644,19 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.colorScheme.surfaceContainerLowest,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: theme.colorScheme.outlineVariant),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.favorite_border, color: Colors.grey),
+                        Icon(Icons.favorite_border, color: theme.colorScheme.onSurfaceVariant),
                         const SizedBox(width: 12),
                         Expanded(
                             child: Text(
                                 'Şu anda kaydedilmiş kronik rahatsızlığı bulunmuyor.',
                                 style: TextStyle(
-                                    color: Colors.grey.shade600,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                     fontSize: 13))),
                       ],
                     ),
@@ -660,6 +673,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   Widget _buildHealthHistoryItem(
       IconData icon, String date, String title, String subtitle) {
+    final theme = Theme.of(context);
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -670,17 +684,20 @@ class _PetDetailScreenState extends State<PetDetailScreen>
         child: Icon(icon, color: primaryBlue, size: 20),
       ),
       title: Text(title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: theme.colorScheme.onSurface)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(date,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
           Text(subtitle,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
         ],
       ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+      trailing: Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
       isThreeLine: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
@@ -688,6 +705,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   // 4. NOTLAR SEKMESİ
   Widget _buildNotlarTab() {
+    final theme = Theme.of(context);
     return BlocBuilder<RecommendationCubit, RecommendationState>(
       builder: (context, state) {
         if (state is RecommendationLoading) {
@@ -710,9 +728,11 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Hekim Önerileri',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('Hekim Önerileri',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface)),
                   Text('${recommendations.length} Öneri',
                       style: TextStyle(
                           fontSize: 14,
@@ -722,12 +742,12 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               ),
               const SizedBox(height: 16),
               if (recommendations.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(24.0),
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
                   child: Center(
                     child: Text(
                       'Hayvana ait kaydedilmiş hekim önerisi bulunmuyor.',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -740,7 +760,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
                   String recTitle = 'Genel Öneri';
                   Color labelColor = primaryBlue;
-                  Color labelBgColor = const Color(0xFFDBEAFE);
+                  Color labelBgColor = theme.colorScheme.primaryContainer;
                   if (rec.type == 'food') {
                     recTitle = 'Beslenme Önerisi';
                     labelColor = Colors.orange.shade800;
@@ -755,9 +775,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.colorScheme.surfaceContainerLowest,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: theme.colorScheme.outlineVariant),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -767,7 +787,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                           children: [
                             Text(dateStr,
                                 style: TextStyle(
-                                    color: Colors.grey.shade500, fontSize: 12)),
+                                    color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 4),
@@ -788,9 +808,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                         ),
                         const SizedBox(height: 12),
                         Text(rec.description,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 14,
-                                color: Color(0xFF131B2E),
+                                color: theme.colorScheme.onSurface,
                                 height: 1.4)),
                       ],
                     ),
@@ -819,8 +839,9 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.white, // Sticky Header arkaplan rengi
+      color: theme.colorScheme.surfaceDim, // Sticky Header arkaplan rengi
       padding: const EdgeInsets.only(bottom: 8, top: 8),
       child: _tabBar,
     );
