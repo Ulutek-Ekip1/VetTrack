@@ -29,9 +29,11 @@ public class ClinicMembership {
     @Column(nullable = false)
     private String role; // 'doctor', 'staff'
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isClinicAdmin = false;
 
+    @Builder.Default
     @Column(nullable = false)
     private String status = "active"; // 'invited', 'active', 'disabled'
 

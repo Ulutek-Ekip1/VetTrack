@@ -9,6 +9,7 @@ import com.vettrack.api.ai.service.AiChatService;
 import com.vettrack.api.ai.service.EmergencySafetyService;
 import com.vettrack.api.ai.service.GeminiService;
 import com.vettrack.api.ai.service.PetContextService;
+import com.vettrack.api.common.exception.ApiException;
 import com.vettrack.api.common.exception.GlobalExceptionHandler;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.pet.Pet;
@@ -227,5 +228,44 @@ class Phase2IntegrationTest {
         RecommendationResponse created = recommendationService.createRecommendation(visitId, request, ownerId);
         assertNotNull(created);
         assertEquals("mama", created.getType());
+    }
+
+    @Test
+    void testProcessChat_AiConsentExplicitlyFalse_ThrowsAiConsentRequiredException() {
+        UUID ownerId = UUID.randomUUID();
+        UUID petId = UUID.randomUUID();
+
+        AiChatRequest request = AiChatRequest.builder()
+                .petId(petId)
+                .message("Kedim bugün ne yemeli?")
+                .aiConsentGiven(false)
+                .build();
+
+        ApiException ex = assertThrows(ApiException.class, () -> aiChatService.processChat(ownerId, "owner", request));
+        assertEquals(com.vettrack.api.common.exception.ErrorCode.AI_CONSENT_REQUIRED, ex.getErrorCode());
+        assertTrue(ex.getMessage().contains("açık rıza"));
+    }
+
+    @Test
+    void testProcessChat_AiConsentNull_DefaultsToTrueAndProcessesSuccessfully() {
+        UUID ownerId = UUID.randomUUID();
+        UUID petId = UUID.randomUUID();
+        Pet pet = Pet.builder().id(petId).ownerId(ownerId).build();
+
+        AiChatRequest request = AiChatRequest.builder()
+                .petId(petId)
+                .message("Kedim bugün ne yemeli?")
+                .aiConsentGiven(null)
+                .build();
+
+        when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
+        when(emergencySafetyService.sanitizePromptInput(anyString())).thenReturn(request.getMessage());
+        when(emergencySafetyService.checkEmergency(anyString())).thenReturn(Optional.empty());
+        when(petContextService.buildOwnerPetsContext(ownerId, petId)).thenReturn("Kedi Pamuk (2 yaşında)");
+        when(geminiService.generateContent(any(), any(), anyString())).thenReturn("Kedinize somonlu yaş mama verebilirsiniz.");
+
+        AiChatResponse response = aiChatService.processChat(ownerId, "owner", request);
+        assertNotNull(response);
+        assertNotNull(response.getReply());
     }
 }

@@ -17,6 +17,18 @@ public enum ClinicTier {
     private final int monthlyAiQuota;
     private final int storageLimitMb;
 
+    public int getDefaultMaxVets() {
+        return defaultMaxVets;
+    }
+
+    public int getMonthlyAiQuota() {
+        return monthlyAiQuota;
+    }
+
+    public int getStorageLimitMb() {
+        return storageLimitMb;
+    }
+
     @JsonValue
     public String toValue() {
         return name().toLowerCase();
