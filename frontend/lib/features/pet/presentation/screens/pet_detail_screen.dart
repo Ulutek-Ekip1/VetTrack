@@ -62,7 +62,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               final petState = context.read<PetCubit>().state;
               if (petState is PetLoaded) {
                 try {
-                  final pet = petState.pets.firstWhere((p) => p.id == widget.petId);
+                  final pet =
+                      petState.pets.firstWhere((p) => p.id == widget.petId);
                   context.push('/chatbot', extra: pet);
                 } catch (_) {
                   context.push('/chatbot?petId=${widget.petId}');
@@ -147,7 +148,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                           const SizedBox(height: 12),
                           // AI'ya Sor Aksiyon Butonu
                           ElevatedButton.icon(
-                            onPressed: () => context.push('/chatbot', extra: pet),
+                            onPressed: () =>
+                                context.push('/chatbot', extra: pet),
                             icon: const Icon(Icons.auto_awesome, size: 18),
                             label: Text('${pet.name} İçin AI\'ya Sor'),
                             style: ElevatedButton.styleFrom(
@@ -353,6 +355,17 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                 maxXVal = (spots.length - 1).toDouble();
                 if (maxXVal == 0) maxXVal = 1.0;
 
+                double yRange = maxYVal - minYVal;
+                double yInterval = yRange / 4;
+                if (yInterval <= 0 || yInterval.isNaN || yInterval.isInfinite) {
+                  yInterval = 1.0;
+                }
+
+                double xInterval = 1.0;
+                if (sortedHistory.length > 5) {
+                  xInterval = (sortedHistory.length / 5).ceilToDouble();
+                }
+
                 return Container(
                   height: 180,
                   padding: const EdgeInsets.all(16),
@@ -366,7 +379,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                       gridData: FlGridData(
                         show: true,
                         drawVerticalLine: false,
-                        horizontalInterval: 5,
+                        horizontalInterval: yInterval,
                         getDrawingHorizontalLine: (value) =>
                             FlLine(color: Colors.grey.shade200, strokeWidth: 1),
                       ),
@@ -379,12 +392,14 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                           sideTitles: SideTitles(
                             showTitles: true,
                             reservedSize: 22,
-                            interval: 1,
+                            interval: xInterval,
                             getTitlesWidget: (value, meta) {
                               const style = TextStyle(
                                   color: Color(0xFF737686), fontSize: 10);
-                              final index = value.toInt();
-                              if (index >= 0 && index < sortedHistory.length) {
+                              final index = value.round();
+                              if (value == index.toDouble() &&
+                                  index >= 0 &&
+                                  index < sortedHistory.length) {
                                 final date = sortedHistory[index].date;
                                 final months = [
                                   'Oca',
@@ -409,20 +424,23 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                               }
                               return SideTitleWidget(
                                   axisSide: meta.axisSide,
-                                  child: const Text(''));
+                                  child: const SizedBox.shrink());
                             },
                           ),
                         ),
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            interval: 5,
+                            interval: yInterval,
                             getTitlesWidget: (value, meta) {
-                              return Text('${value.toInt()} kg',
+                              final formatted = value % 1 == 0
+                                  ? value.toInt().toString()
+                                  : value.toStringAsFixed(1);
+                              return Text('$formatted kg',
                                   style: const TextStyle(
                                       color: Color(0xFF737686), fontSize: 10));
                             },
-                            reservedSize: 32,
+                            reservedSize: 36,
                           ),
                         ),
                       ),
