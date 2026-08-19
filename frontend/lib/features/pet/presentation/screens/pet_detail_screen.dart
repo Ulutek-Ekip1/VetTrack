@@ -294,22 +294,37 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             children: [
               const Text('Kilo Grafiği',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              BlocBuilder<WeightHistoryCubit, WeightHistoryState>(
-                builder: (context, state) {
-                  if (state is WeightHistoryLoaded &&
-                      state.history.isNotEmpty) {
-                    return GestureDetector(
-                      onTap: () =>
-                          _showAllWeightsBottomSheet(context, state.history),
-                      child: Text('Tümü',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: primaryBlue)),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _showUpdateWeightDialog(context),
+                    child: Text('+ Kilo Ekle',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: primaryBlue)),
+                  ),
+                  BlocBuilder<WeightHistoryCubit, WeightHistoryState>(
+                    builder: (context, state) {
+                      if (state is WeightHistoryLoaded &&
+                          state.history.isNotEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 16.0),
+                          child: GestureDetector(
+                            onTap: () => _showAllWeightsBottomSheet(
+                                context, state.history),
+                            child: Text('Tümü',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryBlue)),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -773,7 +788,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold)),
                       GestureDetector(
-                        onTap: () => context.push('/owner/pets/${widget.petId}/visits'),
+                        onTap: () =>
+                            context.push('/owner/pets/${widget.petId}/visits'),
                         child: Text('Tümü >',
                             style: TextStyle(
                                 fontSize: 14,
