@@ -367,7 +367,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 ),
                                 child: InkWell(
                                   onTap: () =>
-                                      context.push('/owner/pets/${pet.id}'),
+                                      context.go('/owner/pets/${pet.id}'),
                                   borderRadius: BorderRadius.circular(20),
                                   splashColor: theme.colorScheme.primary
                                       .withValues(alpha: 0.08),
