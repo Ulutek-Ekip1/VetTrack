@@ -132,6 +132,68 @@ public class AuthService {
         }
     }
 
+    /**
+     * INT-FINDING-02 fix: Klinik daveti kabul akışı için Supabase Admin API üzerinden
+     * e-postası ÖNCEDEN ONAYLANMIŞ ({@code email_confirm=true}) bir kullanıcı oluşturur ve
+     * ardından giriş yaparak gerçek bir oturum (access/refresh token) döner.
+     *
+     * <p>Public {@link #register} akışının aksine, projenin Supabase Dashboard'daki e-posta
+     * doğrulama ayarına bağımlı DEĞİLDİR — geçerli, tek kullanımlık, e-posta eşleşmesi
+     * doğrulanmış bir davet token'ı zaten kimliği kanıtlamış sayılır. Böylece "register
+     * başarılı ama accessToken null, sonraki authenticated accept çağrısı 401 alıyor"
+     * senaryosu kökten ortadan kalkar.
+     *
+     * <p>Kullanıcı zaten mevcutsa (ör. önceki bir denemede oluşturuldu ama üyelik yazımı
+     * başarısız oldu) create çağrısı "already exists" ile başarısız olur; bu durumda aynı
+     * e-posta/şifreyle login'e düşülür — çağıran taraf (ClinicController) bu sayede tüm
+     * akışı güvenle retry edebilir.
+     */
+    public AuthResponse createConfirmedUserAndLogin(String email, String password, String name, String phone) {
+        String createUrl = supabaseUrl + "/auth/v1/admin/users";
+
+        Map<String, Object> userMetadata = new HashMap<>();
+        userMetadata.put("name", name);
+        userMetadata.put("role", "owner");
+        if (phone != null) {
+            userMetadata.put("phone", phone);
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("email", email);
+        body.put("password", password);
+        body.put("email_confirm", true);
+        body.put("user_metadata", userMetadata);
+
+        HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        try {
+            restTemplate.exchange(
+                    createUrl, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+        } catch (HttpClientErrorException ex) {
+            HttpStatusCode status = ex.getStatusCode();
+            String responseBody = ex.getResponseBodyAsString();
+            boolean alreadyExists = status.value() == HttpStatus.CONFLICT.value() ||
+                    status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value() ||
+                    responseBody.contains("already_exists") ||
+                    responseBody.contains("already registered") ||
+                    responseBody.contains("user_already_exists");
+            if (!alreadyExists) {
+                throw new RuntimeException("Kullanıcı oluşturma başarısız: [" + status + "] " + responseBody, ex);
+            }
+            log.info("createConfirmedUserAndLogin: kullanıcı zaten var (retry), login ile devam ediliyor. email hash={}",
+                    Integer.toHexString(email.hashCode()));
+        } catch (Exception ex) {
+            throw new RuntimeException("Kullanıcı oluşturma başarısız: " + ex.getMessage(), ex);
+        }
+
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail(email);
+        loginRequest.setPassword(password);
+        return login(loginRequest);
+    }
+
     public AuthResponse login(LoginRequest request) {
         String url = supabaseUrl + "/auth/v1/token?grant_type=password";
 
