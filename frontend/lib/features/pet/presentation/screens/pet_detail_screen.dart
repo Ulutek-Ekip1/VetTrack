@@ -64,7 +64,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               final petState = context.read<PetCubit>().state;
               if (petState is PetLoaded) {
                 try {
-                  final pet = petState.pets.firstWhere((p) => p.id == widget.petId);
+                  final pet =
+                      petState.pets.firstWhere((p) => p.id == widget.petId);
                   context.push('/chatbot', extra: pet);
                 } catch (_) {
                   context.push('/chatbot?petId=${widget.petId}');
@@ -149,7 +150,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                           const SizedBox(height: 12),
                           // AI'ya Sor Aksiyon Butonu
                           ElevatedButton.icon(
-                            onPressed: () => context.push('/chatbot', extra: pet),
+                            onPressed: () =>
+                                context.push('/chatbot', extra: pet),
                             icon: const Icon(Icons.auto_awesome, size: 18),
                             label: Text('${pet.name} İçin AI\'ya Sor'),
                             style: ElevatedButton.styleFrom(
@@ -296,16 +298,40 @@ class _PetDetailScreenState extends State<PetDetailScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Kilo Grafiği',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface)),
-              Text('Tümü',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: primaryBlue)),
+              const Text('Kilo Grafiği',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _showUpdateWeightDialog(context),
+                    child: Text('+ Kilo Ekle',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: primaryBlue)),
+                  ),
+                  BlocBuilder<WeightHistoryCubit, WeightHistoryState>(
+                    builder: (context, state) {
+                      if (state is WeightHistoryLoaded &&
+                          state.history.isNotEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 16.0),
+                          child: GestureDetector(
+                            onTap: () => _showAllWeightsBottomSheet(
+                                context, state.history),
+                            child: Text('Tümü',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryBlue)),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -362,6 +388,17 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                 maxXVal = (spots.length - 1).toDouble();
                 if (maxXVal == 0) maxXVal = 1.0;
 
+                double yRange = maxYVal - minYVal;
+                double yInterval = yRange / 4;
+                if (yInterval <= 0 || yInterval.isNaN || yInterval.isInfinite) {
+                  yInterval = 1.0;
+                }
+
+                double xInterval = 1.0;
+                if (sortedHistory.length > 5) {
+                  xInterval = (sortedHistory.length / 5).ceilToDouble();
+                }
+
                 return Container(
                   height: 180,
                   padding: const EdgeInsets.all(16),
@@ -375,7 +412,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                       gridData: FlGridData(
                         show: true,
                         drawVerticalLine: false,
-                        horizontalInterval: 5,
+                        horizontalInterval: yInterval,
                         getDrawingHorizontalLine: (value) =>
                             FlLine(color: theme.colorScheme.outlineVariant, strokeWidth: 1),
                       ),
@@ -388,12 +425,14 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                           sideTitles: SideTitles(
                             showTitles: true,
                             reservedSize: 22,
-                            interval: 1,
+                            interval: xInterval,
                             getTitlesWidget: (value, meta) {
                               const style = TextStyle(
                                   color: Color(0xFF737686), fontSize: 10);
-                              final index = value.toInt();
-                              if (index >= 0 && index < sortedHistory.length) {
+                              final index = value.round();
+                              if (value == index.toDouble() &&
+                                  index >= 0 &&
+                                  index < sortedHistory.length) {
                                 final date = sortedHistory[index].date;
                                 final months = [
                                   'Oca',
@@ -418,20 +457,23 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                               }
                               return SideTitleWidget(
                                   axisSide: meta.axisSide,
-                                  child: const Text(''));
+                                  child: const SizedBox.shrink());
                             },
                           ),
                         ),
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            interval: 5,
+                            interval: yInterval,
                             getTitlesWidget: (value, meta) {
-                              return Text('${value.toInt()} kg',
+                              final formatted = value % 1 == 0
+                                  ? value.toInt().toString()
+                                  : value.toStringAsFixed(1);
+                              return Text('$formatted kg',
                                   style: const TextStyle(
                                       color: Color(0xFF737686), fontSize: 10));
                             },
-                            reservedSize: 32,
+                            reservedSize: 36,
                           ),
                         ),
                       ),
@@ -462,51 +504,221 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   height: 120,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.colorScheme.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Text(
                     'Kilo geçmişi yüklenemedi: ${state.message}',
-                    style: const TextStyle(color: Colors.red, fontSize: 13),
+                    style: TextStyle(color: theme.colorScheme.error, fontSize: 13),
                   ),
                 );
               }
               return const SizedBox.shrink();
             },
           ),
-          const SizedBox(height: 24),
-          const Text('Son Aktivite',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('15.05.2026 - Genel Muayene',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text('Patili Veteriner Kliniği',
-                        style: TextStyle(
-                            color: Colors.grey.shade600, fontSize: 13)),
-                  ],
-                ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  void _showAllWeightsBottomSheet(
+      BuildContext context, List<PetWeightEntity> history) {
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Kilo Geçmişi',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, color: theme.colorScheme.onSurfaceVariant),
+                    onPressed: () => Navigator.pop(bottomSheetContext),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.4,
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: history.length,
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final sortedList = List<PetWeightEntity>.from(history)
+                      ..sort((a, b) => b.date.compareTo(a.date));
+                    final record = sortedList[index];
+                    final months = [
+                      'Ocak',
+                      'Şubat',
+                      'Mart',
+                      'Nisan',
+                      'Mayıs',
+                      'Haziran',
+                      'Temmuz',
+                      'Ağustos',
+                      'Eylül',
+                      'Ekim',
+                      'Kasım',
+                      'Aralık'
+                    ];
+                    final dateStr =
+                        '${record.date.day.toString().padLeft(2, '0')} ${months[record.date.month - 1]} ${record.date.year}';
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        child: Icon(Icons.scale_outlined,
+                            color: theme.colorScheme.primary, size: 20),
+                      ),
+                      title: Text(
+                        '${record.weight.toStringAsFixed(record.weight % 1 == 0 ? 0 : 1)} kg',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      subtitle: Text(
+                        dateStr,
+                        style:
+                            TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(bottomSheetContext);
+                  _showUpdateWeightDialog(context);
+                },
+                icon: Icon(Icons.add, color: theme.colorScheme.onPrimary, size: 18),
+                label: const Text('Yeni Kilo Kaydet'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Yeni kilo kaydetme
+  void _showUpdateWeightDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: theme.colorScheme.surface,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Yeni Kilo Kaydı',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Lütfen hayvanın yeni kilosunu girin (kg):',
+                  style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Örn: 12.5',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text('İptal', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              onPressed: () {
+                final text = controller.text.trim().replaceAll(',', '.');
+                final newW = double.tryParse(text);
+                if (newW == null || newW <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Lütfen geçerli bir kilo girin.'),
+                      backgroundColor: theme.colorScheme.error,
+                    ),
+                  );
+                  return;
+                }
+                Navigator.pop(dialogContext);
+                // Pet verisini güncelle
+                context.read<PetCubit>().updatePet(
+                      id: widget.petId,
+                      weight: newW,
+                    );
+                // Grafik verilerini yenile
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (context.mounted) {
+                    context
+                        .read<WeightHistoryCubit>()
+                        .fetchWeightHistory(widget.petId);
+                  }
+                });
+              },
+              child: const Text('Kaydet'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -583,16 +795,18 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Sağlık Geçmişi',
+                      const Text('Sağlık Geçmişi',
                           style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onSurface)),
-                      Text('Tümü >',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: primaryBlue)),
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      GestureDetector(
+                        onTap: () =>
+                            context.push('/owner/pets/${widget.petId}/visits'),
+                        child: Text('Tümü >',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: primaryBlue)),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
