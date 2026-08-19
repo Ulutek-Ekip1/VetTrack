@@ -5,6 +5,7 @@ import com.vettrack.api.auth.AuthService;
 import com.vettrack.api.clinic.dto.ClinicInviteResponse;
 import com.vettrack.api.clinic.dto.RegisterAndAcceptInviteRequest;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
+import com.vettrack.api.common.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
