@@ -434,7 +434,6 @@ class OwnerProfileScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      // SSS Butonu
                     ],
                   ),
                 ),
