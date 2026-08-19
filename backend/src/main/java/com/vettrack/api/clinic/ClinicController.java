@@ -203,13 +203,14 @@ public class ClinicController {
         String inviteEmail = invite.getEmail();
         if (inviteEmail != null && !inviteEmail.isBlank()
                 && !inviteEmail.trim().equalsIgnoreCase(request.getEmail().trim())) {
-            throw new UnauthorizedException("Bu davet farklı bir e-posta adresi için oluşturulmuştur.");
+            throw new AccessDeniedException("Bu davet farklı bir e-posta adresi için oluşturulmuştur.");
         }
 
         // Kullanıcı zaten mevcutsa (ör. önceki bir denemede oluşturuldu ama üyelik yazımı
         // başarısız oldu) AuthService aynı şifreyle login'e düşer — retry güvenle çalışır.
-        // Şifre gerçekten farklıysa (bu davetle ilgisiz bağımsız bir hesap) UnauthorizedException
-        // olduğu gibi 401 olarak dışarı yansır, hatalı biçimde 409'a çevrilmez.
+        // Şifre gerçekten farklıysa (bu davetle ilgisiz bağımsız bir hesap) AuthService.login()'ün
+        // fırlattığı UnauthorizedException olduğu gibi 401 olarak dışarı yansır, hatalı biçimde
+        // 409'a çevrilmez.
         AuthResponse authResponse = authService.createConfirmedUserAndLogin(
                 request.getEmail(), request.getPassword(), request.getName(), request.getPhone());
 

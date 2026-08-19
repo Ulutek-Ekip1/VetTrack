@@ -200,8 +200,8 @@ class ClinicRegisterAndAcceptInviteTest {
     }
 
     @Test
-    @DisplayName("Farklı e-posta için oluşturulmuş davet: 401, hesap oluşturulmaz")
-    void whenEmailMismatch_thenUnauthorizedAndNoAccountCreated() throws Exception {
+    @DisplayName("Farklı e-posta için oluşturulmuş davet: 403, hesap oluşturulmaz")
+    void whenEmailMismatch_thenForbiddenAndNoAccountCreated() throws Exception {
         saveInvite("RAW-MISMATCH", "gercek-davetli@example.com", OffsetDateTime.now().plusDays(7));
 
         RegisterAndAcceptInviteRequest request = new RegisterAndAcceptInviteRequest();
@@ -213,7 +213,7 @@ class ClinicRegisterAndAcceptInviteTest {
         mockMvc.perform(post("/clinics/invites/register-and-accept")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
 
         org.mockito.Mockito.verifyNoInteractions(restTemplate);
     }
