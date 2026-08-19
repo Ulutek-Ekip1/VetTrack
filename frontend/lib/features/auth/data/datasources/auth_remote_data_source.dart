@@ -143,7 +143,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> logout() async {
-    // API Sözleşmesinde logout endpoint'i yok, sadece yerel token silinir.
+    // Supabase / OAuth oturum kalıntılarını temizle
+    try {
+      await Supabase.instance.client.auth.signOut();
+    } catch (_) {
+      // Supabase signOut hatası yerel token silinmesini engellememeli
+    }
+    // Yerel tokenı sil
     await localDataSource.deleteToken();
   }
 
