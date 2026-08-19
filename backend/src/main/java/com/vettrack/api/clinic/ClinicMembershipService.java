@@ -2,7 +2,6 @@ package com.vettrack.api.clinic;
 
 import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
-import com.vettrack.api.common.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -40,7 +39,7 @@ public class ClinicMembershipService {
     public void requireActiveClinicAdmin(UUID userId, UUID clinicId) {
         ClinicMembership membership = getActiveMembership(userId, clinicId);
         if (!Boolean.TRUE.equals(membership.getIsClinicAdmin())) {
-            throw new UnauthorizedException("Bu işlem için bu klinikte clinic_admin olmalısınız.");
+            throw new AccessDeniedException("Bu işlem için bu klinikte clinic_admin olmalısınız.");
         }
     }
 

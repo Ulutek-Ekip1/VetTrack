@@ -1,20 +1,22 @@
 package com.vettrack.api.auth;
 
-import com.vettrack.api.common.exception.ApiException;
+import com.vettrack.api.clinic.ClinicMembershipService;
 import com.vettrack.api.common.exception.ConflictException;
-import com.vettrack.api.common.exception.ErrorCode;
-import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
-import com.vettrack.api.clinic.ClinicMembershipService;
-
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -30,8 +32,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Service
 public class AuthService {
@@ -40,7 +40,6 @@ public class AuthService {
     private final String supabaseServiceKey;
     private final OwnerRepository ownerRepository;
     private final ClinicMembershipService clinicMembershipService;
-
     private final PetRepository petRepository;
     private final RestTemplate restTemplate;
 
@@ -61,8 +60,8 @@ public class AuthService {
             @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
             @Value("${supabase.service-key:${SUPABASE_SERVICE_KEY:}}") String supabaseServiceKey,
             OwnerRepository ownerRepository,
-              ClinicMembershipService clinicMembershipService,
-              PetRepository petRepository,
+            ClinicMembershipService clinicMembershipService,
+            PetRepository petRepository,
             RestTemplate restTemplate
     ) {
         this.supabaseUrl = supabaseUrl;
@@ -133,6 +132,68 @@ public class AuthService {
         }
     }
 
+    /**
+     * INT-FINDING-02 fix: Klinik daveti kabul akışı için Supabase Admin API üzerinden
+     * e-postası ÖNCEDEN ONAYLANMIŞ ({@code email_confirm=true}) bir kullanıcı oluşturur ve
+     * ardından giriş yaparak gerçek bir oturum (access/refresh token) döner.
+     *
+     * <p>Public {@link #register} akışının aksine, projenin Supabase Dashboard'daki e-posta
+     * doğrulama ayarına bağımlı DEĞİLDİR — geçerli, tek kullanımlık, e-posta eşleşmesi
+     * doğrulanmış bir davet token'ı zaten kimliği kanıtlamış sayılır. Böylece "register
+     * başarılı ama accessToken null, sonraki authenticated accept çağrısı 401 alıyor"
+     * senaryosu kökten ortadan kalkar.
+     *
+     * <p>Kullanıcı zaten mevcutsa (ör. önceki bir denemede oluşturuldu ama üyelik yazımı
+     * başarısız oldu) create çağrısı "already exists" ile başarısız olur; bu durumda aynı
+     * e-posta/şifreyle login'e düşülür — çağıran taraf (ClinicController) bu sayede tüm
+     * akışı güvenle retry edebilir.
+     */
+    public AuthResponse createConfirmedUserAndLogin(String email, String password, String name, String phone) {
+        String createUrl = supabaseUrl + "/auth/v1/admin/users";
+
+        Map<String, Object> userMetadata = new HashMap<>();
+        userMetadata.put("name", name);
+        userMetadata.put("role", "owner");
+        if (phone != null) {
+            userMetadata.put("phone", phone);
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("email", email);
+        body.put("password", password);
+        body.put("email_confirm", true);
+        body.put("user_metadata", userMetadata);
+
+        HttpHeaders headers = createHeaders(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        try {
+            restTemplate.exchange(
+                    createUrl, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+        } catch (HttpClientErrorException ex) {
+            HttpStatusCode status = ex.getStatusCode();
+            String responseBody = ex.getResponseBodyAsString();
+            boolean alreadyExists = status.value() == HttpStatus.CONFLICT.value() ||
+                    status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value() ||
+                    responseBody.contains("already_exists") ||
+                    responseBody.contains("already registered") ||
+                    responseBody.contains("user_already_exists");
+            if (!alreadyExists) {
+                throw new RuntimeException("Kullanıcı oluşturma başarısız: [" + status + "] " + responseBody, ex);
+            }
+            log.info("createConfirmedUserAndLogin: kullanıcı zaten var (retry), login ile devam ediliyor. email hash={}",
+                    Integer.toHexString(email.hashCode()));
+        } catch (Exception ex) {
+            throw new RuntimeException("Kullanıcı oluşturma başarısız: " + ex.getMessage(), ex);
+        }
+
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail(email);
+        loginRequest.setPassword(password);
+        return login(loginRequest);
+    }
+
     public AuthResponse login(LoginRequest request) {
         String url = supabaseUrl + "/auth/v1/token?grant_type=password";
 
@@ -156,11 +217,15 @@ public class AuthService {
                 if (responseBody.contains("Email not confirmed") || responseBody.contains("email_not_confirmed")) {
                     throw new UnauthorizedException("E-posta adresi doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.");
                 }
-                throw new UnauthorizedException("E-posta veya şifre hatalı: " + responseBody);
+                log.warn("Supabase login başarısız oldu: status={}, body={}", status, responseBody);
+                throw new UnauthorizedException("E-posta veya şifre hatalı");
             } else {
                 throw new RuntimeException("Login failed");
             }
         } catch (Exception ex) {
+            if (ex instanceof UnauthorizedException) {
+                throw (UnauthorizedException) ex;
+            }
             throw new RuntimeException("Login failed", ex);
         }
     }
@@ -232,19 +297,14 @@ public class AuthService {
      */
     @Transactional
     public void softDeleteUserAccount(UUID userId) {
-        boolean found = false;
-
         Optional<Owner> ownerOpt = ownerRepository.findById(userId);
         if (ownerOpt.isPresent()) {
             Owner owner = ownerOpt.get();
             owner.setIsActive(false);
             owner.setUpdatedAt(OffsetDateTime.now());
             ownerRepository.save(owner);
-            found = true;
             log.info("Soft-deleted owner profile in database for userId={}", userId);
         }
-
-
 
         if (clinicMembershipService != null) {
             clinicMembershipService.disableAllMemberships(userId);

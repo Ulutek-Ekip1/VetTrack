@@ -127,13 +127,13 @@ class VisitCodeSearchClinicAutodetectTest {
     }
 
     @Test
-    @DisplayName("clinicId verilmez + hiç aktif üyelik yok: 401")
-    void noActiveMembership_returns401() throws Exception {
+    @DisplayName("clinicId verilmez + hiç aktif üyelik yok: 403 Forbidden")
+    void noActiveMembership_returns403() throws Exception {
         UUID vetId = UUID.randomUUID();
 
         mockMvc.perform(get("/visits/code/{code}", pet.getUniqueCode())
                         .with(jwt().jwt(j -> j.subject(vetId.toString()))
                                 .authorities(new SimpleGrantedAuthority("ROLE_VET_STAFF"))))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }

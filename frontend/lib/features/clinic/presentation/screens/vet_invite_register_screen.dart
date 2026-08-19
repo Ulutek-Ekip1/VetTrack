@@ -54,8 +54,13 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
     super.dispose();
   }
 
+  bool _hasSubmittedRegistration = false;
+
   void _onSubmit(String clinicName) {
     if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _hasSubmittedRegistration = true;
+      });
       context.read<ClinicInviteCubit>().registerAndAccept(
             email: _emailController.text.trim(),
             password: _passwordController.text,
@@ -115,16 +120,141 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
             );
           }
 
-          if (state is ClinicInviteError &&
-              state.type != ClinicInviteErrorType.acceptFailed) {
+          if (state is ClinicInviteSubmitting && _hasSubmittedRegistration) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: theme.colorScheme.secondary),
+                  const SizedBox(height: 16),
+                  const Text('Klinik üyeliği tamamlanıyor...'),
+                ],
+              ),
+            );
+          }
+
+          if (state is ClinicInviteError && state.type == ClinicInviteErrorType.acceptFailed) {
+            final targetToken = state.token ?? widget.token;
+            final targetClinicName = state.clinicName ?? widget.initialClinicName ?? 'Veteriner Kliniği';
+
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppDimensions.spacingLg),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: Card(
+                    elevation: 0,
+                    color: theme.colorScheme.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                      side: BorderSide(color: theme.colorScheme.outlineVariant),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.mark_email_read_rounded, size: 48, color: theme.colorScheme.tertiary),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Kayıt Tamamlandı, Davet Beklemede',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Hesabınız başarıyla oluşturuldu fakat $targetClinicName kliniğine bağlantı tamamlanırken bir sorun oluştu.\n\nFormu tekrar doldurmanıza gerek yoktur.',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                              height: 1.5,
+                            ),
+                          ),
+                          if (state.message.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.errorContainer,
+                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                                border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.info_outline_rounded, color: theme.colorScheme.error, size: 18),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      state.message,
+                                      style: TextStyle(color: theme.colorScheme.onErrorContainer, fontSize: 13),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 28),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: FilledButton.icon(
+                              onPressed: () {
+                                context.read<ClinicInviteCubit>().retryAcceptOnly(
+                                      token: targetToken,
+                                      clinicName: targetClinicName,
+                                    );
+                              },
+                              icon: const Icon(Icons.refresh_rounded, size: 20),
+                              label: const Text('Kliniğe Katılmayı Tekrar Dene', style: TextStyle(fontWeight: FontWeight.bold)),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: theme.colorScheme.secondary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton.icon(
+                              onPressed: () => context.go('/login'),
+                              icon: const Icon(Icons.login_rounded, size: 20),
+                              label: const Text('Giriş Ekranına Git'),
+                              style: OutlinedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          if (state is ClinicInviteError && state.type != ClinicInviteErrorType.acceptFailed) {
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 440),
                 child: Card(
                   elevation: 0,
+                  color: theme.colorScheme.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                    side: BorderSide(color: Colors.grey.shade200),
+                    side: BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(32.0),

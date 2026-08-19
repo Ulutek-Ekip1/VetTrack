@@ -1,7 +1,6 @@
 package com.vettrack.api.clinic;
 
 import com.vettrack.api.common.exception.ResourceNotFoundException;
-import com.vettrack.api.common.exception.UnauthorizedException;
 import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,7 @@ public class ClinicAccessService {
     private final VisitRepository visitRepository;
 
     public void requireClinicAccess(UUID userId, UUID clinicId) {
-        if (clinicId == null) throw new UnauthorizedException("Klinik bağlamı zorunludur.");
+        if (clinicId == null) throw new AccessDeniedException("Klinik bağlamı zorunludur.");
         membershipService.getActiveMembership(userId, clinicId);
     }
 
