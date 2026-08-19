@@ -70,8 +70,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     side: const BorderSide(color: Colors.grey),
                   ),
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('İptal',
-                      style: TextStyle(color: Color(0xFF131B2E))),
+                  child: Text('İptal',
+                      style: TextStyle(color: Theme.of(dialogContext).colorScheme.onSurface)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -122,21 +122,26 @@ class _AddPetScreenState extends State<AddPetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF004AC6);
-    const buttonBlue = Color(0xFF2563EB);
     final theme = Theme.of(context);
+    final primaryBlue = theme.colorScheme.primary;
+    final buttonBlue = theme.colorScheme.primary;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
+        backgroundColor: theme.colorScheme.surface,
         appBar: AppBar(
           centerTitle: true,
-          title: const Text('Yeni Hayvan Ekle',
-              style:
-                  TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
+          title: Text(
+            'Yeni Hayvan Ekle',
+            style: TextStyle(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
             onPressed: () => _showDiscardModal(context),
           ),
         ),
@@ -146,7 +151,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
-                  backgroundColor: const Color(0xFF006B5F),
+                  backgroundColor: theme.colorScheme.primary,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -155,7 +160,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
-                  backgroundColor: const Color(0xFFEF4444),
+                  backgroundColor: theme.colorScheme.error,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -188,7 +193,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           ),
                           // Placeholder ikonu:
                           child: _localPhotoUrl == null
-                              ? const Icon(Icons.camera_alt,
+                              ? Icon(Icons.camera_alt,
                                   size: 40, color: Color(0xFF434655))
                               : null,
                         ),
@@ -209,7 +214,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                               },
                               child: Container(
                                 padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: primaryBlue,
                                   shape: BoxShape.circle,
                                 ),

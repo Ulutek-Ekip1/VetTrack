@@ -5,17 +5,18 @@ Future<T?> showAppModalBottomSheet<T>({
   required BuildContext context,
   required Widget child,
   bool isScrollControlled = false,
-  Color backgroundColor = Colors.white,
+  Color? backgroundColor,
   double borderRadius = 28.0,
   bool isDismissible = true,
   bool enableDrag = true,
 }) {
+  final theme = Theme.of(context);
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
     isDismissible: isDismissible,
     enableDrag: enableDrag,
-    backgroundColor: backgroundColor,
+    backgroundColor: backgroundColor ?? theme.colorScheme.surfaceContainerLowest,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
         top: Radius.circular(borderRadius),
@@ -46,6 +47,7 @@ class CustomBottomSheetContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SafeArea(
       child: Padding(
         padding: padding,
@@ -59,7 +61,7 @@ class CustomBottomSheetContainer extends StatelessWidget {
                   width: 55,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade400,
+                    color: theme.colorScheme.outlineVariant,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -72,9 +74,9 @@ class CustomBottomSheetContainer extends StatelessWidget {
               children: [
                 IconButton(
                   onPressed: onClose ?? () => Navigator.pop(context),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.close,
-                    color: Color(0xFF131B2E),
+                    color: theme.colorScheme.onSurface,
                   ),
                   tooltip: 'Kapat',
                 ),
@@ -82,8 +84,8 @@ class CustomBottomSheetContainer extends StatelessWidget {
                   child: Text(
                     title,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFF131B2E),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                     ),
@@ -106,3 +108,4 @@ class CustomBottomSheetContainer extends StatelessWidget {
     );
   }
 }
+

@@ -527,26 +527,21 @@ class _AIChatbotViewState extends State<AIChatbotView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const primaryBlue = Color(0xFF004AC6);
-    const peachBg = Color(0xFFFFECE5);
-    const peachText = Color(0xFFD9531E);
+    final primaryBlue = theme.colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surfaceDim,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        shadowColor: Colors.black12,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_comment_outlined, color: primaryBlue),
+            icon: Icon(Icons.add_comment_outlined, color: theme.colorScheme.primary),
             tooltip: 'Yeni Sohbet',
             onPressed: () {
               context.read<AiChatCubit>().startNewConversation();
             },
           ),
           IconButton(
-            icon: const Icon(Icons.history, color: Color(0xFF131B2E)),
+            icon: Icon(Icons.history, color: theme.colorScheme.onSurface),
             tooltip: 'Sohbet Geçmişi',
             onPressed: () => _showHistoryBottomSheet(context),
           ),
@@ -555,11 +550,11 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           children: [
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: peachBg,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondaryContainer,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.auto_awesome, color: peachText, size: 20),
+              child: Icon(Icons.auto_awesome, color: theme.colorScheme.onSecondaryContainer, size: 20),
             ),
             const SizedBox(width: 10),
             Column(
@@ -569,7 +564,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   'AI Sağlık Asistanı',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF131B2E),
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 Row(
@@ -578,16 +573,16 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                       width: 8,
                       height: 8,
                       decoration: const BoxDecoration(
-                        color: Colors.green,
+                        color: Color(0xFF10B981),
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Çevrimiçi',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade600,
-                        fontSize: 10,
+                      'VetTrack AI • Çevrimiçi',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 11,
                       ),
                     ),
                   ],
@@ -659,7 +654,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                             : null,
                         child: _activePet?.photoUrl == null ||
                                 _activePet!.photoUrl!.isEmpty
-                            ? const Icon(Icons.pets, size: 18, color: primaryBlue)
+                            ? Icon(Icons.pets, size: 18, color: primaryBlue)
                             : null,
                       ),
                       const SizedBox(width: 12),
@@ -793,8 +788,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                                   _messageController.text = tag;
                                   _onSendPressed();
                                 },
-                          backgroundColor: Colors.white,
-                          labelStyle: const TextStyle(
+                          backgroundColor: theme.colorScheme.surface,
+                          labelStyle: TextStyle(
                               color: primaryBlue,
                               fontSize: 12,
                               fontWeight: FontWeight.bold),

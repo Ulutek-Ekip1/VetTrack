@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/core/theme/cubit/theme_cubit.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 
@@ -8,11 +9,11 @@ class VetProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Veteriner Hekim Profili'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
       ),
       body: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
@@ -24,21 +25,72 @@ class VetProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 40,
-                  backgroundColor: Colors.teal,
-                  child:
-                      Icon(Icons.local_hospital, size: 40, color: Colors.white),
+                  backgroundColor: theme.colorScheme.secondaryContainer,
+                  child: Icon(
+                    Icons.local_hospital,
+                    size: 40,
+                    color: theme.colorScheme.secondary,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   userName,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
                 Text(
                   userEmail,
-                  style: const TextStyle(color: Colors.grey),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Card(
+                  child: BlocBuilder<ThemeCubit, ThemeMode>(
+                    builder: (context, themeMode) {
+                      String themeSubtitle;
+                      switch (themeMode) {
+                        case ThemeMode.light:
+                          themeSubtitle = 'Açık Tema';
+                          break;
+                        case ThemeMode.dark:
+                          themeSubtitle = 'Koyu Tema';
+                          break;
+                        case ThemeMode.system:
+                          themeSubtitle = 'Sistem Teması (Otomatik)';
+                          break;
+                      }
+                      return ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.palette_outlined,
+                              color: theme.colorScheme.primary, size: 20),
+                        ),
+                        title: Text(
+                          'Uygulama Teması',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          themeSubtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _showThemeSelectionDialog(context, themeMode),
+                      );
+                    },
+                  ),
                 ),
                 const Spacer(),
                 ElevatedButton.icon(
@@ -46,8 +98,8 @@ class VetProfileScreen extends StatelessWidget {
                     context.read<AuthCubit>().signOut();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    foregroundColor: Colors.white,
+                    backgroundColor: theme.colorScheme.errorContainer,
+                    foregroundColor: theme.colorScheme.onErrorContainer,
                     minimumSize: const Size.fromHeight(50),
                   ),
                   icon: const Icon(Icons.logout),
@@ -60,4 +112,66 @@ class VetProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _showThemeSelectionDialog(BuildContext context, ThemeMode currentMode) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Uygulama Teması Seçin'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<ThemeMode>(
+                title: const Text('Açık Tema'),
+                subtitle: const Text('Gündüz kullanımı için aydınlık görünüm'),
+                secondary: const Icon(Icons.light_mode_outlined),
+                value: ThemeMode.light,
+                groupValue: currentMode,
+                onChanged: (val) {
+                  if (val != null) {
+                    Navigator.pop(dialogContext);
+                    context.read<ThemeCubit>().setThemeMode(val);
+                  }
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text('Koyu Tema'),
+                subtitle: const Text('Gece kullanımı için koyu zemin'),
+                secondary: const Icon(Icons.dark_mode_outlined),
+                value: ThemeMode.dark,
+                groupValue: currentMode,
+                onChanged: (val) {
+                  if (val != null) {
+                    Navigator.pop(dialogContext);
+                    context.read<ThemeCubit>().setThemeMode(val);
+                  }
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text('Sistem Teması'),
+                subtitle: const Text('Cihaz ayarlarınıza göre otomatik'),
+                secondary: const Icon(Icons.brightness_auto_outlined),
+                value: ThemeMode.system,
+                groupValue: currentMode,
+                onChanged: (val) {
+                  if (val != null) {
+                    Navigator.pop(dialogContext);
+                    context.read<ThemeCubit>().setThemeMode(val);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Kapat'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
+

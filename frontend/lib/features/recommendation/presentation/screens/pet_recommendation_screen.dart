@@ -293,7 +293,7 @@ class _PetRecommendationScreenState extends State<PetRecommendationScreen> {
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
                                               fontWeight: FontWeight.bold,
-                                              color: const Color(0xFF131B2E),
+                                              color: theme.colorScheme.onSurface,
                                             ),
                                           ),
                                           const SizedBox(height: 2),

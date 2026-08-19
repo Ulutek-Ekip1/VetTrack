@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vettrack_frontend/core/theme/cubit/theme_cubit.dart';
 import 'package:vettrack_frontend/features/notification/presentation/cubit/notification_cubit.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -28,47 +29,54 @@ class VetTrackApp extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
+        BlocProvider<ThemeCubit>(create: (context) => sl<ThemeCubit>()),
         BlocProvider<AuthCubit>.value(value: authCubit),
         BlocProvider<PetCubit>(create: (context) => sl<PetCubit>()),
         BlocProvider<NotificationCubit>(
           create: (context) => sl<NotificationCubit>(),
         ),
       ],
-      child: MaterialApp.router(
-        title: 'VetTrack',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        routerConfig: AppRouter.createRouter(authCubit),
-        builder: (context, child) {
-          return Stack(
-            children: [
-              if (child != null) child,
-              ValueListenableBuilder<TopNotificationData?>(
-                valueListenable: topNotificationNotifier,
-                builder: (context, data, _) {
-                  if (data == null) return const SizedBox.shrink();
-                  return Positioned(
-                    top: 50.0,
-                    left: 16.0,
-                    right: 16.0,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: TopNotification(
-                        key: UniqueKey(),
-                        title: data.title,
-                        body: data.body,
-                        type: data.type,
-                        onTap: data.onTap,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return MaterialApp.router(
+            title: 'VetTrack',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeMode,
+            routerConfig: AppRouter.createRouter(authCubit),
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  if (child != null) child,
+                  ValueListenableBuilder<TopNotificationData?>(
+                    valueListenable: topNotificationNotifier,
+                    builder: (context, data, _) {
+                      if (data == null) return const SizedBox.shrink();
+                      return Positioned(
+                        top: 50.0,
+                        left: 16.0,
+                        right: 16.0,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: TopNotification(
+                            key: UniqueKey(),
+                            title: data.title,
+                            body: data.body,
+                            type: data.type,
+                            onTap: data.onTap,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
     );
   }
 }
+

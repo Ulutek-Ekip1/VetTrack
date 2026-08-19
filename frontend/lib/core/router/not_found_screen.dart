@@ -7,11 +7,11 @@ class NotFoundScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sayfa Bulunamadı (404)'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
       ),
       body: Center(
         child: Padding(
@@ -19,28 +19,28 @@ class NotFoundScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded, size: 80, color: Colors.teal),
+              Icon(Icons.error_outline_rounded, size: 80, color: theme.colorScheme.primary),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Aradığınız Sayfa Bulunamadı',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'İstediğiniz sayfa kaldırılmış, adı değiştirilmiş veya geçici olarak kullanılamıyor olabilir.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () {
                   context.go(AppRoutes.login);
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
                 icon: const Icon(Icons.home),
                 label: const Text('Ana Sayfaya Dön'),
               ),
@@ -51,3 +51,4 @@ class NotFoundScreen extends StatelessWidget {
     );
   }
 }
+

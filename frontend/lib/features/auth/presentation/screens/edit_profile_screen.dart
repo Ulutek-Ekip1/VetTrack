@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../domain/entities/owner_entity.dart';
 import '../../../../core/utils/validators.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
 import '../cubit/auth_cubit.dart';
+
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -82,13 +82,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surfaceDim,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        shadowColor: Colors.black12,
-        title: const Text(
+        title: Text(
           'Kişisel Bilgiler',
           style: TextStyle(
-            color: AppColors.primary,
+            color: theme.colorScheme.primary,
             fontWeight: FontWeight.bold,
             fontSize: 24,
           ),
@@ -99,9 +96,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           if (state is ProfileUpdateSuccess) {
             context.read<AuthCubit>().checkAuthStatus();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Profiliniz başarıyla güncellendi!'),
-                backgroundColor: Color(0xFF10B981),
+              SnackBar(
+                content: const Text('Profiliniz başarıyla güncellendi!'),
+                backgroundColor: theme.colorScheme.primary,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -113,7 +110,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: const Color(0xFFEF4444),
+                backgroundColor: theme.colorScheme.error,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -121,8 +118,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         },
         builder: (context, state) {
           if (state is ProfileLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+            return Center(
+              child: CircularProgressIndicator(color: theme.colorScheme.primary),
             );
           }
 
@@ -163,11 +160,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                       side: BorderSide(
-                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                         width: 1,
                       ),
                     ),
-                    color: AppColors.surfaceContainerLowest,
+                    color: theme.colorScheme.surfaceContainerLowest,
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Form(
@@ -179,7 +176,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               "Kişisel Bilgiler",
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF131B2E),
+                                color: theme.colorScheme.onSurface,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -188,7 +185,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ? "Aşağıdaki alanları güncelleyerek profilinizi güncel tutabilirsiniz."
                                   : "Kişisel profil bilgilerinizi aşağıdan inceleyebilirsiniz. Değişiklik yapmak için aşağıdaki 'Bilgileri Düzenle' butonuna tıklayın.",
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: AppColors.onSurfaceVariant,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -202,29 +199,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               textCapitalization: TextCapitalization.words,
                               decoration: InputDecoration(
                                 labelText: "Ad",
-                                prefixIcon: const Icon(
+                                prefixIcon: Icon(
                                   Icons.person_outline,
-                                  color: AppColors.outline,
+                                  color: theme.colorScheme.outline,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: AppColors.outlineVariant,
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.outlineVariant,
                                   ),
                                 ),
                                 disabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: BorderSide(
-                                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: AppColors.primary,
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.primary,
                                     width: 2,
                                   ),
                                 ),
@@ -243,29 +240,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               textCapitalization: TextCapitalization.words,
                               decoration: InputDecoration(
                                 labelText: "Soyad",
-                                prefixIcon: const Icon(
+                                prefixIcon: Icon(
                                   Icons.person_outline,
-                                  color: AppColors.outline,
+                                  color: theme.colorScheme.outline,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: AppColors.outlineVariant,
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.outlineVariant,
                                   ),
                                 ),
                                 disabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: BorderSide(
-                                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: AppColors.primary,
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.primary,
                                     width: 2,
                                   ),
                                 ),
@@ -279,14 +276,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             TextFormField(
                               controller: _emailController,
                               style: theme.textTheme.bodyLarge?.copyWith(
-                                color: AppColors.outline,
+                                color: theme.colorScheme.outline,
                               ),
                               enabled: false,
                               decoration: InputDecoration(
                                 labelText: "E-posta Adresi (Değiştirilemez)",
-                                prefixIcon: const Icon(
+                                prefixIcon: Icon(
                                   Icons.mail_outline,
-                                  color: AppColors.outlineVariant,
+                                  color: theme.colorScheme.outlineVariant,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -294,7 +291,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 disabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: BorderSide(
-                                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                                   ),
                                 ),
                               ),
@@ -311,29 +308,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               decoration: InputDecoration(
                                 labelText: "Telefon Numarası",
                                 hintText: "05XX XXX XX XX",
-                                prefixIcon: const Icon(
+                                prefixIcon: Icon(
                                   Icons.phone_outlined,
-                                  color: AppColors.outline,
+                                  color: theme.colorScheme.outline,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: AppColors.outlineVariant,
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.outlineVariant,
                                   ),
                                 ),
                                 disabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: BorderSide(
-                                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: AppColors.primary,
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.primary,
                                     width: 2,
                                   ),
                                 ),
@@ -351,29 +348,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
                                 labelText: "Adres",
-                                prefixIcon: const Icon(
+                                prefixIcon: Icon(
                                   Icons.location_on_outlined,
-                                  color: AppColors.outline,
+                                  color: theme.colorScheme.outline,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: AppColors.outlineVariant,
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.outlineVariant,
                                   ),
                                 ),
                                 disabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: BorderSide(
-                                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: AppColors.primary,
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.primary,
                                     width: 2,
                                   ),
                                 ),
@@ -396,22 +393,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                           }
                                         : _onSave),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isEditable
-                                      ? const Color(0xFF10B981)
-                                      : AppColors.primary,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: theme.colorScheme.primary,
+                                  foregroundColor: theme.colorScheme.onPrimary,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
                                 child: isSaving
-                                    ? const SizedBox(
+                                    ? SizedBox(
                                         width: 24,
                                         height: 24,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2.5,
-                                          color: Colors.white,
+                                          color: theme.colorScheme.onPrimary,
                                         ),
                                       )
                                     : Row(
@@ -424,7 +419,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                 : 'Bilgileri Düzenle',
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
-                                              color: Colors.white,
+                                              color: theme.colorScheme.onPrimary,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -434,7 +429,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                 ? Icons.save_outlined
                                                 : Icons.edit_outlined,
                                             size: 20,
-                                            color: Colors.white,
+                                            color: theme.colorScheme.onPrimary,
                                           ),
                                         ],
                                       ),
@@ -454,3 +449,5 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
+
+
