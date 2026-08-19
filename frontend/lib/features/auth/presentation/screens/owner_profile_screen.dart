@@ -280,49 +280,37 @@ class OwnerProfileScreen extends StatelessWidget {
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Uygulama Teması Seçin'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<ThemeMode>(
-                title: const Text('Açık Tema'),
-                subtitle: const Text('Gündüz kullanımı için aydınlık görünüm'),
-                secondary: const Icon(Icons.light_mode_outlined),
-                value: ThemeMode.light,
-                groupValue: currentMode,
-                onChanged: (val) {
-                  if (val != null) {
-                    Navigator.pop(dialogContext);
-                    context.read<ThemeCubit>().setThemeMode(val);
-                  }
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                title: const Text('Koyu Tema'),
-                subtitle: const Text('Gece kullanımı için koyu zemin'),
-                secondary: const Icon(Icons.dark_mode_outlined),
-                value: ThemeMode.dark,
-                groupValue: currentMode,
-                onChanged: (val) {
-                  if (val != null) {
-                    Navigator.pop(dialogContext);
-                    context.read<ThemeCubit>().setThemeMode(val);
-                  }
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                title: const Text('Sistem Teması'),
-                subtitle: const Text('Cihaz ayarlarınıza göre otomatik'),
-                secondary: const Icon(Icons.brightness_auto_outlined),
-                value: ThemeMode.system,
-                groupValue: currentMode,
-                onChanged: (val) {
-                  if (val != null) {
-                    Navigator.pop(dialogContext);
-                    context.read<ThemeCubit>().setThemeMode(val);
-                  }
-                },
-              ),
-            ],
+          content: RadioGroup<ThemeMode>(
+            groupValue: currentMode,
+            onChanged: (val) {
+              if (val != null) {
+                Navigator.pop(dialogContext);
+                context.read<ThemeCubit>().setThemeMode(val);
+              }
+            },
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<ThemeMode>(
+                  title: Text('Açık Tema'),
+                  subtitle: Text('Gündüz kullanımı için aydınlık görünüm'),
+                  secondary: Icon(Icons.light_mode_outlined),
+                  value: ThemeMode.light,
+                ),
+                RadioListTile<ThemeMode>(
+                  title: Text('Koyu Tema'),
+                  subtitle: Text('Gece kullanımı için koyu zemin'),
+                  secondary: Icon(Icons.dark_mode_outlined),
+                  value: ThemeMode.dark,
+                ),
+                RadioListTile<ThemeMode>(
+                  title: Text('Sistem Teması'),
+                  subtitle: Text('Cihaz ayarlarınıza göre otomatik'),
+                  secondary: Icon(Icons.brightness_auto_outlined),
+                  value: ThemeMode.system,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(

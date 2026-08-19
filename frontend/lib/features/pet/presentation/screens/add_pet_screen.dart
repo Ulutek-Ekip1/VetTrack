@@ -193,7 +193,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           ),
                           // Placeholder ikonu:
                           child: _localPhotoUrl == null
-                              ? Icon(Icons.camera_alt,
+                              ? const Icon(Icons.camera_alt,
                                   size: 40, color: Color(0xFF434655))
                               : null,
                         ),
