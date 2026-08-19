@@ -13,6 +13,7 @@ class PhotoOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -26,13 +27,13 @@ class PhotoOption extends StatelessWidget {
             Icon(
               icon,
               size: 28,
-              color: const Color(0xFF004AC6),
+              color: theme.colorScheme.primary,
             ),
             const SizedBox(width: 28),
             Text(
               title,
-              style: const TextStyle(
-                color: Color(0xFF131B2E),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
                 fontSize: 18,
               ),
             ),
@@ -42,3 +43,4 @@ class PhotoOption extends StatelessWidget {
     );
   }
 }
+

@@ -40,8 +40,6 @@ class OwnerShellScreen extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onTap,
-        // Açık zemin, seçili koyu mavi ikon ve metnin görünürlüğünü korur.
-        indicatorColor: const Color(0xFFDCEAFF),
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.dashboard_outlined),
@@ -183,21 +181,21 @@ class VetShellScreen extends StatelessWidget {
               NavigationRailDestination(
                 icon: const Icon(Icons.search_outlined, size: 22),
                 selectedIcon:
-                    Icon(Icons.search, color: Colors.teal.shade800, size: 22),
+                    Icon(Icons.search, color: theme.colorScheme.secondary, size: 22),
                 label: const Text('Hasta Arama',
                     style: TextStyle(fontWeight: FontWeight.w600)),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.assignment_outlined, size: 22),
                 selectedIcon: Icon(Icons.assignment,
-                    color: Colors.teal.shade800, size: 22),
+                    color: theme.colorScheme.secondary, size: 22),
                 label: const Text('Muayeneler',
                     style: TextStyle(fontWeight: FontWeight.w600)),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.medical_services_outlined, size: 22),
                 selectedIcon: Icon(Icons.medical_services,
-                    color: Colors.teal.shade800, size: 22),
+                    color: theme.colorScheme.secondary, size: 22),
                 label: const Text('Klinik Profil',
                     style: TextStyle(fontWeight: FontWeight.w600)),
               ),

@@ -4,9 +4,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_state.dart';
 import 'package:vettrack_frontend/features/auth/widgets/verification.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../cubit/auth_cubit.dart';
 import '../../../../core/router/app_router.dart';
+
 
 class EmailVerificationScreen extends StatelessWidget {
   const EmailVerificationScreen({super.key, required this.email});
@@ -32,9 +32,9 @@ class EmailVerificationScreen extends StatelessWidget {
                   );
                 } else if (state is VerificationEmailSent) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Doğrulama e-postası tekrar gönderildi.'),
-                      backgroundColor: AppColors.primary,
+                    SnackBar(
+                      content: const Text('Doğrulama e-postası tekrar gönderildi.'),
+                      backgroundColor: theme.colorScheme.primary,
                     ),
                   );
                 }
@@ -63,7 +63,7 @@ class EmailVerificationScreen extends StatelessWidget {
                     Text(
                       "Lütfen e-postanızı doğrulayın",
                       style: theme.textTheme.headlineMedium?.copyWith(
-                        color: AppColors.primary,
+                        color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
                       ),
@@ -75,7 +75,7 @@ class EmailVerificationScreen extends StatelessWidget {
                     Text(
                       "Hesabınızı aktifleştirmek için gelen kutunuzu kontrol edin.",
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.onSurfaceVariant,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -86,10 +86,10 @@ class EmailVerificationScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.05),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.1),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
                         ),
                       ),
                       child: Row(
@@ -98,12 +98,12 @@ class EmailVerificationScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.12),
+                              color: theme.colorScheme.primary.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.info_outline_rounded,
-                              color: AppColors.primary,
+                              color: theme.colorScheme.primary,
                               size: 20,
                             ),
                           ),
@@ -116,14 +116,14 @@ class EmailVerificationScreen extends StatelessWidget {
                                   "Spam klasörüne bakın",
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.onSurface,
+                                    color: theme.colorScheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   "Eğer e-posta 2 dakika içinde gelmezse lütfen gereksiz (spam) klasörünüzü kontrol edin.",
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                     height: 1.3,
                                   ),
                                 ),
@@ -145,8 +145,8 @@ class EmailVerificationScreen extends StatelessWidget {
                           context.go(AppRoutes.login);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.onPrimary,
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -155,7 +155,7 @@ class EmailVerificationScreen extends StatelessWidget {
                         child: Text(
                           "Giriş ekranına dön",
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: AppColors.onPrimary,
+                            color: theme.colorScheme.onPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -168,7 +168,7 @@ class EmailVerificationScreen extends StatelessWidget {
                     Text(
                       "E-postayı almadınız mı?",
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.onSurfaceVariant,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
 
@@ -183,23 +183,23 @@ class EmailVerificationScreen extends StatelessWidget {
                                   .resendVerificationEmail(email);
                             },
                       icon: isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: AppColors.secondary,
+                                color: theme.colorScheme.secondary,
                               ),
                             )
-                          : const Icon(
+                          : Icon(
                               Icons.refresh_rounded,
                               size: 18,
-                              color: AppColors.secondary,
+                              color: theme.colorScheme.secondary,
                             ),
                       label: Text(
                         "E-postayı tekrar gönder",
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: AppColors.secondary,
+                          color: theme.colorScheme.secondary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -211,7 +211,7 @@ class EmailVerificationScreen extends StatelessWidget {
                     Text(
                       "© 2026 VetTrack Health Systems. All rights reserved.",
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.outline,
+                        color: theme.colorScheme.outline,
                       ),
                       textAlign: TextAlign.center,
                     ),

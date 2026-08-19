@@ -50,78 +50,77 @@ public class ScheduledTreatmentNotifier {
 
         try {
             OffsetDateTime now = OffsetDateTime.now();
+            OffsetDateTime windowStart = now.minusMinutes(5);
             OffsetDateTime thirtyMinutesLater = now.plusMinutes(30);
 
-            List<TreatmentEntry> allEntries = treatmentEntryRepository.findAll();
+            // Bellek/Sorgu Optimizasyonu: findAll() ile tüm tablo JVM belleğine çekilmez —
+            // yalnızca PLANNED durumunda ve zamanı yaklaşan tedaviler hedefli sorguyla getirilir.
+            List<TreatmentEntry> dueEntries = treatmentEntryRepository
+                    .findByStatusAndStartDateBetween(TreatmentStatus.PLANNED, windowStart, thirtyMinutesLater);
 
             int sentCount = 0;
-            for (TreatmentEntry entry : allEntries) {
-                // Sadece planlanmış ve zamanı yaklaşan tedaviler için atomik hak alma denenir
-                if (entry.getStatus() == TreatmentStatus.PLANNED && entry.getStartDate() != null) {
-                    if (entry.getStartDate().isAfter(now.minusMinutes(5)) && entry.getStartDate().isBefore(thirtyMinutesLater)) {
+            for (TreatmentEntry entry : dueEntries) {
 
-                        /*
-                         * GEREKSİNİM 1 & 2 & 3: ATOMİK VERİTABANI KİLİDİ HAKKI ALMA (CONDITIONAL UPDATE)
-                         * Check-Then-Act yapılmaz. Doğrudan tek bir SQL UPDATE sorgusu ile veritabanı
-                         * seviyesinde kilit hakkı (lock acquisition) alınır.
-                         */
-                        int affectedRows = 0;
-                        try {
-                            affectedRows = treatmentEntryRepository.markNotificationSentIfNotMarked(entry.getId());
-                        } catch (Exception e) {
-                            log.warn("Atomik bildirim kilidi alınırken hata oluştu (id: {}): {}", entry.getId(), e.getMessage());
-                        }
+                /*
+                 * GEREKSİNİM 1 & 2 & 3: ATOMİK VERİTABANI KİLİDİ HAKKI ALMA (CONDITIONAL UPDATE)
+                 * Check-Then-Act yapılmaz. Doğrudan tek bir SQL UPDATE sorgusu ile veritabanı
+                 * seviyesinde kilit hakkı (lock acquisition) alınır.
+                 */
+                int affectedRows = 0;
+                try {
+                    affectedRows = treatmentEntryRepository.markNotificationSentIfNotMarked(entry.getId());
+                } catch (Exception e) {
+                    log.warn("Atomik bildirim kilidi alınırken hata oluştu (id: {}): {}", entry.getId(), e.getMessage());
+                }
 
-                        // Etkilenen satır sayısı 0 ise: Başka bir Cloud Run instance'ı hakkı zaten aldı ve kilitledi.
-                        // Bu instance işlemi sessizce atlar (skip).
-                        if (affectedRows == 0) {
-                            continue;
-                        }
+                // Etkilenen satır sayısı 0 ise: Başka bir Cloud Run instance'ı hakkı zaten aldı ve kilitledi.
+                // Bu instance işlemi sessizce atlar (skip).
+                if (affectedRows == 0) {
+                    continue;
+                }
 
-                        /*
-                         * GEREKSİNİM 4 & 5: BİLDİRİM GÖNDERİMİ VE HATA / ROLLBACK ELE ALIMI
-                         * Satır sayısı 1 ise: Yalnızca bu instance kilit hakkını kazandı. Bildirim gönderimi başlatılır.
-                         * 
-                         * HATA ELE ALIMI / ROLLBACK STRATEJİSİ:
-                         * -----------------------------------------------------------------------------------------
-                         * 1. Ağ hatası veya FCM Push servisi çökmesi durumunda (catch bloğunda):
-                         *    - İsteğe bağlı olarak 'notificationSent' alanını tekrar 'false' yaparak sonraki taramada
-                         *      yeniden denenmesi (retry) sağlanabilir:
-                         *      treatmentEntryRepository.resetNotificationSent(entry.getId());
-                         * 2. Ancak FCM ve üçüncü taraf bildirim servislerinde "at-least-once" teslimat riski bulunduğundan,
-                         *    bildirim servisi yanıt vermese dahi mesajın cihaza ulaşmış olma ihtimaline karşı varsayılan olarak
-                         *    'notificationSent = true' bırakılması mükerrer bildirim bombardımanını önlemek için daha güvenlidir.
-                         * 3. İleri düzey retry mekanizması için başarısız olan bildirimler 'failed_notification_logs' 
-                         *    tablosuna yazılarak dead-letter queue (DLQ) mantığı ile yönetilebilir.
-                         * -----------------------------------------------------------------------------------------
-                         */
-                        try {
-                            Optional<Visit> visitOpt = visitRepository.findById(entry.getVisitId());
-                            if (visitOpt.isPresent()) {
-                                Optional<Pet> petOpt = petRepository.findById(visitOpt.get().getPetId());
-                                if (petOpt.isPresent() && petOpt.get().getOwnerId() != null) {
-                                    Pet pet = petOpt.get();
-                                    String title = "⏰ Tedavi / Aşı Hatırlatması: " + pet.getName();
-                                    String body = String.format("%s için '%s' tedavisi yaklaşmaktadır. Lütfen ilacı/aşıyı zamanında uygulayınız.",
-                                            pet.getName(), entry.getTitle());
+                /*
+                 * GEREKSİNİM 4 & 5: BİLDİRİM GÖNDERİMİ VE HATA / ROLLBACK ELE ALIMI
+                 * Satır sayısı 1 ise: Yalnızca bu instance kilit hakkını kazandı. Bildirim gönderimi başlatılır.
+                 *
+                 * HATA ELE ALIMI / ROLLBACK STRATEJİSİ:
+                 * -----------------------------------------------------------------------------------------
+                 * 1. Ağ hatası veya FCM Push servisi çökmesi durumunda (catch bloğunda):
+                 *    - İsteğe bağlı olarak 'notificationSent' alanını tekrar 'false' yaparak sonraki taramada
+                 *      yeniden denenmesi (retry) sağlanabilir:
+                 *      treatmentEntryRepository.resetNotificationSent(entry.getId());
+                 * 2. Ancak FCM ve üçüncü taraf bildirim servislerinde "at-least-once" teslimat riski bulunduğundan,
+                 *    bildirim servisi yanıt vermese dahi mesajın cihaza ulaşmış olma ihtimaline karşı varsayılan olarak
+                 *    'notificationSent = true' bırakılması mükerrer bildirim bombardımanını önlemek için daha güvenlidir.
+                 * 3. İleri düzey retry mekanizması için başarısız olan bildirimler 'failed_notification_logs'
+                 *    tablosuna yazılarak dead-letter queue (DLQ) mantığı ile yönetilebilir.
+                 * -----------------------------------------------------------------------------------------
+                 */
+                try {
+                    Optional<Visit> visitOpt = visitRepository.findById(entry.getVisitId());
+                    if (visitOpt.isPresent()) {
+                        Optional<Pet> petOpt = petRepository.findById(visitOpt.get().getPetId());
+                        if (petOpt.isPresent() && petOpt.get().getOwnerId() != null) {
+                            Pet pet = petOpt.get();
+                            String title = "⏰ Tedavi / Aşı Hatırlatması: " + pet.getName();
+                            String body = String.format("%s için '%s' tedavisi yaklaşmaktadır. Lütfen ilacı/aşıyı zamanında uygulayınız.",
+                                    pet.getName(), entry.getTitle());
 
-                                    notificationService.sendNotificationToOwner(
-                                            pet.getOwnerId(),
-                                            NotificationType.TREATMENT,
-                                            title,
-                                            body,
-                                            entry.getId()
-                                    );
+                            notificationService.sendNotificationToOwner(
+                                    pet.getOwnerId(),
+                                    NotificationType.TREATMENT,
+                                    title,
+                                    body,
+                                    entry.getId()
+                            );
 
-                                    sentCount++;
-                                }
-                            }
-                        } catch (Exception pushEx) {
-                            log.error("FCM Push bildirimi gönderilirken hata oluştu (Treatment ID: {}): {}", entry.getId(), pushEx.getMessage(), pushEx);
-                            // Not: Hata durumunda bildirim kilitli kalır (notification_sent = true).
-                            // Eğer retry isteniyorsa: treatmentEntryRepository.resetNotificationSent(entry.getId());
+                            sentCount++;
                         }
                     }
+                } catch (Exception pushEx) {
+                    log.error("FCM Push bildirimi gönderilirken hata oluştu (Treatment ID: {}): {}", entry.getId(), pushEx.getMessage(), pushEx);
+                    // Not: Hata durumunda bildirim kilitli kalır (notification_sent = true).
+                    // Eğer retry isteniyorsa: treatmentEntryRepository.resetNotificationSent(entry.getId());
                 }
             }
             log.info("Tedavi hatırlatıcı taraması tamamlandı. Toplam {} bildirim gönderildi.", sentCount);

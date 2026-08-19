@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_dimensions.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
+
 
 class NoClinicMembershipScreen extends StatelessWidget {
   const NoClinicMembershipScreen({super.key});
@@ -13,7 +13,7 @@ class NoClinicMembershipScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: theme.colorScheme.surface,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppDimensions.spacingLg),
@@ -21,9 +21,10 @@ class NoClinicMembershipScreen extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 480),
             child: Card(
               elevation: 0,
+              color: theme.colorScheme.surfaceContainerLowest,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                side: BorderSide(color: Colors.grey.shade200),
+                side: BorderSide(color: theme.colorScheme.outlineVariant),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(36.0),
@@ -33,14 +34,14 @@ class NoClinicMembershipScreen extends StatelessWidget {
                     Container(
                       width: 72,
                       height: 72,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFEF3C7),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondaryContainer,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.domain_disabled_rounded,
                         size: 36,
-                        color: Color(0xFFD97706),
+                        color: theme.colorScheme.onSecondaryContainer,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -49,7 +50,7 @@ class NoClinicMembershipScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.onSurface,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -57,7 +58,7 @@ class NoClinicMembershipScreen extends StatelessWidget {
                       'VetTrack hekim paneline erişebilmek için aktif bir klinik üyeliğinizin bulunması gerekmektedir.\n\nEğer kliniğinizden bir davet kodu aldıysanız kodu girerek üyeliğinizi hemen başlatabilirsiniz.',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.onSurfaceVariant,
+                        color: theme.colorScheme.onSurfaceVariant,
                         height: 1.45,
                       ),
                     ),
@@ -73,7 +74,8 @@ class NoClinicMembershipScreen extends StatelessWidget {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                           ),

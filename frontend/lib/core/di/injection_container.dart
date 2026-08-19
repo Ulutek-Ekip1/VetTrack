@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vettrack_frontend/core/constants/app_constants.dart';
+import 'package:vettrack_frontend/core/theme/cubit/theme_cubit.dart';
 import '../network/auth_interceptor.dart';
 import '../../features/auth/data/datasources/token_local_data_source.dart';
 
@@ -325,4 +326,12 @@ Future<void> init() async {
       registerUseCase: sl(),
     ),
   );
+
+  // ---------------------------------------------------------------------------
+  // THEME FEATURE
+  // ---------------------------------------------------------------------------
+  sl.registerLazySingleton<ThemeCubit>(
+    () => ThemeCubit(storage: sl()),
+  );
 }
+

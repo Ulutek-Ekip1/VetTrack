@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_platform.dart';
+
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -17,13 +17,13 @@ class WelcomeScreen extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.surfaceContainerLow,
-              AppColors.surface,
+              theme.colorScheme.surfaceContainerLow,
+              theme.colorScheme.surface,
             ],
           ),
         ),
@@ -49,7 +49,7 @@ class WelcomeScreen extends StatelessWidget {
                         ? "Veteriner Klinik Yönetim Portalı\nHasta kabul, muayene, aşı ve tedavi süreçlerini kolayca yönetin."
                         : "Evcil hayvanınızın sağlık, bakım ve muayene süreçlerini tek bir yerden kolayca takip edin.",
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: AppColors.onSurfaceVariant,
+                      color: theme.colorScheme.onSurfaceVariant,
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,
@@ -74,7 +74,7 @@ class WelcomeScreen extends StatelessWidget {
 
                       return Column(
                         children: [
-                          // Giriş Yap Butonu (Turkuaz - #14B8A6)
+                          // Giriş Yap Butonu
                           SizedBox(
                             width: double.infinity,
                             height: 56,
@@ -85,8 +85,8 @@ class WelcomeScreen extends StatelessWidget {
                                       context.push(AppRoutes.login);
                                     },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF14B8A6),
-                                foregroundColor: Colors.white,
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -101,15 +101,15 @@ class WelcomeScreen extends StatelessWidget {
                                         : 'Giriş Yap',
                                     style:
                                         theme.textTheme.titleMedium?.copyWith(
-                                      color: Colors.white,
+                                      color: theme.colorScheme.onPrimary,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Icon(
+                                  Icon(
                                     Icons.login_rounded,
                                     size: 20,
-                                    color: Colors.white,
+                                    color: theme.colorScheme.onPrimary,
                                   ),
                                 ],
                               ),
@@ -133,8 +133,8 @@ class WelcomeScreen extends StatelessWidget {
                                       }
                                     },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFFB89C),
-                                foregroundColor: const Color(0xFF131B2E),
+                                backgroundColor: theme.colorScheme.secondaryContainer,
+                                foregroundColor: theme.colorScheme.onSecondaryContainer,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -149,7 +149,7 @@ class WelcomeScreen extends StatelessWidget {
                                         : 'Kayıt Ol',
                                     style:
                                         theme.textTheme.titleMedium?.copyWith(
-                                      color: const Color(0xFF131B2E),
+                                      color: theme.colorScheme.onSecondaryContainer,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -159,7 +159,7 @@ class WelcomeScreen extends StatelessWidget {
                                         ? Icons.vpn_key_rounded
                                         : Icons.person_add_rounded,
                                     size: 20,
-                                    color: const Color(0xFF131B2E),
+                                    color: theme.colorScheme.onSecondaryContainer,
                                   ),
                                 ],
                               ),
@@ -174,7 +174,7 @@ class WelcomeScreen extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Divider(
-                                    color: AppColors.outlineVariant
+                                    color: theme.colorScheme.outlineVariant
                                         .withValues(alpha: 0.5),
                                     thickness: 1,
                                   ),
@@ -185,13 +185,13 @@ class WelcomeScreen extends StatelessWidget {
                                   child: Text(
                                     "veya",
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: AppColors.onSurfaceVariant,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ),
                                 Expanded(
                                   child: Divider(
-                                    color: AppColors.outlineVariant
+                                    color: theme.colorScheme.outlineVariant
                                         .withValues(alpha: 0.5),
                                     thickness: 1,
                                   ),
@@ -215,7 +215,7 @@ class WelcomeScreen extends StatelessWidget {
                                       },
                                 style: OutlinedButton.styleFrom(
                                   side: BorderSide(
-                                    color: AppColors.outlineVariant
+                                    color: theme.colorScheme.outlineVariant
                                         .withValues(alpha: 0.5),
                                   ),
                                   shape: RoundedRectangleBorder(
@@ -223,12 +223,12 @@ class WelcomeScreen extends StatelessWidget {
                                   ),
                                 ),
                                 child: isLoading
-                                    ? const SizedBox(
+                                    ? SizedBox(
                                         width: 24,
                                         height: 24,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2.5,
-                                          color: Color(0xFF14B8A6),
+                                          color: theme.colorScheme.primary,
                                         ),
                                       )
                                     : Row(
@@ -245,7 +245,7 @@ class WelcomeScreen extends StatelessWidget {
                                             'Google ile Hızlı Giriş',
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
-                                              color: AppColors.onSurface,
+                                              color: theme.colorScheme.onSurface,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -265,7 +265,7 @@ class WelcomeScreen extends StatelessWidget {
                   Text(
                     "© 2026 VetTrack Health Systems. All rights reserved.",
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: AppColors.outline,
+                      color: theme.colorScheme.outline,
                     ),
                     textAlign: TextAlign.center,
                   ),

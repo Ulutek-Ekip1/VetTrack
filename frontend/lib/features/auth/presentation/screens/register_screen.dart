@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/utils/app_platform.dart';
@@ -55,6 +54,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // KVKK Aydınlatma Metni Diyaloğu
   void _showKvkkDialog() {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -95,8 +95,8 @@ Veri sahibi olarak; verilerinizin işlenip işlenmediğini öğrenme, işlenmiş
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
             ),
             child: const Text("Okudum, Anladım"),
           ),
@@ -105,8 +105,10 @@ Veri sahibi olarak; verilerinizin işlenip işlenmediğini öğrenme, işlenmiş
     );
   }
 
+
   // Açık Rıza Metni Diyaloğu
   void _showExplicitConsentDialog() {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -132,8 +134,8 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
             ),
             child: const Text("Okudum, Anladım"),
           ),
@@ -148,13 +150,13 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.surfaceContainerLow,
-              AppColors.surface,
+              theme.colorScheme.surfaceContainerLow,
+              theme.colorScheme.surface,
             ],
           ),
         ),
@@ -203,11 +205,11 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                           borderRadius: BorderRadius.circular(24),
                           side: BorderSide(
                             color:
-                                AppColors.outlineVariant.withValues(alpha: 0.5),
+                                theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                             width: 1,
                           ),
                         ),
-                        color: AppColors.surfaceContainerLowest,
+                        color: theme.colorScheme.surfaceContainerLowest,
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Form(
@@ -223,7 +225,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                   style:
                                       theme.textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF7B4832),
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
 
@@ -234,7 +236,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                       ? "Klinik paneli için veteriner personel hesabınızı oluşturun."
                                       : "Evcil hayvanınızın sağlığını takip etmeye bugün başlayın.",
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
 
@@ -260,23 +262,23 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                       ),
                                     ),
                                     hintText: "Adınızı ve soyadınızı giriniz",
-                                    prefixIcon: const Icon(
+                                    prefixIcon: Icon(
                                       Icons.person_outline,
-                                      color: AppColors.outline,
+                                      color: theme.colorScheme.outline,
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.outlineVariant,
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: Color(0xFF7B4832),
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.primary,
                                         width: 2,
                                       ),
                                     ),
@@ -307,23 +309,23 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                       ),
                                     ),
                                     hintText: "E-posta adresinizi giriniz",
-                                    prefixIcon: const Icon(
+                                    prefixIcon: Icon(
                                       Icons.mail_outline,
-                                      color: AppColors.outline,
+                                      color: theme.colorScheme.outline,
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.outlineVariant,
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: Color(0xFF7B4832),
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.primary,
                                         width: 2,
                                       ),
                                     ),
@@ -344,23 +346,23 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                   decoration: InputDecoration(
                                     labelText: "Telefon (Opsiyonel)",
                                     hintText: "05XX XXX XX XX",
-                                    prefixIcon: const Icon(
+                                    prefixIcon: Icon(
                                       Icons.phone_outlined,
-                                      color: AppColors.outline,
+                                      color: theme.colorScheme.outline,
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.outlineVariant,
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: Color(0xFF7B4832),
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.primary,
                                         width: 2,
                                       ),
                                     ),
@@ -397,25 +399,25 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                         "En az 8 karakter, harf ve rakam içermelidir",
                                     helperStyle:
                                         theme.textTheme.bodySmall?.copyWith(
-                                      color: AppColors.onSurfaceVariant,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
-                                    prefixIcon: const Icon(
+                                    prefixIcon: Icon(
                                       Icons.lock_outline,
-                                      color: AppColors.outline,
+                                      color: theme.colorScheme.outline,
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.outlineVariant,
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.outlineVariant,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: Color(0xFF7B4832),
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.primary,
                                         width: 2,
                                       ),
                                     ),
@@ -424,7 +426,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                         _obscurePassword
                                             ? Icons.visibility_off_outlined
                                             : Icons.visibility_outlined,
-                                        color: AppColors.outline,
+                                        color: theme.colorScheme.outline,
                                       ),
                                       onPressed: () {
                                         setState(() {
@@ -461,7 +463,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                               child: Checkbox(
                                                 value: _kvkkApproved,
                                                 activeColor:
-                                                    const Color(0xFF7B4832),
+                                                    theme.colorScheme.primary,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(4),
@@ -489,8 +491,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                       style: theme
                                                           .textTheme.bodyMedium
                                                           ?.copyWith(
-                                                        color: const Color(
-                                                            0xFF7B4832),
+                                                        color: theme.colorScheme.primary,
                                                         fontWeight:
                                                             FontWeight.bold,
                                                       ),
@@ -513,7 +514,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                           style: theme.textTheme
                                                               .bodyMedium
                                                               ?.copyWith(
-                                                            color: AppColors
+                                                            color: theme.colorScheme
                                                                 .onSurfaceVariant,
                                                           ),
                                                         ),
@@ -568,7 +569,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                               child: Checkbox(
                                                 value: _explicitConsentApproved,
                                                 activeColor:
-                                                    const Color(0xFF7B4832),
+                                                    theme.colorScheme.primary,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(4),
@@ -597,8 +598,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                       style: theme
                                                           .textTheme.bodyMedium
                                                           ?.copyWith(
-                                                        color: const Color(
-                                                            0xFF7B4832),
+                                                        color: theme.colorScheme.primary,
                                                         fontWeight:
                                                             FontWeight.bold,
                                                       ),
@@ -621,7 +621,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                           style: theme.textTheme
                                                               .bodyMedium
                                                               ?.copyWith(
-                                                            color: AppColors
+                                                            color: theme.colorScheme
                                                                 .onSurfaceVariant,
                                                           ),
                                                         ),
@@ -659,20 +659,20 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                   child: ElevatedButton(
                                     onPressed: isLoading ? null : _onRegister,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFFFB89C),
-                                      foregroundColor: const Color(0xFF131B2E),
+                                      backgroundColor: theme.colorScheme.primary,
+                                      foregroundColor: theme.colorScheme.onPrimary,
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                     ),
                                     child: isLoading
-                                        ? const SizedBox(
+                                        ? SizedBox(
                                             width: 24,
                                             height: 24,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2.5,
-                                              color: Color(0xFF131B2E),
+                                              color: theme.colorScheme.onPrimary,
                                             ),
                                           )
                                         : Row(
@@ -684,16 +684,15 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
-                                                  color:
-                                                      const Color(0xFF131B2E),
+                                                  color: theme.colorScheme.onPrimary,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
-                                              const Icon(
+                                              Icon(
                                                 Icons.arrow_forward,
                                                 size: 20,
-                                                color: Color(0xFF131B2E),
+                                                color: theme.colorScheme.onPrimary,
                                               ),
                                             ],
                                           ),
@@ -714,7 +713,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                           Text(
                             "Zaten hesabınız var mı?",
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.onSurfaceVariant,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                           TextButton(
@@ -724,7 +723,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                             child: Text(
                               "Giriş Yap",
                               style: theme.textTheme.labelLarge?.copyWith(
-                                color: const Color(0xFF7B4832),
+                                color: theme.colorScheme.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -738,7 +737,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                       Text(
                         "© 2026 VetTrack Health Systems. All rights reserved.",
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.outline,
+                          color: theme.colorScheme.outline,
                         ),
                         textAlign: TextAlign.center,
                       ),
