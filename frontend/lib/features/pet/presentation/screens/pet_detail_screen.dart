@@ -504,13 +504,13 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   height: 120,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.colorScheme.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Text(
                     'Kilo geçmişi yüklenemedi: ${state.message}',
-                    style: const TextStyle(color: Colors.red, fontSize: 13),
+                    style: TextStyle(color: theme.colorScheme.error, fontSize: 13),
                   ),
                 );
               }
@@ -524,15 +524,16 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   void _showAllWeightsBottomSheet(
       BuildContext context, List<PetWeightEntity> history) {
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (bottomSheetContext) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: EdgeInsets.only(
             top: 20,
@@ -547,16 +548,16 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Kilo Geçmişi',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF131B2E),
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.grey),
+                    icon: Icon(Icons.close, color: theme.colorScheme.onSurfaceVariant),
                     onPressed: () => Navigator.pop(bottomSheetContext),
                   ),
                 ],
@@ -592,22 +593,22 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                         '${record.date.day.toString().padLeft(2, '0')} ${months[record.date.month - 1]} ${record.date.year}';
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const CircleAvatar(
-                        backgroundColor: Color(0xFFF1F5F9),
+                      leading: CircleAvatar(
+                        backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
                         child: Icon(Icons.scale_outlined,
-                            color: Color(0xFF004AC6), size: 20),
+                            color: theme.colorScheme.primary, size: 20),
                       ),
                       title: Text(
                         '${record.weight.toStringAsFixed(record.weight % 1 == 0 ? 0 : 1)} kg',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF131B2E),
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       subtitle: Text(
                         dateStr,
                         style:
-                            const TextStyle(color: Colors.grey, fontSize: 12),
+                            TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
                       ),
                     );
                   },
@@ -619,11 +620,11 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   Navigator.pop(bottomSheetContext);
                   _showUpdateWeightDialog(context);
                 },
-                icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                icon: Icon(Icons.add, color: theme.colorScheme.onPrimary, size: 18),
                 label: const Text('Yeni Kilo Kaydet'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF004AC6),
-                  foregroundColor: Colors.white,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                   ),
@@ -639,11 +640,13 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   // Yeni kilo kaydetme
   void _showUpdateWeightDialog(BuildContext context) {
+    final theme = Theme.of(context);
     final controller = TextEditingController();
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
+          backgroundColor: theme.colorScheme.surface,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Yeni Kilo Kaydı',
@@ -652,8 +655,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Lütfen hayvanın yeni kilosunu girin (kg):',
-                  style: TextStyle(fontSize: 14, color: Colors.grey)),
+              Text('Lütfen hayvanın yeni kilosunu girin (kg):',
+                  style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant)),
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
@@ -674,12 +677,12 @@ class _PetDetailScreenState extends State<PetDetailScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('İptal', style: TextStyle(color: Colors.grey)),
+              child: Text('İptal', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF004AC6),
-                foregroundColor: Colors.white,
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),
@@ -689,9 +692,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                 final newW = double.tryParse(text);
                 if (newW == null || newW <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Lütfen geçerli bir kilo girin.'),
-                      backgroundColor: Colors.red,
+                    SnackBar(
+                      content: const Text('Lütfen geçerli bir kilo girin.'),
+                      backgroundColor: theme.colorScheme.error,
                     ),
                   );
                   return;
