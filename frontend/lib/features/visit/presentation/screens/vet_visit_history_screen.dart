@@ -33,7 +33,9 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
       if (_selectedFilter == 'Devam Edenler') {
         return matchesSearch && visit.isOngoing;
       } else if (_selectedFilter == 'Tamamlananlar') {
-        return matchesSearch && !visit.isOngoing;
+        return matchesSearch && visit.isCompleted;
+      } else if (_selectedFilter == 'İptal Edilenler') {
+        return matchesSearch && visit.isCancelled;
       }
       return matchesSearch;
     }).toList();
@@ -310,6 +312,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                           itemBuilder: (context, index) {
                             final visit = filtered[index];
                             final isOngoing = visit.isOngoing;
+                            final isCancelled = visit.isCancelled;
 
                             return Card(
                               elevation: 1,
@@ -375,17 +378,23 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                       decoration: BoxDecoration(
                                         color: isOngoing
                                             ? Colors.orange.shade100
-                                            : Colors.green.shade100,
+                                            : isCancelled
+                                                ? Colors.red.shade100
+                                                : Colors.green.shade100,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
                                         isOngoing
                                             ? 'Devam Ediyor'
-                                            : 'Tamamlandı',
+                                            : isCancelled
+                                                ? 'İptal Edildi'
+                                                : 'Tamamlandı',
                                         style: TextStyle(
                                           color: isOngoing
                                               ? Colors.orange.shade900
-                                              : Colors.green.shade800,
+                                              : isCancelled
+                                                  ? Colors.red.shade800
+                                                  : Colors.green.shade800,
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                         ),
