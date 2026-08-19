@@ -1,5 +1,6 @@
 package com.vettrack.api.auth;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,6 +33,7 @@ import java.util.Map;
  *   <li>Tüm authenticated kullanıcılar için varsayılan yetki {@code ROLE_OWNER}'dır.</li>
  * </ul>
  */
+@Slf4j
 @Component
 public class CustomJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
@@ -68,8 +70,9 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
                 if (adminCount != null && adminCount > 0) {
                     isAdmin = true;
                 }
-            } catch (DataAccessException ignored) {
-                // DB hatası durumunda admin varsayılmaz
+            } catch (DataAccessException ex) {
+                log.warn("Admin rolü DB kontrolü başarısız oldu, userId={} için admin varsayılmadı: {}",
+                        userId, ex.getMessage());
             }
         }
 
@@ -92,8 +95,9 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
                         authorities.add(new SimpleGrantedAuthority("ROLE_CLINIC_ADMIN"));
                     }
                 }
-            } catch (DataAccessException ignored) {
-                // DB erişim hatası: authority eklenmeden devam edilir.
+            } catch (DataAccessException ex) {
+                log.warn("Klinik üyeliği DB kontrolü başarısız oldu, userId={} için ROLE_VET_STAFF/ROLE_CLINIC_ADMIN eklenmedi: {}",
+                        userId, ex.getMessage());
             }
         }
 
