@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/clinic_invite_cubit.dart';
 import '../cubit/clinic_invite_state.dart';
+import '../../../../core/utils/validators.dart';
 
 class VetInviteRegisterScreen extends StatefulWidget {
   final String token;
@@ -18,7 +19,8 @@ class VetInviteRegisterScreen extends StatefulWidget {
   });
 
   @override
-  State<VetInviteRegisterScreen> createState() => _VetInviteRegisterScreenState();
+  State<VetInviteRegisterScreen> createState() =>
+      _VetInviteRegisterScreenState();
 }
 
 class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
@@ -63,7 +65,9 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
             email: _emailController.text.trim(),
             password: _passwordController.text,
             name: _nameController.text.trim(),
-            phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+            phone: _phoneController.text.trim().isNotEmpty
+                ? _phoneController.text.trim()
+                : null,
             token: widget.token,
             clinicName: clinicName,
           );
@@ -80,7 +84,8 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: theme.colorScheme.onSurface),
+          icon: Icon(Icons.arrow_back_rounded,
+              color: theme.colorScheme.onSurface),
           onPressed: () => context.go('/vet/invite'),
         ),
       ),
@@ -89,7 +94,8 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
           if (state is ClinicInviteSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('${state.clinicName} bünyesine kaydınız tamamlandı!'),
+                content:
+                    Text('${state.clinicName} bünyesine kaydınız tamamlandı!'),
                 backgroundColor: AppColors.secondary,
               ),
             );
@@ -115,13 +121,13 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
           }
 
           if (state is ClinicInviteSubmitting && _hasSubmittedRegistration) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: Color(0xFF14B8A6)),
-                  SizedBox(height: 16),
-                  Text('Klinik üyeliği tamamlanıyor...'),
+                  CircularProgressIndicator(color: theme.colorScheme.secondary),
+                  const SizedBox(height: 16),
+                  const Text('Klinik üyeliği tamamlanıyor...'),
                 ],
               ),
             );
@@ -138,10 +144,10 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                   constraints: const BoxConstraints(maxWidth: 480),
                   child: Card(
                     elevation: 0,
-                    color: Colors.white,
+                    color: theme.colorScheme.surface,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                      side: BorderSide(color: Colors.grey.shade200),
+                      side: BorderSide(color: theme.colorScheme.outlineVariant),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(32.0),
@@ -150,11 +156,11 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFEF3C7),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.mark_email_read_rounded, size: 48, color: Color(0xFFD97706)),
+                            child: Icon(Icons.mark_email_read_rounded, size: 48, color: theme.colorScheme.tertiary),
                           ),
                           const SizedBox(height: 20),
                           Text(
@@ -176,18 +182,18 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFEF2F2),
+                                color: theme.colorScheme.errorContainer,
                                 borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                                border: Border.all(color: const Color(0xFFFECACA)),
+                                border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.3)),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.info_outline_rounded, color: AppColors.error, size: 18),
+                                  Icon(Icons.info_outline_rounded, color: theme.colorScheme.error, size: 18),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       state.message,
-                                      style: const TextStyle(color: AppColors.onErrorContainer, fontSize: 13),
+                                      style: TextStyle(color: theme.colorScheme.onErrorContainer, fontSize: 13),
                                     ),
                                   ),
                                 ],
@@ -208,7 +214,7 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                               icon: const Icon(Icons.refresh_rounded, size: 20),
                               label: const Text('Kliniğe Katılmayı Tekrar Dene', style: TextStyle(fontWeight: FontWeight.bold)),
                               style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF14B8A6),
+                                backgroundColor: theme.colorScheme.secondary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                                 ),
@@ -245,26 +251,30 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                 constraints: const BoxConstraints(maxWidth: 440),
                 child: Card(
                   elevation: 0,
+                  color: theme.colorScheme.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                    side: BorderSide(color: Colors.grey.shade200),
+                    side: BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(32.0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                        const Icon(Icons.error_outline_rounded,
+                            size: 48, color: AppColors.error),
                         const SizedBox(height: 16),
                         Text(
                           'Geçersiz Davet Bağlantısı',
-                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           state.message,
                           textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.onSurfaceVariant),
                         ),
                         const SizedBox(height: 24),
                         FilledButton(
@@ -295,10 +305,10 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                 constraints: const BoxConstraints(maxWidth: 520),
                 child: Card(
                   elevation: 0,
-                  color: Colors.white,
+                  color: theme.colorScheme.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                    side: BorderSide(color: Colors.grey.shade200),
+                    side: BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(32.0),
@@ -310,35 +320,40 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                         children: [
                           // Doğrulanmış Klinik Rozeti
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                              border: Border.all(color: const Color(0xFFBFDBFE)),
+                              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
+                              borderRadius:
+                                  BorderRadius.circular(AppDimensions.radiusMd),
+                              border:
+                                  Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.25)),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 24),
+                                Icon(Icons.check_circle_rounded,
+                                    color: theme.colorScheme.primary, size: 24),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
+                                      Text(
                                         'Davet Edilen Klinik',
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.primary,
+                                          color: theme.colorScheme.primary,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
                                         clinicName,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E3A8A),
+                                          color: theme.colorScheme.onPrimaryContainer,
                                         ),
                                       ),
                                     ],
@@ -370,18 +385,23 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFEF2F2),
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                                border: Border.all(color: const Color(0xFFFECACA)),
+                                color: theme.colorScheme.errorContainer,
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
+                                border:
+                                    Border.all(color: theme.colorScheme.error.withValues(alpha: 0.3)),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 20),
+                                  Icon(Icons.warning_amber_rounded,
+                                      color: theme.colorScheme.error, size: 20),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
                                       state.message,
-                                      style: const TextStyle(color: AppColors.onErrorContainer, fontSize: 13),
+                                      style: TextStyle(
+                                          color: theme.colorScheme.onErrorContainer,
+                                          fontSize: 13),
                                     ),
                                   ),
                                 ],
@@ -397,11 +417,13 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                             decoration: InputDecoration(
                               labelText: 'Ad Soyad',
                               hintText: 'Dr. Ahmet Yılmaz',
-                              prefixIcon: const Icon(Icons.person_outline_rounded),
+                              prefixIcon:
+                                  const Icon(Icons.person_outline_rounded),
                               filled: true,
-                              fillColor: const Color(0xFFF8FAFC),
+                              fillColor: Theme.of(context).colorScheme.surface,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
                               ),
                             ),
                             validator: (value) {
@@ -423,16 +445,18 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                               hintText: 'hekim@klinik.com',
                               prefixIcon: const Icon(Icons.email_outlined),
                               filled: true,
-                              fillColor: const Color(0xFFF8FAFC),
+                              fillColor: Theme.of(context).colorScheme.surface,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
                               ),
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Lütfen e-posta adresinizi giriniz';
                               }
-                              if (!value.contains('@') || !value.contains('.')) {
+                              if (!value.contains('@') ||
+                                  !value.contains('.')) {
                                 return 'Geçerli bir e-posta adresi giriniz';
                               }
                               return null;
@@ -450,9 +474,10 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                               hintText: '05XX XXX XX XX',
                               prefixIcon: const Icon(Icons.phone_outlined),
                               filled: true,
-                              fillColor: const Color(0xFFF8FAFC),
+                              fillColor: Theme.of(context).colorScheme.surface,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
                               ),
                             ),
                           ),
@@ -465,11 +490,15 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                             obscureText: _obscurePassword,
                             decoration: InputDecoration(
                               labelText: 'Şifre',
-                              hintText: 'En az 6 karakter',
-                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              hintText:
+                                  'En az 8 karakter, harf ve rakam içermelidir',
+                              prefixIcon:
+                                  const Icon(Icons.lock_outline_rounded),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                  _obscurePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -478,20 +507,13 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                                 },
                               ),
                               filled: true,
-                              fillColor: const Color(0xFFF8FAFC),
+                              fillColor: Theme.of(context).colorScheme.surface,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Lütfen şifre belirleyiniz';
-                              }
-                              if (value.length < 6) {
-                                return 'Şifre en az 6 karakter olmalıdır';
-                              }
-                              return null;
-                            },
+                            validator: Validators.validatePassword,
                           ),
                           const SizedBox(height: 28),
 
@@ -499,11 +521,14 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                           SizedBox(
                             height: 50,
                             child: FilledButton(
-                              onPressed: isSubmitting ? null : () => _onSubmit(clinicName),
+                              onPressed: isSubmitting
+                                  ? null
+                                  : () => _onSubmit(clinicName),
                               style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF14B8A6),
+                                backgroundColor: theme.colorScheme.secondary,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                                  borderRadius: BorderRadius.circular(
+                                      AppDimensions.radiusMd),
                                 ),
                               ),
                               child: isSubmitting
