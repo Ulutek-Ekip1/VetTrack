@@ -2,7 +2,6 @@ package com.vettrack.api.clinic;
 
 import com.vettrack.api.clinic.dto.ClinicInviteResponse;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
-import com.vettrack.api.common.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -120,7 +120,7 @@ public class ClinicController {
         String userEmail = jwt.getClaimAsString("email");
         if (inviteEmail != null && !inviteEmail.isBlank()
                 && (userEmail == null || !inviteEmail.trim().equalsIgnoreCase(userEmail.trim()))) {
-            throw new UnauthorizedException("Bu davet farklı bir e-posta adresi için oluşturulmuştur.");
+            throw new AccessDeniedException("Bu davet farklı bir e-posta adresi için oluşturulmuştur.");
         }
 
         if (existingMembership.isPresent()) {
