@@ -772,11 +772,14 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                       const Text('Sağlık Geçmişi',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold)),
-                      Text('Tümü >',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: primaryBlue)),
+                      GestureDetector(
+                        onTap: () => context.push('/owner/pets/${widget.petId}/visits'),
+                        child: Text('Tümü >',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: primaryBlue)),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
