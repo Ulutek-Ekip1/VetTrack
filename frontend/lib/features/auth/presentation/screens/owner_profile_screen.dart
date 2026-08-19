@@ -10,7 +10,7 @@ import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/router/app_router.dart';
-
+import 'faq_bottom_sheet.dart';
 class OwnerProfileScreen extends StatelessWidget {
   const OwnerProfileScreen({super.key});
 
@@ -201,7 +201,7 @@ class OwnerProfileScreen extends StatelessWidget {
                           icon: Icons.help_outline,
                           title: 'Sıkça Sorulan Sorular',
                           subtitle: 'Uygulama kullanımı hakkında yardımlar',
-                          onTap: () {},
+                          onTap: () => showFAQBottomSheet(context), 
                         ),
                         _buildDivider(context),
                         _buildProfileTile(
