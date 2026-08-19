@@ -151,7 +151,12 @@ public class VisitService {
         }
         String normalized = status.toLowerCase().trim();
 
-        if (!List.of("ongoing", "completed", "ended", "cancelled").contains(normalized)) {
+        // API-CONTRACT-01 fix: kabul edilen ve fiilen kalıcı olan durumlar tek kaynağa
+        // indirildi (bkz. docs/openapi.yaml VisitResponse.status enum). "ended" eskiden
+        // "completed" için sessiz bir eş anlamlıydı — hiçbir istemci hiç göndermiyordu
+        // (grep ile doğrulandı) ve hiçbir zaman kalıcı bir status değeri olarak
+        // saklanmıyordu, kaldırıldı.
+        if (!List.of("ongoing", "completed", "cancelled").contains(normalized)) {
             throw new IllegalArgumentException("Geçersiz ziyaret durumu: " + status + ". İzin verilen durumlar: completed, cancelled.");
         }
 
@@ -168,7 +173,7 @@ public class VisitService {
                     "Geçersiz durum geçişi: Ziyaret zaten devam etmektedir.");
         }
 
-        if ("completed".equals(normalized) || "ended".equals(normalized)) {
+        if ("completed".equals(normalized)) {
             return closeVisit(id);
         }
 

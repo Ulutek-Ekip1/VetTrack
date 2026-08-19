@@ -680,6 +680,47 @@ paths:
         '409':
           description: Ziyaret zaten kapalı
 
+  /visits/{id}/status:
+    patch:
+      tags: [Visits]
+      summary: Ziyaret durumunu güncelle (API-CONTRACT-01)
+      description: |
+        Sadece `ongoing` durumundaki bir ziyaret hedeflenebilir. `completed` gönderilirse
+        `PUT /visits/{id}/close` ile aynı davranışı tetikler (ziyaret kapanır, `endedAt` set
+        edilir, sahibe bildirim gider). `cancelled` ziyareti bildirim göndermeden kapatır.
+        `ongoing` hedef olarak gönderilemez (zaten devam ediyor). `status` alanı
+        gönderilmezse varsayılan olarak `completed` uygulanır.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [completed, cancelled]
+                  default: completed
+      responses:
+        '200':
+          description: Ziyaret durumu güncellendi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: "Ziyaret zaten kapalı/iptal (VISIT_ALREADY_CLOSED) veya zaten devam ediyor (VISIT_ALREADY_OPEN)"
+
   # ---- Treatments ----
   /visits/{visitId}/treatments:
     post:
@@ -1936,7 +1977,7 @@ components:
           format: uuid
         status:
           type: string
-          enum: [ongoing, completed]
+          enum: [ongoing, completed, cancelled]
         chiefComplaint:
           type: string
           nullable: true
@@ -1963,7 +2004,7 @@ components:
           example: "Dr. Mehmet Yılmaz"
         status:
           type: string
-          enum: [ongoing, completed]
+          enum: [ongoing, completed, cancelled]
         chiefComplaint:
           type: string
           nullable: true
