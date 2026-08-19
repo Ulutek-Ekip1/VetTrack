@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../../core/error/error_handler.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../domain/entities/ai_chat_request.dart';
 import '../../domain/entities/ai_chat_response.dart';
@@ -128,6 +129,6 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
   }
 
   ServerException _handleDioError(DioException e) {
-    return ServerException.fromDio(e, defaultMessage: 'Yapay zeka servisiyle iletişim kurulamadı.');
+    return ErrorHandler.handleDioError(e, defaultMessage: 'Yapay zeka servisiyle iletişim kurulamadı.');
   }
 }
