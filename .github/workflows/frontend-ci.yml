@@ -1,29 +1,62 @@
-name: Flutter CI
+name: Flutter CI & Firebase Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
 
 jobs:
-  build:
+  build_and_deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-        
     steps:
-    - name: Kodu Checkout Et
-      uses: actions/checkout@v3
+      - name: Repoyu Klonla
+        uses: actions/checkout@v4
 
-    - name: Flutter Kurulumu
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
+      - name: Flutter SDK Kurulumu
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
 
-    - name: Bağımlılıkları Yükle
-      run: flutter pub get
+      - name: Bağımlılıkları Yükle
+        working-directory: frontend
+        run: flutter pub get
 
-    - name: Kodu Analiz Et
-      run: flutter analyze
+      - name: Statik Kod Analizi
+        working-directory: frontend
+        run: flutter analyze
+
+      - name: Testleri Çalıştır
+        working-directory: frontend
+        run: flutter test
+
+      - name: .env Dosyasını Oluştur ve Doğrula
+        working-directory: frontend
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+          if [ ! -s .env ]; then
+            echo "Hata: .env dosyası boş veya ENV_FILE secret'ı tanımlı değil!"
+            exit 1
+          fi
+
+      - name: Web Release Build Al
+        working-directory: frontend
+        run: flutter build web --release --dart-define-from-file=.env
+
+      - name: Firebase Hosting Dağıtımı (Live / Preview)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK }}
+          projectId: vettrack-ce0ad
+          entryPoint: frontend
