@@ -1,20 +1,22 @@
 package com.vettrack.api.auth;
 
-import com.vettrack.api.common.exception.ApiException;
+import com.vettrack.api.clinic.ClinicMembershipService;
 import com.vettrack.api.common.exception.ConflictException;
-import com.vettrack.api.common.exception.ErrorCode;
-import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import com.vettrack.api.owner.Owner;
 import com.vettrack.api.owner.OwnerRepository;
 import com.vettrack.api.pet.Pet;
 import com.vettrack.api.pet.PetRepository;
-import com.vettrack.api.clinic.ClinicMembershipService;
-
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -30,8 +32,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Service
 public class AuthService {
@@ -40,7 +40,6 @@ public class AuthService {
     private final String supabaseServiceKey;
     private final OwnerRepository ownerRepository;
     private final ClinicMembershipService clinicMembershipService;
-
     private final PetRepository petRepository;
     private final RestTemplate restTemplate;
 
@@ -61,8 +60,8 @@ public class AuthService {
             @Value("${supabase.url:${SUPABASE_URL:}}") String supabaseUrl,
             @Value("${supabase.service-key:${SUPABASE_SERVICE_KEY:}}") String supabaseServiceKey,
             OwnerRepository ownerRepository,
-              ClinicMembershipService clinicMembershipService,
-              PetRepository petRepository,
+            ClinicMembershipService clinicMembershipService,
+            PetRepository petRepository,
             RestTemplate restTemplate
     ) {
         this.supabaseUrl = supabaseUrl;
@@ -156,11 +155,15 @@ public class AuthService {
                 if (responseBody.contains("Email not confirmed") || responseBody.contains("email_not_confirmed")) {
                     throw new UnauthorizedException("E-posta adresi doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.");
                 }
-                throw new UnauthorizedException("E-posta veya şifre hatalı: " + responseBody);
+                log.warn("Supabase login başarısız oldu: status={}, body={}", status, responseBody);
+                throw new UnauthorizedException("E-posta veya şifre hatalı");
             } else {
                 throw new RuntimeException("Login failed");
             }
         } catch (Exception ex) {
+            if (ex instanceof UnauthorizedException) {
+                throw (UnauthorizedException) ex;
+            }
             throw new RuntimeException("Login failed", ex);
         }
     }
@@ -232,19 +235,14 @@ public class AuthService {
      */
     @Transactional
     public void softDeleteUserAccount(UUID userId) {
-        boolean found = false;
-
         Optional<Owner> ownerOpt = ownerRepository.findById(userId);
         if (ownerOpt.isPresent()) {
             Owner owner = ownerOpt.get();
             owner.setIsActive(false);
             owner.setUpdatedAt(OffsetDateTime.now());
             ownerRepository.save(owner);
-            found = true;
             log.info("Soft-deleted owner profile in database for userId={}", userId);
         }
-
-
 
         if (clinicMembershipService != null) {
             clinicMembershipService.disableAllMemberships(userId);
