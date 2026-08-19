@@ -792,7 +792,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Sağlık Geçmişi',
+                      const Text('Sağlık Geçmişi',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold)),
                       GestureDetector(
