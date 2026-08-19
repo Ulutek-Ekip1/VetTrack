@@ -12,8 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
@@ -73,6 +75,32 @@ public class GlobalExceptionHandler {
         body.put("validationErrors", errors);
 
         return new ResponseEntity<>(body, ErrorCode.VALIDATION_ERROR.getStatus());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingParams(MissingServletRequestParameterException ex) {
+        String message = "'%s' parametresi zorunludur ve istekte gönderilmedi".formatted(ex.getParameterName());
+        return buildResponse(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name(), message);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "beklenen tip";
+        String message = "'%s' parametresi geçersiz: '%s' değeri %s tipine dönüştürülemedi"
+                .formatted(ex.getName(), truncateValue(ex.getValue()), requiredType);
+        return buildResponse(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name(), message);
+    }
+
+    /**
+     * İstemciden gelen ham değeri hata mesajına gömmeden önce sınırlar — aşırı uzun bir
+     * girdi (örn. URL'ye eklenmiş 10.000 karakterlik string) hata mesajında aynen yansımasın diye.
+     */
+    private String truncateValue(Object value) {
+        String stringValue = String.valueOf(value);
+        int maxLength = 50;
+        return stringValue.length() > maxLength
+                ? stringValue.substring(0, maxLength) + "..."
+                : stringValue;
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

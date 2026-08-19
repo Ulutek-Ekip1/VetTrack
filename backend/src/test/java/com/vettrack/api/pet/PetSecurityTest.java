@@ -255,6 +255,15 @@ class PetSecurityTest {
     }
 
     @Test
+    @DisplayName("Geçersiz UUID formatlı id ile GET /pets/{id} istendiğinde 500 yerine 400 VALIDATION_ERROR dönmeli")
+    void whenPetIdIsNotValidUuid_thenReturns400ValidationError() throws Exception {
+        mockMvc.perform(get("/pets/not-a-valid-uuid")
+                .with(jwt().jwt(builder -> builder.subject(owner1Id.toString()))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("VALIDATION_ERROR")));
+    }
+
+    @Test
     @DisplayName("Vet rolündeki kullanıcının başka sahibin petini PUT /pets/{id} ile güncellemesi 403 Forbidden dönmeli (vet salt-okunur)")
     void whenVetUpdatesOtherOwnersPet_thenForbidden() throws Exception {
         UUID vetUserId = UUID.randomUUID();
