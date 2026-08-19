@@ -75,8 +75,8 @@ public class TreatmentService {
     public TreatmentEntry updateTreatment(UUID treatmentId, TreatmentUpdateRequest request, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
-        checkEditWindow(entry);
         checkVisitOngoing(entry.getVisitId());
+        checkEditWindow(entry);
 
         if (request.getType() != null) entry.setType(request.getType());
         if (request.getTitle() != null) entry.setTitle(request.getTitle());
@@ -85,7 +85,6 @@ public class TreatmentService {
 
         TreatmentEntry updatedEntry = treatmentEntryRepository.save(entry);
 
-        // EC-08: 15 dakikalık süre içinde yapılan güncelleme için Audit Log kaydı
         AuditLog auditLog = AuditLog.builder()
                 .entityName("TreatmentEntry")
                 .entityId(updatedEntry.getId())
@@ -102,12 +101,11 @@ public class TreatmentService {
     public void deleteTreatment(UUID treatmentId, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
-        checkEditWindow(entry);
         checkVisitOngoing(entry.getVisitId());
+        checkEditWindow(entry);
 
         treatmentEntryRepository.delete(entry);
 
-        // EC-08: 15 dakikalık süre içinde yapılan silme işlemi için Audit Log kaydı
         AuditLog auditLog = AuditLog.builder()
                 .entityName("TreatmentEntry")
                 .entityId(treatmentId)
@@ -122,8 +120,8 @@ public class TreatmentService {
     public String generateAttachmentUploadUrl(UUID treatmentId, String contentType, long fileSize, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
-        checkEditWindow(entry);
         checkVisitOngoing(entry.getVisitId());
+        checkEditWindow(entry);
 
         String path = "treatments/" + entry.getVisitId() + "/" + treatmentId;
         String signedUrl = storageService.generateSignedUploadUrl(path, contentType, fileSize);
