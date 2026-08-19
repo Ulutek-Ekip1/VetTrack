@@ -146,13 +146,15 @@ class VetShellScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final double width = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = width >= 800; // Breakpoint for responsive layout
 
     return Scaffold(
       body: Row(
         children: [
           // Sol Menü (Sidebar) - Sadece Web için tasarlanmış geniş yapı
           NavigationRail(
-            extended: true,
+            extended: isLargeScreen,
             minExtendedWidth: 220,
             selectedIndex: navigationShell.currentIndex,
             onDestinationSelected: _onTap,
@@ -162,18 +164,25 @@ class VetShellScreen extends StatelessWidget {
             leading: Column(
               children: [
                 const SizedBox(height: AppDimensions.spacingLg),
-                SvgPicture.asset(
-                  "assets/icons/VetTrack.svg",
-                  width: 130,
-                ),
-                const SizedBox(height: AppDimensions.spacingSm),
-                Text(
-                  'Web Klinik Paneli',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
+                if (isLargeScreen) ...[
+                  SvgPicture.asset(
+                    "assets/icons/VetTrack.svg",
+                    width: 130,
                   ),
-                ),
+                  const SizedBox(height: AppDimensions.spacingSm),
+                  Text(
+                    'Web Klinik Paneli',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ] else ...[
+                  SvgPicture.asset(
+                    "assets/icons/VetTrack.svg",
+                    width: 32,
+                  ),
+                ],
                 const SizedBox(height: AppDimensions.spacingLg),
               ],
             ),
@@ -262,14 +271,16 @@ class VetShellScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: AppDimensions.spacingSm),
-                          Text(
-                            'Klinik Hekimi',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface,
+                          if (isLargeScreen) ...[
+                            const SizedBox(width: AppDimensions.spacingSm),
+                            Text(
+                              'Klinik Hekimi',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ],
