@@ -29,15 +29,19 @@ jobs:
           cache: true
 
       - name: Bağımlılıkları Yükle
+        working-directory: frontend
         run: flutter pub get
 
       - name: Statik Kod Analizi
+        working-directory: frontend
         run: flutter analyze
 
       - name: Testleri Çalıştır
+        working-directory: frontend
         run: flutter test
 
       - name: .env Dosyasını Oluştur ve Doğrula
+        working-directory: frontend
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
           if [ ! -s .env ]; then
@@ -46,6 +50,7 @@ jobs:
           fi
 
       - name: Web Release Build Al
+        working-directory: frontend
         run: flutter build web --release
 
       - name: Firebase Hosting Dağıtımı (Live / Preview)
@@ -54,3 +59,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK_CE0AD }}
           projectId: vettrack-ce0ad
+          entryPoint: frontend
