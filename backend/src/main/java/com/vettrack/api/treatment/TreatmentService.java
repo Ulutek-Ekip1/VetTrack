@@ -2,10 +2,10 @@ package com.vettrack.api.treatment;
 
 import com.vettrack.api.audit.AuditLog;
 import com.vettrack.api.audit.AuditLogRepository;
+import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.common.exception.EditWindowExpiredException;
 import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
-import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.storage.StorageService;
 import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitRepository;
@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.Comparator;
 
 @Service
 @RequiredArgsConstructor
@@ -25,19 +25,14 @@ public class TreatmentService {
 
     private final TreatmentEntryRepository treatmentEntryRepository;
     private final VisitRepository visitRepository;
-    private final AuditLogRepository auditLogRepository; // Eklendi
+    private final AuditLogRepository auditLogRepository;
     private final StorageService storageService;
 
     private static final int EDIT_WINDOW_MINUTES = 15;
 
     @Transactional
     public TreatmentEntry createTreatment(UUID visitId, TreatmentCreateRequest request, UUID vetStaffId) {
-        Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
-
-        if (!"ongoing".equals(visit.getStatus())) {
-            throw new ConflictException(ErrorCode.VISIT_CLOSED, "Kapalı ziyarete tedavi girişi yapılamaz");
-        }
+        checkVisitOngoing(visitId);
 
         TreatmentEntry entry = TreatmentEntry.builder()
                 .visitId(visitId)
@@ -81,6 +76,7 @@ public class TreatmentService {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
         checkEditWindow(entry);
+        checkVisitOngoing(entry.getVisitId());
 
         if (request.getType() != null) entry.setType(request.getType());
         if (request.getTitle() != null) entry.setTitle(request.getTitle());
@@ -107,6 +103,7 @@ public class TreatmentService {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
         checkEditWindow(entry);
+        checkVisitOngoing(entry.getVisitId());
 
         treatmentEntryRepository.delete(entry);
 
@@ -126,24 +123,25 @@ public class TreatmentService {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
         checkEditWindow(entry);
+        checkVisitOngoing(entry.getVisitId());
 
         String path = "treatments/" + entry.getVisitId() + "/" + treatmentId;
         String signedUrl = storageService.generateSignedUploadUrl(path, contentType, fileSize);
-        
+
         entry.setAttachmentUrl(path);
         treatmentEntryRepository.save(entry);
-        
+
         return signedUrl;
     }
 
     @Transactional(readOnly = true)
     public String generateAttachmentReadUrl(UUID treatmentId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
-        
+
         if (entry.getAttachmentUrl() == null || entry.getAttachmentUrl().isBlank()) {
             throw new ResourceNotFoundException("Bu tedavi kaydına ait ek bulunmamaktadır.");
         }
-        
+
         return storageService.generateSignedReadUrl(entry.getAttachmentUrl());
     }
 
@@ -159,8 +157,17 @@ public class TreatmentService {
     }
 
     private void checkEditWindow(TreatmentEntry entry) {
-        if (entry.getCreatedAt().plusMinutes(EDIT_WINDOW_MINUTES).isBefore(OffsetDateTime.now())) {
+        if (entry.getCreatedAt() != null && entry.getCreatedAt().plusMinutes(EDIT_WINDOW_MINUTES).isBefore(OffsetDateTime.now())) {
             throw new EditWindowExpiredException("15 dakikalık düzenleme süresi doldu");
+        }
+    }
+
+    private void checkVisitOngoing(UUID visitId) {
+        Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
+
+        if (!"ongoing".equalsIgnoreCase(visit.getStatus())) {
+            throw new ConflictException(ErrorCode.VISIT_CLOSED, "Kapalı ziyaretteki tedavi kaydı değiştirilemez veya silinemez");
         }
     }
 }
