@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vettrack_frontend/core/utils/formatters.dart';
+import 'package:vettrack_frontend/core/widgets/app_error_widget.dart';
 import '../cubit/visit_cubit.dart';
 import '../cubit/visit_state.dart';
 import 'package:vettrack_frontend/features/visit/domain/entities/visit_entity.dart';
@@ -287,7 +288,11 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (state is VisitError) {
-                        return Center(child: Text(state.message));
+                        return AppErrorWidget(
+                          message: state.message,
+                          onRetry: () =>
+                              context.read<VisitCubit>().fetchVetVisitHistory(),
+                        );
                       }
                       if (state is VisitHistoryLoaded) {
                         final filtered = _getFilteredVisits(state.visits);

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:vettrack_frontend/core/error/exceptions.dart';
+import 'package:vettrack_frontend/core/error/error_handler.dart';
 import 'package:vettrack_frontend/features/recommendation/data/models/recommendation_model.dart';
 import 'package:vettrack_frontend/features/recommendation/domain/entities/recommendation_entity.dart';
 
@@ -30,7 +30,7 @@ class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSour
               RecommendationModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Öneriler alınamadı.');
+      throw ErrorHandler.handleDioError(e, defaultMessage: 'Öneriler alınamadı.');
     }
   }
 
@@ -40,7 +40,7 @@ class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSour
       final response = await dio.get('/visits/$visitId/recommendations');
       return (response.data as List).map((json) => RecommendationModel.fromJson(json as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Öneriler alınamadı.');
+      throw ErrorHandler.handleDioError(e, defaultMessage: 'Öneriler alınamadı.');
     }
   }
 
@@ -62,7 +62,7 @@ class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSour
       return RecommendationModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw ServerException(e.message ?? 'Öneri eklenemedi.');
+      throw ErrorHandler.handleDioError(e, defaultMessage: 'Öneri eklenemedi.');
     }
   }
 }

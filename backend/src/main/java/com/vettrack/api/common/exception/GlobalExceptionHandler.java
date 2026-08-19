@@ -82,16 +82,28 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, Object>> handleMissingParams(MissingServletRequestParameterException ex) {
-        String name = ex.getParameterName();
-        return buildResponse(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name(),
-                name + " parametresi zorunludur");
+        String message = "'%s' parametresi zorunludur ve istekte gönderilmedi".formatted(ex.getParameterName());
+        return buildResponse(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name(), message);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        String name = ex.getName();
-        return buildResponse(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name(),
-                name + " parametresinin tipi geçersiz");
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "beklenen tip";
+        String message = "'%s' parametresi geçersiz: '%s' değeri %s tipine dönüştürülemedi"
+                .formatted(ex.getName(), truncateValue(ex.getValue()), requiredType);
+        return buildResponse(ErrorCode.VALIDATION_ERROR.getStatus(), ErrorCode.VALIDATION_ERROR.name(), message);
+    }
+
+    /**
+     * İstemciden gelen ham değeri hata mesajına gömmeden önce sınırlar — aşırı uzun bir
+     * girdi (örn. URL'ye eklenmiş 10.000 karakterlik string) hata mesajında aynen yansımasın diye.
+     */
+    private String truncateValue(Object value) {
+        String stringValue = String.valueOf(value);
+        int maxLength = 50;
+        return stringValue.length() > maxLength
+                ? stringValue.substring(0, maxLength) + "..."
+                : stringValue;
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

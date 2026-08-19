@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../../core/error/error_handler.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../domain/entities/ai_chat_request.dart';
 import '../../domain/entities/ai_chat_response.dart';
@@ -128,51 +129,6 @@ class AiRemoteDataSourceImpl implements AiRemoteDataSource {
   }
 
   ServerException _handleDioError(DioException e) {
-    if (e.response != null) {
-      final statusCode = e.response!.statusCode;
-      final retryAfterSeconds =
-          int.tryParse(e.response!.headers.value('retry-after') ?? '');
-      final data = e.response!.data;
-      String message = '';
-      if (data is Map<String, dynamic> && data.containsKey('message')) {
-        message = data['message'].toString();
-      }
-
-      switch (statusCode) {
-        case 400:
-          return ServerException(
-              message.isNotEmpty ? message : 'Geçersiz sohbet isteği.', statusCode);
-        case 401:
-          return ServerException(
-              'Oturum süreniz doldu, lütfen tekrar giriş yapın.', statusCode);
-        case 403:
-          return ServerException(
-              message.isNotEmpty ? message : 'Bu işleme erişim yetkiniz bulunmuyor.', statusCode);
-        case 409:
-          return ServerException(
-              message.isNotEmpty ? message : 'Idempotency çakışması: Aynı mesaj kimliği tekrar kullanılamaz.', statusCode);
-        case 429:
-          return ServerException(
-            'Çok fazla istek gönderdiniz. Lütfen biraz bekleyip tekrar deneyin.',
-            statusCode,
-            retryAfterSeconds,
-          );
-        case 503:
-          return ServerException(
-              'Yapay zeka servisi şu anda geçici olarak hizmet veremiyor.', statusCode);
-        default:
-          return ServerException(
-              message.isNotEmpty ? message : 'Sunucu hatası ($statusCode).', statusCode);
-      }
-    }
-
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.sendTimeout ||
-        e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.connectionError) {
-      return const ServerException('Bağlantı hatası: İnternet bağlantınızı kontrol ediniz.');
-    }
-
-    return ServerException(e.message ?? 'Ağ hatası oluştu.');
+    return ErrorHandler.handleDioError(e, defaultMessage: 'Yapay zeka servisiyle iletişim kurulamadı.');
   }
 }
