@@ -9,7 +9,7 @@ import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/router/app_router.dart';
-import 'faq_screen.dart';
+import 'faq_bottom_sheet.dart';
 class OwnerProfileScreen extends StatelessWidget {
   const OwnerProfileScreen({super.key});
 
@@ -168,7 +168,7 @@ class OwnerProfileScreen extends StatelessWidget {
                           icon: Icons.help_outline,
                           title: 'Sıkça Sorulan Sorular',
                           subtitle: 'Uygulama kullanımı hakkında yardımlar',
-                          onTap: () {},
+                          onTap: () => showFAQBottomSheet(context), 
                         ),
                         _buildDivider(),
                         _buildProfileTile(
@@ -435,12 +435,6 @@ class OwnerProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       // SSS Butonu
-ListTile(
-  leading: const Icon(Icons.help_outline, color: Color(0xFF2563EB)),
-  title: const Text('Sıkça Sorulan Sorular'),
-  onTap: () => showFAQBottomSheet(context),
-),
-
                     ],
                   ),
                 ),
