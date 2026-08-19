@@ -93,7 +93,11 @@ public class TreatmentController {
 
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
-        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
+        if (pet.getOwnerId().equals(currentUserId)) {
+            // owner: erişim var
+        } else if (isVetOrAdmin()) {
+            clinicAccessService.requireVisitAccess(currentUserId, visitId);
+        } else {
             throw new AccessDeniedException("Bu ziyaretin tedavi kaydına erişim yetkiniz yok");
         }
 
@@ -109,7 +113,11 @@ public class TreatmentController {
         Pet pet = petService.getPetById(petId);
         UUID currentUserId = UUID.fromString(jwt.getSubject());
 
-        if (!isVetOrAdmin() && !pet.getOwnerId().equals(currentUserId)) {
+        if (pet.getOwnerId().equals(currentUserId)) {
+            // owner: erişim var
+        } else if (isVetOrAdmin()) {
+            clinicAccessService.requirePetAccessForVet(currentUserId, petId);
+        } else {
             throw new AccessDeniedException("Bu pet'in tedavi geçmişine erişim yetkiniz yok");
         }
 

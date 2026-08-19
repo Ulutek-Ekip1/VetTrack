@@ -116,6 +116,12 @@ public class VisitService {
         return visitRepository.findByPetIdAndClinicIdOrderByStartedAtDesc(petId, clinicId);
     }
 
+    /** Vet'in cross-clinic tüm ziyaret geçmişini görmesini engeller — sadece kendi aktif kliniklerine ait ziyaretler. */
+    @Transactional(readOnly = true)
+    public List<Visit> getVisitsByPetIdAndClinicIds(UUID petId, List<UUID> clinicIds) {
+        return visitRepository.findByPetIdAndClinicIdInOrderByStartedAtDesc(petId, clinicIds);
+    }
+
     @Transactional(readOnly = true)
     public Page<Visit> getVisitsByPetIdPaginated(UUID petId, Pageable pageable) {
         return visitRepository.findByPetIdOrderByStartedAtDesc(petId, pageable);

@@ -15,7 +15,11 @@ public interface VisitRepository extends JpaRepository<Visit, UUID> {
     List<Visit> findByPetIdOrderByStartedAtDesc(UUID petId);
     List<Visit> findByPetIdAndClinicIdOrderByStartedAtDesc(UUID petId, UUID clinicId);
     Page<Visit> findByPetIdOrderByStartedAtDesc(UUID petId, Pageable pageable);
+    List<Visit> findByPetIdAndClinicIdInOrderByStartedAtDesc(UUID petId, List<UUID> clinicIds);
     Page<Visit> findByPetIdAndClinicIdInOrderByStartedAtDesc(UUID petId, List<UUID> clinicIds, Pageable pageable);
+
+    /** BOLA/cross-clinic erişim kontrolü için: pet'in verilen kliniklerden birinde en az bir ziyareti var mı. */
+    boolean existsByPetIdAndClinicIdIn(UUID petId, List<UUID> clinicIds);
 
     /**
      * Sahibin (owner) tüm aktif petlerinin ziyaret geçmişini tek sorguda getirir (N+1 önleme).
