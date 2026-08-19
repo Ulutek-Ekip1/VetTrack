@@ -32,7 +32,7 @@ public class TreatmentService {
 
     @Transactional
     public TreatmentEntry createTreatment(UUID visitId, TreatmentCreateRequest request, UUID vetStaffId) {
-        checkVisitOngoing(visitId);
+        checkVisitOngoing(visitId, "Kapalı ziyarete tedavi girişi yapılamaz");
 
         TreatmentEntry entry = TreatmentEntry.builder()
                 .visitId(visitId)
@@ -75,7 +75,7 @@ public class TreatmentService {
     public TreatmentEntry updateTreatment(UUID treatmentId, TreatmentUpdateRequest request, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
-        checkVisitOngoing(entry.getVisitId());
+        checkVisitOngoing(entry.getVisitId(), "Kapalı ziyaretteki tedavi kaydı değiştirilemez veya silinemez");
         checkEditWindow(entry);
 
         if (request.getType() != null) entry.setType(request.getType());
@@ -101,7 +101,7 @@ public class TreatmentService {
     public void deleteTreatment(UUID treatmentId, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
-        checkVisitOngoing(entry.getVisitId());
+        checkVisitOngoing(entry.getVisitId(), "Kapalı ziyaretteki tedavi kaydı değiştirilemez veya silinemez");
         checkEditWindow(entry);
 
         treatmentEntryRepository.delete(entry);
@@ -120,7 +120,7 @@ public class TreatmentService {
     public String generateAttachmentUploadUrl(UUID treatmentId, String contentType, long fileSize, UUID vetStaffId) {
         TreatmentEntry entry = getTreatmentById(treatmentId);
         checkOwnership(entry, vetStaffId);
-        checkVisitOngoing(entry.getVisitId());
+        checkVisitOngoing(entry.getVisitId(), "Kapalı ziyaretteki tedavi kaydı değiştirilemez veya silinemez");
         checkEditWindow(entry);
 
         String path = "treatments/" + entry.getVisitId() + "/" + treatmentId;
@@ -160,12 +160,12 @@ public class TreatmentService {
         }
     }
 
-    private void checkVisitOngoing(UUID visitId) {
+    private void checkVisitOngoing(UUID visitId, String errorMessage) {
         Visit visit = visitRepository.findById(visitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
 
         if (!"ongoing".equalsIgnoreCase(visit.getStatus())) {
-            throw new ConflictException(ErrorCode.VISIT_CLOSED, "Kapalı ziyaretteki tedavi kaydı değiştirilemez veya silinemez");
+            throw new ConflictException(ErrorCode.VISIT_CLOSED, errorMessage);
         }
     }
 }
