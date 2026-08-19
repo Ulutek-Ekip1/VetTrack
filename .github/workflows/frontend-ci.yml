@@ -51,7 +51,7 @@ jobs:
 
       - name: Web Release Build Al
         working-directory: frontend
-        run: flutter build web --release
+        run: flutter build web --release --dart-define-from-file=.env
 
       - name: Firebase Hosting Dağıtımı (Live / Preview)
         uses: FirebaseExtended/action-hosting-deploy@v0
