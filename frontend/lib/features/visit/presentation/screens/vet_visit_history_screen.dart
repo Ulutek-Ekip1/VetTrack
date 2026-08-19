@@ -234,9 +234,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Klinik Muayene Geçmişi'),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        title: const Text('Hekim Muayene Geçmişi'),
       ),
       body: Center(
         child: ConstrainedBox(
