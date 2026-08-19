@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -27,9 +28,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Trello: "CustomJwtAuthenticationConverter: Silent Catch Düzeltmesi ve Yapılandırılmış Loglama"
- * DB kaynaklı yetki kayıplarının (catch (DataAccessException ignored)) artık sessizce
- * yutulmadığını, WARN seviyesinde loglandığını doğrular.
+ * Trello: "403 Forbidden Yetki Üretim Kök Neden Analizi"
+ * ROLE_VET_STAFF/ROLE_ADMIN artık tamamen bu iki JDBC sorgusunun başarısına bağlı.
+ * DB kaynaklı hatalar artık (1) sessizce yutulmuyor, loglanıyor ve (2) bir kez
+ * tekrar deneniyor — HikariCP havuz baskısı gibi geçici hatalarda legit bir vet'i
+ * tek seferde 403'e düşürmemek için.
  */
 class CustomJwtAuthenticationConverterTest {
 
@@ -64,9 +67,31 @@ class CustomJwtAuthenticationConverterTest {
                 .build();
     }
 
+    private List<ILoggingEvent> logsAt(Level level) {
+        return logAppender.list.stream().filter(e -> e.getLevel() == level).toList();
+    }
+
     @Test
-    @DisplayName("Admin DB kontrolü DataAccessException fırlatırsa: admin verilmez ama WARN loglanır (artık sessiz yutulmaz)")
-    void whenAdminDbCheckFails_thenLogsWarnAndDoesNotGrantAdmin() {
+    @DisplayName("Klinik üyeliği sorgusu ilk denemede havuz baskısıyla (CannotGetJdbcConnectionException) başarısız olur ama retry'da başarılı olursa: ROLE_VET_STAFF yine verilir, sadece WARN loglanır")
+    void whenClinicMembershipQueryFailsOnceThenSucceedsOnRetry_thenGrantsRoleAndLogsOnlyWarn() {
+        String userId = UUID.randomUUID().toString();
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(userId))).thenReturn(0);
+        when(jdbcTemplate.queryForList(anyString(), eq(userId)))
+                .thenThrow(new CannotGetJdbcConnectionException("connection pool exhausted"))
+                .thenReturn(List.of(java.util.Map.of("is_clinic_admin", false)));
+
+        AbstractAuthenticationToken token = converter.convert(buildJwt(userId));
+
+        assertTrue(token.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_VET_STAFF")));
+
+        assertEquals(1, logsAt(Level.WARN).size());
+        assertEquals(0, logsAt(Level.ERROR).size());
+        assertTrue(logsAt(Level.WARN).get(0).getFormattedMessage().contains(userId));
+    }
+
+    @Test
+    @DisplayName("Admin DB kontrolü iki denemede de DataAccessException fırlatırsa: admin verilmez, WARN (retry) + ERROR (kalıcı hata) loglanır")
+    void whenAdminDbCheckFailsOnBothAttempts_thenLogsWarnThenErrorAndDoesNotGrantAdmin() {
         String userId = UUID.randomUUID().toString();
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(userId)))
                 .thenThrow(new DataAccessResourceFailureException("connection refused"));
@@ -77,17 +102,15 @@ class CustomJwtAuthenticationConverterTest {
         assertFalse(token.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
         assertTrue(token.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_OWNER")));
 
-        List<ILoggingEvent> warnLogs = logAppender.list.stream()
-                .filter(e -> e.getLevel() == Level.WARN)
-                .toList();
-        assertEquals(1, warnLogs.size());
-        assertTrue(warnLogs.get(0).getFormattedMessage().contains(userId));
-        assertTrue(warnLogs.get(0).getFormattedMessage().contains("Admin"));
+        assertEquals(1, logsAt(Level.WARN).size());
+        assertEquals(1, logsAt(Level.ERROR).size());
+        assertTrue(logsAt(Level.ERROR).get(0).getFormattedMessage().contains(userId));
+        assertTrue(logsAt(Level.ERROR).get(0).getFormattedMessage().contains("Admin"));
     }
 
     @Test
-    @DisplayName("Klinik üyeliği DB kontrolü DataAccessException fırlatırsa: ROLE_VET_STAFF verilmez ama WARN loglanır")
-    void whenClinicMembershipDbCheckFails_thenLogsWarnAndDoesNotGrantVetStaff() {
+    @DisplayName("Klinik üyeliği DB kontrolü iki denemede de başarısız olursa: ROLE_VET_STAFF verilmez, WARN + ERROR loglanır")
+    void whenClinicMembershipDbCheckFailsOnBothAttempts_thenLogsWarnThenErrorAndDoesNotGrantVetStaff() {
         String userId = UUID.randomUUID().toString();
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(userId))).thenReturn(0);
         when(jdbcTemplate.queryForList(anyString(), eq(userId)))
@@ -98,24 +121,22 @@ class CustomJwtAuthenticationConverterTest {
         assertFalse(token.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_VET_STAFF")));
         assertTrue(token.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_OWNER")));
 
-        List<ILoggingEvent> warnLogs = logAppender.list.stream()
-                .filter(e -> e.getLevel() == Level.WARN)
-                .toList();
-        assertEquals(1, warnLogs.size());
-        assertTrue(warnLogs.get(0).getFormattedMessage().contains(userId));
-        assertTrue(warnLogs.get(0).getFormattedMessage().contains("Klinik"));
+        assertEquals(1, logsAt(Level.WARN).size());
+        assertEquals(1, logsAt(Level.ERROR).size());
+        assertTrue(logsAt(Level.ERROR).get(0).getFormattedMessage().contains(userId));
+        assertTrue(logsAt(Level.ERROR).get(0).getFormattedMessage().contains("Klinik"));
     }
 
     @Test
-    @DisplayName("DB kontrolleri başarılıysa: hiçbir WARN loglanmaz")
-    void whenDbChecksSucceed_thenNoWarningsLogged() {
+    @DisplayName("DB kontrolleri ilk denemede başarılıysa: hiçbir WARN/ERROR loglanmaz")
+    void whenDbChecksSucceedFirstTry_thenNoWarningsOrErrorsLogged() {
         String userId = UUID.randomUUID().toString();
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(userId))).thenReturn(0);
         when(jdbcTemplate.queryForList(anyString(), eq(userId))).thenReturn(List.of());
 
         converter.convert(buildJwt(userId));
 
-        long warnCount = logAppender.list.stream().filter(e -> e.getLevel() == Level.WARN).count();
-        assertEquals(0, warnCount);
+        assertEquals(0, logsAt(Level.WARN).size());
+        assertEquals(0, logsAt(Level.ERROR).size());
     }
 }

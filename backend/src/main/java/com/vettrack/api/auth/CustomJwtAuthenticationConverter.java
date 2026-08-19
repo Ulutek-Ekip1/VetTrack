@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * JWT'den Spring Security authority'leri üretir.
@@ -62,16 +63,20 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
 
         if (!isAdmin && userId != null && !userId.isBlank()) {
             try {
-                Integer adminCount = jdbcTemplate.queryForObject(
-                        "SELECT COUNT(*) FROM profiles WHERE id = ?::uuid AND role = 'admin' AND is_active = true",
-                        Integer.class,
-                        userId
+                Integer adminCount = queryWithRetry(
+                        "admin rolü",
+                        userId,
+                        () -> jdbcTemplate.queryForObject(
+                                "SELECT COUNT(*) FROM profiles WHERE id = ?::uuid AND role = 'admin' AND is_active = true",
+                                Integer.class,
+                                userId
+                        )
                 );
                 if (adminCount != null && adminCount > 0) {
                     isAdmin = true;
                 }
             } catch (DataAccessException ex) {
-                log.warn("Admin rolü DB kontrolü başarısız oldu, userId={} için admin varsayılmadı: {}",
+                log.error("Admin rolü DB kontrolü kalıcı olarak başarısız oldu, userId={} için admin varsayılmadı: {}",
                         userId, ex.getMessage());
             }
         }
@@ -83,9 +88,13 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
         // 2. Aktif klinik üyeliği → ROLE_VET_STAFF & ROLE_CLINIC_ADMIN
         if (userId != null && !userId.isBlank()) {
             try {
-                var rows = jdbcTemplate.queryForList(
-                        "SELECT is_clinic_admin FROM clinic_memberships WHERE user_id = ?::uuid AND status = 'active'",
-                        userId
+                var rows = queryWithRetry(
+                        "klinik üyeliği",
+                        userId,
+                        () -> jdbcTemplate.queryForList(
+                                "SELECT is_clinic_admin FROM clinic_memberships WHERE user_id = ?::uuid AND status = 'active'",
+                                userId
+                        )
                 );
                 if (!rows.isEmpty()) {
                     authorities.add(new SimpleGrantedAuthority("ROLE_VET_STAFF"));
@@ -96,7 +105,7 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
                     }
                 }
             } catch (DataAccessException ex) {
-                log.warn("Klinik üyeliği DB kontrolü başarısız oldu, userId={} için ROLE_VET_STAFF/ROLE_CLINIC_ADMIN eklenmedi: {}",
+                log.error("Klinik üyeliği DB kontrolü kalıcı olarak başarısız oldu, userId={} için ROLE_VET_STAFF/ROLE_CLINIC_ADMIN eklenmedi: {}",
                         userId, ex.getMessage());
             }
         }
@@ -105,5 +114,30 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
         authorities.add(new SimpleGrantedAuthority("ROLE_OWNER"));
 
         return new JwtAuthenticationToken(jwt, authorities);
+    }
+
+    /**
+     * ROLE_VET_STAFF / ROLE_ADMIN artık tamamen bu DB sorgularının başarısına bağlı
+     * (bkz. sınıf üstü Javadoc — user_metadata'dan doğrudan rol üretimi kaldırıldı,
+     * privilege escalation koruması). Bu sorgular artık HER authenticated istekte
+     * çalışıyor; bağlantı havuzu baskısı altında (HikariCP tükenmesi →
+     * {@link org.springframework.jdbc.CannotGetJdbcConnectionException}, PgBouncer/ağ
+     * kesintisi) geçici bir hata legit bir vet'i tek seferde 403'e düşürebilir.
+     *
+     * <p>{@code CannotGetJdbcConnectionException} Spring'in hiyerarşisinde (yanıltıcı
+     * biçimde) {@code NonTransientDataAccessException} altında yer alır — sadece
+     * {@link org.springframework.dao.TransientDataAccessException} yakalamak bu en olası
+     * senaryoyu (havuz baskısı) KAÇIRIRDI. Bu yüzden burada genel {@link DataAccessException}
+     * için bir kez tekrar deneniyor; kalıcı bir SQL/şema hatası varsa ikinci deneme de aynı
+     * şekilde başarısız olur ve çağırana fırlatılır (fail-closed korunur).
+     */
+    private <T> T queryWithRetry(String context, String userId, Supplier<T> query) {
+        try {
+            return query.get();
+        } catch (DataAccessException firstAttemptEx) {
+            log.warn("{} DB sorgusu başarısız oldu, tekrar deneniyor. userId={}: {}",
+                    context, userId, firstAttemptEx.getMessage());
+            return query.get();
+        }
     }
 }
