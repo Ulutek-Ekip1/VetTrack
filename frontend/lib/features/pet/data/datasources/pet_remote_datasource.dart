@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
 import 'package:vettrack_frontend/features/pet/data/models/pet_model.dart';
 import 'package:vettrack_frontend/core/error/error_handler.dart';
+import 'package:http_parser/http_parser.dart';
 
 abstract class PetRemoteDataSource {
   Future<PetEntity> addPet({
@@ -181,8 +182,23 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
   @override
   Future<String> updatePetPhoto(String id, String photoFilePath) async {
     try {
+      final fileName = photoFilePath.split('/').last;
+      final extension = fileName.split('.').last.toLowerCase();
+      MediaType? contentType;
+      if (extension == 'jpg' || extension == 'jpeg') {
+        contentType = MediaType('image', 'jpeg');
+      } else if (extension == 'png') {
+        contentType = MediaType('image', 'png');
+      } else if (extension == 'webp') {
+        contentType = MediaType('image', 'webp');
+      }
+
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(photoFilePath),
+        'file': await MultipartFile.fromFile(
+          photoFilePath,
+          filename: fileName,
+          contentType: contentType,
+        ),
       });
 
       final response = await dio.post(
