@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -7,13 +8,11 @@ import '../../../../features/auth/presentation/cubit/auth_state.dart';
 import '../../../../features/pet/presentation/cubit/pet_cubit.dart';
 import '../../../../features/pet/presentation/cubit/pet_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
-import '../../../../core/di/injection_container.dart';
-import '../../../../core/services/firebase_messaging_service.dart';
-import 'dart:io';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_state.dart';
 import '../../../../features/notification/presentation/cubit/notification_cubit.dart';
 import '../../../../features/notification/presentation/widgets/notification_badge_button.dart';
+import '../../../../features/notification/presentation/widgets/notification_permission_dialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,7 +22,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
-  AuthorizationStatus? _notificationPermission;
+  static bool _hasShownPermissionDialogInSession = false;
 
   @override
   void initState() {
@@ -32,7 +31,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // Sayfa açıldığında pet listesini tazele
     context.read<PetCubit>().fetchPets();
     context.read<NotificationCubit>().loadNotifications();
-    _refreshNotificationPermission();
+    _checkAndPromptNotificationPermission();
   }
 
   @override
@@ -44,44 +43,24 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _refreshNotificationPermission();
+      _checkAndPromptNotificationPermission();
     }
   }
 
-  Future<void> _refreshNotificationPermission() async {
+  Future<void> _checkAndPromptNotificationPermission() async {
     final settings = await FirebaseMessaging.instance.getNotificationSettings();
-    if (mounted) {
-      setState(() => _notificationPermission = settings.authorizationStatus);
+    final status = settings.authorizationStatus;
+
+    if (!_hasShownPermissionDialogInSession &&
+        (status == AuthorizationStatus.notDetermined ||
+            status == AuthorizationStatus.denied)) {
+      _hasShownPermissionDialogInSession = true;
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) {
+          NotificationPermissionDialog.show(context);
+        }
+      });
     }
-  }
-
-  Future<void> _requestNotificationPermission() async {
-    final status =
-        await sl<FirebaseMessagingService>().requestPermissionFromUser();
-    if (mounted) setState(() => _notificationPermission = status);
-  }
-
-  Future<void> _openNotificationSettings() async {
-    final opened =
-        await sl<FirebaseMessagingService>().openNotificationSettings();
-    if (!mounted || opened) return;
-
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Bildirimleri açın'),
-        content: const Text(
-          'Cihaz ayarlarından VetTrack uygulamasını açıp Bildirimler iznini etkinleştirin. '
-          'İzin vermeseniz de güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Tamam'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -187,35 +166,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               // İçerik Listesi
               SliverList(
                 delegate: SliverChildListDelegate([
-                  if (_notificationPermission ==
-                          AuthorizationStatus.notDetermined ||
-                      _notificationPermission == AuthorizationStatus.denied)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: Card(
-                        child: ListTile(
-                          leading:
-                              const Icon(Icons.notifications_active_outlined),
-                          title:
-                              const Text('Muayene güncellemelerini kaçırmayın'),
-                          subtitle: Text(_notificationPermission ==
-                                  AuthorizationStatus.denied
-                              ? 'İzin reddedildi. Güncellemeleri uygulama içindeki Bildirimler ekranından takip edebilirsiniz.'
-                              : 'Tedavi ve muayene güncellemeleri için bildirim izni verin.'),
-                          trailing: TextButton(
-                            onPressed: _notificationPermission ==
-                                    AuthorizationStatus.denied
-                                ? _openNotificationSettings
-                                : _requestNotificationPermission,
-                            child: Text(_notificationPermission ==
-                                    AuthorizationStatus.denied
-                                ? 'Ayarları Aç'
-                                : 'Etkinleştir'),
-                          ),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Hızlı İşlemler
                   Padding(

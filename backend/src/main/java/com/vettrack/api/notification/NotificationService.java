@@ -1,6 +1,10 @@
 package com.vettrack.api.notification;
 
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.AndroidNotification;
+import com.google.firebase.messaging.ApnsConfig;
+import com.google.firebase.messaging.Aps;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MessagingErrorCode;
@@ -96,8 +100,32 @@ public class NotificationService {
     }
 
     private void sendWithRetry(DeviceToken deviceToken, Notification notification) {
+        com.google.firebase.messaging.Notification fcmNotification = com.google.firebase.messaging.Notification.builder()
+                .setTitle(notification.getTitle())
+                .setBody(notification.getBody())
+                .build();
+
+        AndroidConfig androidConfig = AndroidConfig.builder()
+                .setPriority(AndroidConfig.Priority.HIGH)
+                .setNotification(AndroidNotification.builder()
+                        .setSound("default")
+                        .setDefaultSound(true)
+                        .setDefaultVibrateTimings(true)
+                        .setChannelId("vettrack_notifications")
+                        .build())
+                .build();
+
+        ApnsConfig apnsConfig = ApnsConfig.builder()
+                .setAps(Aps.builder()
+                        .setSound("default")
+                        .build())
+                .build();
+
         Message.Builder messageBuilder = Message.builder()
                 .setToken(deviceToken.getFcmToken())
+                .setNotification(fcmNotification)
+                .setAndroidConfig(androidConfig)
+                .setApnsConfig(apnsConfig)
                 .putData("title", notification.getTitle())
                 .putData("body", notification.getBody())
                 .putData("type", notification.getType().name())
