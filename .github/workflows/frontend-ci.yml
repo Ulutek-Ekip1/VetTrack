@@ -2,27 +2,27 @@ name: Flutter CI & Firebase Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
-  contents: read
   checks: write
   pull-requests: write
+  contents: read
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-
     steps:
-      - name: Kodu Checkout Et
+      - name: Repoyu Klonla
         uses: actions/checkout@v4
 
-      - name: Flutter Kurulumu
+      - name: Flutter SDK Kurulumu
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -31,21 +31,26 @@ jobs:
       - name: Bağımlılıkları Yükle
         run: flutter pub get
 
-      - name: Kodu Analiz Et
+      - name: Statik Kod Analizi
         run: flutter analyze
 
-      - name: .env Dosyasını Oluştur
+      - name: Testleri Çalıştır
+        run: flutter test
+
+      - name: .env Dosyasını Oluştur ve Doğrula
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
+          if [ ! -s .env ]; then
+            echo "Hata: .env dosyası boş veya ENV_FILE secret'ı tanımlı değil!"
+            exit 1
+          fi
 
-      - name: Flutter Web Build Al
-        run: flutter build web --release --dart-define-from-file=.env
+      - name: Web Release Build Al
+        run: flutter build web --release
 
-      - name: Firebase Hosting Deploy
+      - name: Firebase Hosting Dağıtımı (Live / Preview)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK }}'
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK_CE0AD }}
           projectId: vettrack-ce0ad
-          channelId: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'live' || '' }}
-          entryPoint: ./frontend
