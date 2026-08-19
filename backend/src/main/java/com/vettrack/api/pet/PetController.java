@@ -37,6 +37,7 @@ public class PetController {
 
     private final PetService petService;
     private final VisitService visitService;
+    private final com.vettrack.api.clinic.ClinicAccessService clinicAccessService;
 
     @PostMapping
     @Operation(summary = "Yeni Pet Ekle", security = @SecurityRequirement(name = "bearerAuth"))
@@ -102,6 +103,7 @@ public class PetController {
             return ResponseEntity.ok(PetResponse.fromEntity(pet));
         }
         if (isVetStaff) {
+            clinicAccessService.requirePetAccessForVet(currentUserId, id);
             return ResponseEntity.ok(PetResponse.fromEntity(pet));
         }
 
@@ -128,7 +130,9 @@ public class PetController {
         boolean isAdmin = isRole("ROLE_ADMIN");
         boolean isVetStaff = isRole("ROLE_VET_STAFF");
 
-        if (!isAdmin && !isVetStaff && !pet.getOwnerId().equals(currentUserId)) {
+        if (isVetStaff) {
+            clinicAccessService.requirePetAccessForVet(currentUserId, id);
+        } else if (!isAdmin && !pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu hayvanın sağlık geçmişini görüntüleme yetkiniz yoktur");
         }
 
@@ -156,7 +160,12 @@ public class PetController {
             return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
         }
         if (isVetStaff) {
-            return ResponseEntity.ok(visitService.getVisitsByPetIdPaginated(id, pageable));
+            // Vet sadece kendi aktif kliniklerine ait ziyaretleri görür — cross-clinic sızıntı önlenir.
+            List<UUID> activeClinicIds = clinicAccessService.getActiveClinicIds(currentUserId);
+            if (activeClinicIds.isEmpty()) {
+                throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
+            }
+            return ResponseEntity.ok(visitService.getVisitsByPetIdAndClinicIdsPaginated(id, activeClinicIds, pageable));
         }
         if (!pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu hayvanın ziyaret geçmişini görüntüleme yetkiniz yoktur");
@@ -186,7 +195,7 @@ public class PetController {
         if (isAdmin) {
             // Admin tüm verileri görebilir
         } else if (isVetStaff) {
-            // Vet staff tüm petlerin kilo geçmişini görebilir
+            clinicAccessService.requirePetAccessForVet(currentUserId, id);
         } else if (!pet.getOwnerId().equals(currentUserId)) {
             throw new AccessDeniedException("Bu hayvanın kilo geçmişini görüntüleme yetkiniz yoktur");
         }

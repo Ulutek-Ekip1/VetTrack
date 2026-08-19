@@ -182,7 +182,12 @@ public class VisitController {
         }
 
         if (isVet) {
-            return ResponseEntity.ok(visitService.getVisitsByPetId(petId));
+            // Vet sadece kendi aktif kliniklerine ait ziyaretleri görür — cross-clinic sızıntı önlenir.
+            List<UUID> activeClinicIds = clinicAccessService.getActiveClinicIds(currentUserId);
+            if (activeClinicIds.isEmpty()) {
+                throw new AccessDeniedException("Bu pet'in ziyaret geçmişine erişim yetkiniz yok.");
+            }
+            return ResponseEntity.ok(visitService.getVisitsByPetIdAndClinicIds(petId, activeClinicIds));
         }
 
         if (!pet.getOwnerId().equals(currentUserId)) {
