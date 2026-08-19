@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:vettrack_frontend/core/error/exceptions.dart';
+import 'package:vettrack_frontend/core/error/error_handler.dart';
 import 'package:vettrack_frontend/features/treatment/data/models/treatment_entry_model.dart';
 import 'package:vettrack_frontend/features/treatment/domain/entities/treatment_entity.dart';
 
@@ -34,7 +34,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
               TreatmentEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw ServerException.fromDio(e, defaultMessage: 'Tedavi kayıtları alınamadı.');
+      throw ErrorHandler.handleDioError(e, defaultMessage: 'Tedavi kayıtları alınamadı.');
     }
   }
 
@@ -47,7 +47,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
               TreatmentEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw ServerException.fromDio(e, defaultMessage: 'Tedavi kayıtları alınamadı.');
+      throw ErrorHandler.handleDioError(e, defaultMessage: 'Tedavi kayıtları alınamadı.');
     }
   }
 
@@ -74,7 +74,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
       return TreatmentEntryModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw ServerException.fromDio(e, defaultMessage: 'Tedavi kaydı eklenemedi.');
+      throw ErrorHandler.handleDioError(e, defaultMessage: 'Tedavi kaydı eklenemedi.');
     }
   }
 
@@ -83,7 +83,7 @@ class TreatmentRemoteDataSourceImpl implements TreatmentRemoteDataSource {
     try {
       await dio.delete('/treatments/$treatmentId');
     } on DioException catch (e) {
-      throw ServerException.fromDio(e, defaultMessage: 'Tedavi kaydı silinemedi.');
+      throw ErrorHandler.handleDioError(e, defaultMessage: 'Tedavi kaydı silinemedi.');
     }
   }
 }

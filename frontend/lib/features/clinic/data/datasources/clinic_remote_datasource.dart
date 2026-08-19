@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../../core/error/error_handler.dart';
 import '../../../../core/error/exceptions.dart';
 import '../models/invite_validation_model.dart';
 
@@ -25,7 +26,7 @@ class ClinicRemoteDataSourceImpl implements ClinicRemoteDataSource {
       }
       throw const ServerException('Geçersiz davet kodu.', 400);
     } on DioException catch (e) {
-      throw ServerException.fromDio(e, defaultMessage: 'Davet kodu doğrulanamadı.');
+      throw ErrorHandler.handleDioError(e, defaultMessage: 'Davet kodu doğrulanamadı.');
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException(e.toString());
@@ -44,7 +45,7 @@ class ClinicRemoteDataSourceImpl implements ClinicRemoteDataSource {
         throw ServerException('Davet kabul edilemedi: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      throw ServerException.fromDio(e, defaultMessage: 'Klinik üyeliği kabul edilemedi.');
+      throw ErrorHandler.handleDioError(e, defaultMessage: 'Klinik üyeliği kabul edilemedi.');
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException(e.toString());

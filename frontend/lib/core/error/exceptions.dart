@@ -1,6 +1,3 @@
-import 'package:dio/dio.dart';
-import 'error_handler.dart';
-
 class ServerException implements Exception {
   final String? message;
   final int? statusCode;
@@ -11,10 +8,6 @@ class ServerException implements Exception {
     this.statusCode,
     this.retryAfterSeconds,
   ]);
-
-  factory ServerException.fromDio(DioException e, {String? defaultMessage}) {
-    return ErrorHandler.handleDioError(e, defaultMessage: defaultMessage);
-  }
 
   @override
   String toString() {

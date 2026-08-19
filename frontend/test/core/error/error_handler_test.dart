@@ -197,20 +197,11 @@ void main() {
       expect(exception.message, contains('Sunucuya bağlanılamadı'));
     });
 
-    test('ServerException.fromDio factory delegates to ErrorHandler', () {
-      final dioException = DioException(
-        requestOptions: RequestOptions(path: '/test'),
-        response: Response(
-          requestOptions: RequestOptions(path: '/test'),
-          statusCode: 403,
-          data: null,
-        ),
-      );
-
-      final exception = ServerException.fromDio(dioException);
-
-      expect(exception.statusCode, 403);
-      expect(exception.message, 'Bu işlem veya veriye erişim yetkiniz bulunmamaktadır.');
+    test('ServerException can be instantiated as const', () {
+      const exception = ServerException('Test error', 400, 10);
+      expect(exception.message, 'Test error');
+      expect(exception.statusCode, 400);
+      expect(exception.retryAfterSeconds, 10);
     });
   });
 }
