@@ -9,12 +9,4 @@ public class ResendVerificationRequest {
     @NotBlank(message = "E-posta alanı boş bırakılamaz")
     @Email(message = "Lütfen geçerli bir e-posta adresi giriniz")
     private String email;
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
 }

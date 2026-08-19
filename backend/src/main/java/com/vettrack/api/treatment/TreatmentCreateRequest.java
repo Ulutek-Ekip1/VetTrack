@@ -15,13 +15,4 @@ public class TreatmentCreateRequest {
 
     private String description;
     private TreatmentStatus status;
-
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public TreatmentStatus getStatus() { return status; }
-    public void setStatus(TreatmentStatus status) { this.status = status; }
 }

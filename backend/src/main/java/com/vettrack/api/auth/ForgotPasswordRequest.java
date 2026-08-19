@@ -19,12 +19,4 @@ public class ForgotPasswordRequest {
     @NotBlank(message = "E-posta adresi boş olamaz")
     @Email(message = "Geçerli bir e-posta adresi giriniz")
     private String email;
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
 }

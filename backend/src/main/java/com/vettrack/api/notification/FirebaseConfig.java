@@ -4,6 +4,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -12,21 +13,15 @@ import org.springframework.core.io.ResourceLoader;
 
 import java.io.InputStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class FirebaseConfig {
 
     @Value("${firebase.credentials-path:}")
     private String credentialsPath;
 
     private final ResourceLoader resourceLoader;
-
-    public FirebaseConfig(ResourceLoader resourceLoader) {
-        this.resourceLoader = resourceLoader;
-    }
 
     @PostConstruct
     public void initializeFirebase() {

@@ -11,15 +11,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Supplier;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * JWT'den Spring Security authority'leri üretir.

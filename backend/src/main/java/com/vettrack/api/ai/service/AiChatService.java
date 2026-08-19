@@ -30,11 +30,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AiChatService {
 
     public static final String PROMPT_VERSION = "v1.3-security-guardrail";
@@ -50,18 +48,6 @@ public class AiChatService {
 
     @Value("${gemini.model:gemini-2.5-flash}")
     private String modelName;
-
-    public AiChatService(EmergencySafetyService emergencySafetyService,
-                         PetContextService petContextService,
-                         GeminiService geminiService,
-                         ChatMessageRepository chatMessageRepository,
-                         PetRepository petRepository) {
-        this.emergencySafetyService = emergencySafetyService;
-        this.petContextService = petContextService;
-        this.geminiService = geminiService;
-        this.chatMessageRepository = chatMessageRepository;
-        this.petRepository = petRepository;
-    }
 
     @Transactional
     public AiChatResponse processChat(UUID ownerId, String userRole, AiChatRequest request) {
@@ -112,9 +98,6 @@ public class AiChatService {
         }
 
         String sanitizedMessage = emergencySafetyService.sanitizePromptInput(request.getMessage());
-        if (sanitizedMessage == null) {
-            sanitizedMessage = request.getMessage() != null ? request.getMessage().trim() : "";
-        }
         log.info("Processing chat request. ownerId: {}, petId: {}, sanitizedLength: {}", ownerId, request.getPetId(), sanitizedMessage.length());
 
         // 5. Idempotency Check & Reuse Validation (409 Conflict check)

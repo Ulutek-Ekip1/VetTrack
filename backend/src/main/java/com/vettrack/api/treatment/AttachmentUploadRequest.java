@@ -11,9 +11,4 @@ public class AttachmentUploadRequest {
 
     @Min(value = 1, message = "Dosya boyutu geçersiz")
     private long fileSize;
-
-    public String getContentType() { return contentType; }
-    public void setContentType(String contentType) { this.contentType = contentType; }
-    public long getFileSize() { return fileSize; }
-    public void setFileSize(long fileSize) { this.fileSize = fileSize; }
 }

@@ -15,20 +15,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class GeminiService {
 
     private static final int MAX_HISTORY_TURNS = 10;
 
     private final RestClient geminiRestClient;
-
-    public GeminiService(RestClient geminiRestClient) {
-        this.geminiRestClient = geminiRestClient;
-    }
 
     @Value("${gemini.model:gemini-1.5-flash}")
     private String modelName;
