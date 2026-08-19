@@ -25,19 +25,16 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
     try {
       final response = await dio.get(
         '/visits/code/${Uri.encodeComponent(code)}',
-        queryParameters: {'clinicId': clinicId},
+        queryParameters: clinicId.isNotEmpty ? {'clinicId': clinicId} : null,
       );
       return PatientSearchResultModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw const ServerException(
-            'Kod bulunamadı. Lütfen erişim kodunu kontrol edin.');
+            'Kod bulunamadı. Lütfen erişim kodunu kontrol edin.', 404);
       }
-      final data = e.response?.data;
-      final message =
-          data is Map<String, dynamic> ? data['message'] as String? : null;
-      throw ServerException(message ?? e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Hasta arama işlemi gerçekleştirilemedi.');
     }
   }
 
@@ -47,7 +44,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
       final response = await dio.post('/visits', data: {'petId': petId});
       return VisitModel.fromJson(response.data);
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Muayene başlatılamadı.');
     }
   }
 
@@ -56,7 +53,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
     try {
       await dio.put('/visits/$visitId/close');
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Muayene kapatılamadı.');
     }
   }
 
@@ -67,7 +64,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
       final List<dynamic> list = response.data;
       return list.map((json) => VisitModel.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Ziyaret geçmişi alınamadı.');
     }
   }
 
@@ -78,7 +75,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
       final List<dynamic> list = response.data;
       return list.map((json) => VisitModel.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Muayene geçmişi alınamadı.');
     }
   }
 
@@ -89,7 +86,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
       final List<dynamic> list = response.data;
       return list.map((json) => VisitModel.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Pet muayene geçmişi alınamadı.');
     }
   }
 
@@ -100,9 +97,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
       return ActiveVisitContextModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw ServerException(e.response?.data is Map
-          ? (e.response!.data['message'] as String?)
-          : e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Aktif muayene bilgisi alınamadı.');
     }
   }
 }

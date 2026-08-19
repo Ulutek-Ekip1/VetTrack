@@ -97,7 +97,7 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
       );
       return PetModel.fromJson(response.data);
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Evcil hayvan eklenemedi.');
     }
   }
 
@@ -108,7 +108,7 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
       final List<dynamic> petsJson = response.data;
       return petsJson.map((json) => PetModel.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Evcil hayvanlar alınamadı.');
     }
   }
 
@@ -118,7 +118,7 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
       final response = await dio.get('/pets/$id');
       return PetModel.fromJson(response.data);
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Evcil hayvan detayı alınamadı.');
     }
   }
 
@@ -174,7 +174,7 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
       );
       return PetModel.fromJson(response.data);
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Evcil hayvan bilgileri güncellenemedi.');
     }
   }
 
@@ -191,7 +191,7 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
       );
       return response.data['photoUrl'] as String;
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Evcil hayvan fotoğrafı yüklenemedi.');
     }
   }
 
@@ -200,7 +200,7 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
     try {
       await dio.delete('/pets/$id/photo');
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Evcil hayvan fotoğrafı silinemedi.');
     }
   }
 
@@ -209,7 +209,7 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
     try {
       await dio.delete('/pets/$id');
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Evcil hayvan kaydı silinemedi.');
     }
   }
 
@@ -220,7 +220,7 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
       final List<dynamic> historyJson = response.data;
       return historyJson.map((json) => PetWeightModel.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw ServerException(e.message);
+      throw ServerException.fromDio(e, defaultMessage: 'Kilo geçmişi alınamadı.');
     }
   }
 }

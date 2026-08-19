@@ -34,14 +34,8 @@ class _DoctorSearchScreenState extends State<DoctorSearchScreen> {
 
     final authState = context.read<AuthCubit>().state;
     if (authState is Authenticated) {
-      final clinicId = authState.user.clinicId;
-      if (clinicId != null && clinicId.isNotEmpty) {
-        context.read<VisitCubit>().searchByCode(code, clinicId);
-      } else {
-        _showMessage(
-            'Klinik üyeliği bilgisi bulunamadı. Lütfen girişinizi kontrol edin.',
-            isError: true);
-      }
+      final clinicId = authState.user.clinicId ?? '';
+      context.read<VisitCubit>().searchByCode(code, clinicId);
     } else {
       _showMessage('Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.',
           isError: true);
