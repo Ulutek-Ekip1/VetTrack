@@ -13,6 +13,30 @@ class VisitModel extends VisitEntity {
   });
 
   factory VisitModel.fromJson(Map<String, dynamic> json) {
+    final startedAtVal = json['startedAt'] ?? json['started_at'];
+    if (startedAtVal == null) {
+      throw const FormatException('Ziyaret başlangıç tarihi bulunamadı.');
+    }
+    if (startedAtVal is! String) {
+      throw const FormatException('Ziyaret başlangıç tarihi formatı desteklenmiyor.');
+    }
+    final startedAt = DateTime.tryParse(startedAtVal);
+    if (startedAt == null) {
+      throw const FormatException('Ziyaret başlangıç tarihi geçersiz bir zaman biçiminde.');
+    }
+
+    final endedAtVal = json['endedAt'] ?? json['ended_at'];
+    DateTime? endedAt;
+    if (endedAtVal != null) {
+      if (endedAtVal is! String) {
+        throw const FormatException('Ziyaret bitiş tarihi formatı desteklenmiyor.');
+      }
+      endedAt = DateTime.tryParse(endedAtVal);
+      if (endedAt == null) {
+        throw const FormatException('Ziyaret bitiş tarihi geçersiz bir zaman biçiminde.');
+      }
+    }
+
     return VisitModel(
       id: json['id'].toString(),
       petId: (json['petId'] ?? json['pet_id'] ?? '').toString(),
@@ -20,17 +44,8 @@ class VisitModel extends VisitEntity {
       vetStaffName:
           (json['vetStaffName'] ?? json['vet_staff_name'])?.toString(),
       status: (json['status'] ?? 'ongoing').toString(),
-      startedAt: json['startedAt'] != null
-          ? (DateTime.tryParse(json['startedAt'] as String) ?? DateTime.now())
-          : (json['started_at'] != null
-              ? (DateTime.tryParse(json['started_at'] as String) ??
-                  DateTime.now())
-              : DateTime.now()),
-      endedAt: json['endedAt'] != null
-          ? DateTime.tryParse(json['endedAt'] as String)
-          : (json['ended_at'] != null
-              ? DateTime.tryParse(json['ended_at'] as String)
-              : null),
+      startedAt: startedAt,
+      endedAt: endedAt,
       chiefComplaint:
           (json['chiefComplaint'] ?? json['chief_complaint']) as String?,
     );
