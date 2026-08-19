@@ -1033,6 +1033,56 @@ paths:
         '404':
           description: Geçersiz veya süresi dolmuş davet token'ı
 
+  /clinics/invites/register-and-accept:
+    post:
+      tags: [Clinics]
+      summary: Davetle kayıt ol ve kliniğe katıl (Atomik, Public)
+      description: |
+        INT-FINDING-02 fix: public register + authenticated accept iki adımlı akışının aksine,
+        yeni bir veteriner hesabı oluşturur ve klinik üyeliğini TEK istekte atomik olarak bağlar;
+        başarılı oturum tokenları döner. Supabase Dashboard'daki e-posta doğrulama ayarına
+        bağımlı değildir — geçerli, e-posta eşleşmesi doğrulanmış davet token'ı kimliği zaten
+        kanıtlamış sayılır. Idempotent: kısmi bir önceki denemeden sonra aynı istekle güvenle
+        retry edilebilir.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, token]
+              properties:
+                name:
+                  type: string
+                  example: "Dr. Ahmet Yılmaz"
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                phone:
+                  type: string
+                token:
+                  type: string
+                  description: Ham davet kodu (rawToken)
+      responses:
+        '201':
+          description: Hesap oluşturuldu/bulundu, klinik üyeliği bağlandı, oturum tokenları döner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Davet farklı bir e-posta adresi için oluşturulmuş
+        '404':
+          description: Geçersiz davet token'ı
+        '409':
+          description: Bu e-posta ile FARKLI bir şifreyle zaten kayıtlı bir hesap var
+
   /clinics/invites/validate:
     get:
       tags: [Clinics]

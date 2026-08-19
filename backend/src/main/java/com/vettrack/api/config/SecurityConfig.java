@@ -55,6 +55,8 @@ public class SecurityConfig {
                     "/auth/**",
                     "/clinics/invites/validate",
                     "/api/clinics/invites/validate",
+                    "/clinics/invites/register-and-accept",
+                    "/api/clinics/invites/register-and-accept",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",

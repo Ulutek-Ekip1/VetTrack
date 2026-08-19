@@ -1,11 +1,17 @@
 package com.vettrack.api.clinic;
 
+import com.vettrack.api.auth.AuthResponse;
+import com.vettrack.api.auth.AuthService;
 import com.vettrack.api.clinic.dto.ClinicInviteResponse;
+import com.vettrack.api.clinic.dto.RegisterAndAcceptInviteRequest;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.common.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,6 +44,7 @@ public class ClinicController {
     private final ClinicMembershipRepository membershipRepository;
     private final ClinicInviteRepository inviteRepository;
     private final ClinicMembershipService membershipService;
+    private final AuthService authService;
     private static final SecureRandom TOKEN_RANDOM = new SecureRandom();
 
     @PostMapping("/{clinicId}/invites")
@@ -161,6 +168,85 @@ public class ClinicController {
     ) {
         String token = requestBody != null ? requestBody.get("token") : null;
         return acceptInvite(token, jwt);
+    }
+
+    @PostMapping("/invites/register-and-accept")
+    @Operation(summary = "Davetle Kayıt Ol ve Kliniğe Katıl (Atomik)",
+            description = "INT-FINDING-02 fix: public register + authenticated accept iki adımlı akışının "
+                    + "aksine, yeni bir veteriner hesabı oluşturur ve klinik üyeliğini TEK istekte atomik "
+                    + "olarak bağlar; başarılı oturum tokenları döner. Supabase e-posta doğrulama ayarına "
+                    + "bağımlı değildir — geçerli davet token'ı kimliği zaten doğrulamış sayılır. Idempotent: "
+                    + "kısmi bir önceki denemeden sonra aynı istekle güvenle retry edilebilir.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Hesap oluşturuldu/bulundu, klinik üyeliği bağlandı, oturum tokenları döner"),
+        @ApiResponse(responseCode = "400", description = "Geçersiz/süresi dolmuş/iptal edilmiş davet veya kota aşımı"),
+        @ApiResponse(responseCode = "401", description = "Davet farklı bir e-posta adresi için oluşturulmuş"),
+        @ApiResponse(responseCode = "404", description = "Geçersiz davet token'ı"),
+        @ApiResponse(responseCode = "409", description = "Bu e-posta ile FARKLI bir şifreyle zaten kayıtlı bir hesap var")
+    })
+    @Transactional
+    public ResponseEntity<AuthResponse> registerAndAcceptInvite(@Valid @RequestBody RegisterAndAcceptInviteRequest request) {
+        String tokenHash = sha256(request.getToken());
+        ClinicInvite invite = inviteRepository.findWithLockByTokenHash(tokenHash)
+                .orElseThrow(() -> new ResourceNotFoundException("Geçersiz davet token'ı."));
+
+        if (invite.getAcceptedAt() != null) {
+            throw new IllegalArgumentException("Bu davet daha önce kullanılmış.");
+        }
+        if (invite.getRevokedAt() != null) {
+            throw new IllegalArgumentException("Bu davet iptal edilmiş.");
+        }
+        if (invite.getExpiresAt().isBefore(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("Bu davetin süresi dolmuş.");
+        }
+
+        String inviteEmail = invite.getEmail();
+        if (inviteEmail != null && !inviteEmail.isBlank()
+                && !inviteEmail.trim().equalsIgnoreCase(request.getEmail().trim())) {
+            throw new UnauthorizedException("Bu davet farklı bir e-posta adresi için oluşturulmuştur.");
+        }
+
+        // Kullanıcı zaten mevcutsa (ör. önceki bir denemede oluşturuldu ama üyelik yazımı
+        // başarısız oldu) AuthService aynı şifreyle login'e düşer — retry güvenle çalışır.
+        // Şifre gerçekten farklıysa (bu davetle ilgisiz bağımsız bir hesap) UnauthorizedException
+        // olduğu gibi 401 olarak dışarı yansır, hatalı biçimde 409'a çevrilmez.
+        AuthResponse authResponse = authService.createConfirmedUserAndLogin(
+                request.getEmail(), request.getPassword(), request.getName(), request.getPhone());
+
+        UUID userId = extractUserId(authResponse);
+
+        // Kota kontrolü userId bilinmeden yapılamaz (davet zaten oluşturulurken kotadan
+        // ayrılmıştı — burası ikincil bir güvenlik ağı). Sadece GERÇEKTEN yeni bir üyelik
+        // ekleniyorsa uygulanır; idempotent retry'da mevcut üyenin kendi koltuğu tekrar
+        // sayılıp yanlışlıkla reddedilmesin diye.
+        Optional<ClinicMembership> existingMembership =
+                membershipRepository.findByUserIdAndClinicId(userId, invite.getClinicId());
+        if (existingMembership.isEmpty()) {
+            membershipService.validateClinicVetQuotaForAccept(invite.getClinicId());
+            membershipRepository.save(ClinicMembership.builder()
+                    .userId(userId)
+                    .clinicId(invite.getClinicId())
+                    .role("doctor")
+                    .isClinicAdmin(false)
+                    .status("active")
+                    .joinedAt(OffsetDateTime.now())
+                    .build());
+        }
+
+        invite.setAcceptedAt(OffsetDateTime.now());
+        inviteRepository.save(invite);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(authResponse);
+    }
+
+    private static UUID extractUserId(AuthResponse authResponse) {
+        if (authResponse.getUser() instanceof Map<?, ?> userMap) {
+            Object id = userMap.get("id");
+            if (id != null) {
+                return UUID.fromString(id.toString());
+            }
+        }
+        throw new IllegalStateException("Supabase yanıtında kullanıcı id'si bulunamadı.");
     }
 
     @GetMapping("/invites/validate")
