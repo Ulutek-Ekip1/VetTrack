@@ -496,59 +496,30 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               return const SizedBox.shrink();
             },
           ),
-          const SizedBox(height: 24),
-          const Text('Son Aktivite',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('15.05.2026 - Genel Muayene',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text('Patili Veteriner Kliniği',
-                        style: TextStyle(
-                            color: Colors.grey.shade600, fontSize: 13)),
-                  ],
-                ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
         ],
       ),
     );
   }
 
-  void _showAllWeightsBottomSheet(BuildContext context, List<PetWeightEntity> history) {
-      showModalBottomSheet(
-        context: context, 
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (bottomSheetContext) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            padding: EdgeInsets.only(
-              top: 20,
-              left: 20,
-              right: 20,
-              bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 20,
-            ),
-             child: Column(
+  void _showAllWeightsBottomSheet(
+      BuildContext context, List<PetWeightEntity> history) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 20,
+          ),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -583,8 +554,18 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                       ..sort((a, b) => b.date.compareTo(a.date));
                     final record = sortedList[index];
                     final months = [
-                      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-                      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+                      'Ocak',
+                      'Şubat',
+                      'Mart',
+                      'Nisan',
+                      'Mayıs',
+                      'Haziran',
+                      'Temmuz',
+                      'Ağustos',
+                      'Eylül',
+                      'Ekim',
+                      'Kasım',
+                      'Aralık'
                     ];
                     final dateStr =
                         '${record.date.day.toString().padLeft(2, '0')} ${months[record.date.month - 1]} ${record.date.year}';
@@ -592,7 +573,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                       contentPadding: EdgeInsets.zero,
                       leading: const CircleAvatar(
                         backgroundColor: Color(0xFFF1F5F9),
-                        child: Icon(Icons.scale_outlined, color: Color(0xFF004AC6), size: 20),
+                        child: Icon(Icons.scale_outlined,
+                            color: Color(0xFF004AC6), size: 20),
                       ),
                       title: Text(
                         '${record.weight.toStringAsFixed(record.weight % 1 == 0 ? 0 : 1)} kg',
@@ -603,7 +585,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                       ),
                       subtitle: Text(
                         dateStr,
-                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                     );
                   },
@@ -640,7 +623,8 @@ class _PetDetailScreenState extends State<PetDetailScreen>
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Yeni Kilo Kaydı',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           content: Column(
@@ -652,15 +636,16 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: 'Örn: 12.5',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
             ],
@@ -693,9 +678,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                 Navigator.pop(dialogContext);
                 // Pet verisini güncelle
                 context.read<PetCubit>().updatePet(
-                  id: widget.petId,
-                  weight: newW,
-                );
+                      id: widget.petId,
+                      weight: newW,
+                    );
                 // Grafik verilerini yenile
                 Future.delayed(const Duration(milliseconds: 500), () {
                   if (context.mounted) {
