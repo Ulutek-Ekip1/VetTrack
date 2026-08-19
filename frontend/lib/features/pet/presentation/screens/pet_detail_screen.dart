@@ -294,11 +294,23 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             children: [
               const Text('Kilo Grafiği',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text('Tümü',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: primaryBlue)),
+              BlocBuilder<WeightHistoryCubit, WeightHistoryState>(
+                builder: (context, state) {
+                  if (state is WeightHistoryLoaded &&
+                      state.history.isNotEmpty) {
+                    return GestureDetector(
+                      onTap: () =>
+                          _showAllWeightsBottomSheet(context, state.history),
+                      child: Text('Tümü',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: primaryBlue)),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -516,6 +528,188 @@ class _PetDetailScreenState extends State<PetDetailScreen>
           const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  void _showAllWeightsBottomSheet(BuildContext context, List<PetWeightEntity> history) {
+      showModalBottomSheet(
+        context: context, 
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (bottomSheetContext) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: EdgeInsets.only(
+              top: 20,
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 20,
+            ),
+             child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Kilo Geçmişi',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF131B2E),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.grey),
+                    onPressed: () => Navigator.pop(bottomSheetContext),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.4,
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: history.length,
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final sortedList = List<PetWeightEntity>.from(history)
+                      ..sort((a, b) => b.date.compareTo(a.date));
+                    final record = sortedList[index];
+                    final months = [
+                      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+                      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+                    ];
+                    final dateStr =
+                        '${record.date.day.toString().padLeft(2, '0')} ${months[record.date.month - 1]} ${record.date.year}';
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const CircleAvatar(
+                        backgroundColor: Color(0xFFF1F5F9),
+                        child: Icon(Icons.scale_outlined, color: Color(0xFF004AC6), size: 20),
+                      ),
+                      title: Text(
+                        '${record.weight.toStringAsFixed(record.weight % 1 == 0 ? 0 : 1)} kg',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF131B2E),
+                        ),
+                      ),
+                      subtitle: Text(
+                        dateStr,
+                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(bottomSheetContext);
+                  _showUpdateWeightDialog(context);
+                },
+                icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                label: const Text('Yeni Kilo Kaydet'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF004AC6),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Yeni kilo kaydetme
+  void _showUpdateWeightDialog(BuildContext context) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Yeni Kilo Kaydı',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Lütfen hayvanın yeni kilosunu girin (kg):',
+                  style: TextStyle(fontSize: 14, color: Colors.grey)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Örn: 12.5',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('İptal', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF004AC6),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              onPressed: () {
+                final text = controller.text.trim().replaceAll(',', '.');
+                final newW = double.tryParse(text);
+                if (newW == null || newW <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Lütfen geçerli bir kilo girin.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                Navigator.pop(dialogContext);
+                // Pet verisini güncelle
+                context.read<PetCubit>().updatePet(
+                  id: widget.petId,
+                  weight: newW,
+                );
+                // Grafik verilerini yenile
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (context.mounted) {
+                    context
+                        .read<WeightHistoryCubit>()
+                        .fetchWeightHistory(widget.petId);
+                  }
+                });
+              },
+              child: const Text('Kaydet'),
+            ),
+          ],
+        );
+      },
     );
   }
 
