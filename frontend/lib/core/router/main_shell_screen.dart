@@ -8,7 +8,7 @@ const Map<String, String> _routeNames = {
   'vet': 'Veteriner Paneli',
   'search': 'Hasta Arama',
   'history': 'Muayene Geçmişi',
-  'profile': 'Klinik Profil',
+  'profile': 'Profilim',
   'visit': 'Muayene',
   'active': 'Aktif Muayene',
   'treatment': 'Tedavi Girişi',
@@ -193,10 +193,10 @@ class VetShellScreen extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.w600)),
               ),
               NavigationRailDestination(
-                icon: const Icon(Icons.medical_services_outlined, size: 22),
-                selectedIcon: Icon(Icons.medical_services,
+                icon: const Icon(Icons.person_outline, size: 22),
+                selectedIcon: Icon(Icons.person,
                     color: theme.colorScheme.secondary, size: 22),
-                label: const Text('Klinik Profil',
+                label: const Text('Profilim',
                     style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ],
@@ -251,23 +251,35 @@ class VetShellScreen extends StatelessWidget {
                             color: theme.colorScheme.outlineVariant,
                           ),
                           const SizedBox(width: AppDimensions.spacingMd),
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundColor: theme.colorScheme.secondary,
-                            child: Text(
-                              'V',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSecondary,
-                                fontWeight: FontWeight.bold,
+                          InkWell(
+                            onTap: () => context.go('/vet/profile'),
+                            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingSm, vertical: AppDimensions.spacingXs),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: theme.colorScheme.secondary,
+                                    child: Text(
+                                      'V',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        color: theme.colorScheme.onSecondary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppDimensions.spacingSm),
+                                  Text(
+                                    'Klinik Hekimi',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: AppDimensions.spacingSm),
-                          Text(
-                            'Klinik Hekimi',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                         ],
