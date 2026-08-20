@@ -445,19 +445,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Kayıt Ol Yönlendirmesi
                       if (AppPlatform.isVetWebExperience) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                         alignment: WrapAlignment.center,
+                         crossAxisAlignment: WrapCrossAlignment.center,
+                         spacing: 4,
+                         runSpacing: 4,
                           children: [
                             Text(
                               "Kliniğinize katılmak için davet kodunuz mu var?",
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                             TextButton(
                               onPressed: () {
                                 context.push(AppRoutes.vetInvite);
                               },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
                               child: Text(
                                 "Davet Kodu ile Katılın",
                                 style: theme.textTheme.labelLarge?.copyWith(
