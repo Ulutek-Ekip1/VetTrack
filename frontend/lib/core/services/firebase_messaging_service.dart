@@ -32,8 +32,12 @@ class FirebaseMessagingService {
       FlutterLocalNotificationsPlugin();
   final StreamController<void> _notificationEvents =
       StreamController<void>.broadcast();
+  StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
+  StreamSubscription<RemoteMessage>? _messageOpenedAppSubscription;
+  StreamSubscription<String>? _tokenRefreshSubscription;
   bool _tokenRefreshListening = false;
   bool _initialized = false;
+  bool _disposed = false;
   String? _pendingPetTimelinePath;
 
   Stream<void> get notificationEvents => _notificationEvents.stream;
@@ -44,12 +48,14 @@ class FirebaseMessagingService {
   }
 
   Future<void> sendTokenToBackend() async {
-    final token = await _messaging.getToken();
-    if (token == null) return;
-    await sl<RegisterDeviceTokenUseCase>()(
-      fcmToken: token,
-      platform: _platform,
-    );
+    try {
+      final token = await _messaging.getToken();
+      if (token == null) return;
+      await _registerToken(token);
+    } catch (error, stackTrace) {
+      debugPrint('FCM token alınamadı: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   Future<void> removeTokenFromBackend() async {
@@ -60,11 +66,15 @@ class FirebaseMessagingService {
   }
 
   Future<void> initNotifications() async {
+    if (_disposed) {
+      throw StateError('FirebaseMessagingService kapatıldıktan sonra başlatılamaz.');
+    }
     if (_initialized) return;
     _initialized = true;
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationClick);
+    _messageOpenedAppSubscription =
+        FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationClick);
     await _initializeLocalNotifications();
     final message = await _messaging.getInitialMessage();
     if (message != null) _handleNotificationClick(message);
@@ -82,8 +92,31 @@ class FirebaseMessagingService {
   }
 
   Future<AuthorizationStatus> requestPermissionFromUser() async {
-    final settings = await _messaging.requestPermission(
-        alert: true, badge: true, sound: true);
+    late final NotificationSettings settings;
+
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      final granted = await androidPlugin?.requestNotificationsPermission();
+
+      // Plugin kaydı beklenmedik biçimde bulunamazsa Firebase çağrısı güvenli
+      // fallback olarak Android izin akışını denemeye devam eder.
+      settings = granted == null
+          ? await _messaging.requestPermission(
+              alert: true,
+              badge: true,
+              sound: true,
+            )
+          : await _messaging.getNotificationSettings();
+    } else {
+      settings = await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
+
     final status = settings.authorizationStatus;
     if (status == AuthorizationStatus.authorized ||
         status == AuthorizationStatus.provisional) {
@@ -121,7 +154,9 @@ class FirebaseMessagingService {
   }
 
   void _setupForegroundListener() {
-    FirebaseMessaging.onMessage.listen((message) {
+    _foregroundMessageSubscription =
+        FirebaseMessaging.onMessage.listen((message) {
+      if (_disposed) return;
       final title = message.data['title'] ??
           message.notification?.title ??
           'Yeni Bildirim';
@@ -191,14 +226,31 @@ class FirebaseMessagingService {
   }
 
   void listenForTokenChanges() {
-    if (_tokenRefreshListening) return;
+    if (_disposed || _tokenRefreshListening) return;
     _tokenRefreshListening = true;
-    _messaging.onTokenRefresh.listen((newToken) async {
+    _tokenRefreshSubscription = _messaging.onTokenRefresh.listen(
+      (newToken) => unawaited(_registerToken(newToken)),
+      onError: (Object error, StackTrace stackTrace) {
+        debugPrint('FCM token yenileme akışı hata verdi: $error');
+        debugPrintStack(stackTrace: stackTrace);
+      },
+      onDone: () {
+        _tokenRefreshListening = false;
+        _tokenRefreshSubscription = null;
+      },
+    );
+  }
+
+  Future<void> _registerToken(String token) async {
+    try {
       await sl<RegisterDeviceTokenUseCase>()(
-        fcmToken: newToken,
+        fcmToken: token,
         platform: _platform,
       );
-    });
+    } catch (error, stackTrace) {
+      debugPrint('FCM token backend\'e kaydedilemedi: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   void _navigateToPetTimeline(Map<String, dynamic> data) {
@@ -215,5 +267,25 @@ class FirebaseMessagingService {
 
     _pendingPetTimelinePath = null;
     context.push(path);
+  }
+
+  Future<void> close() async {
+    if (_disposed) return;
+    _disposed = true;
+
+    await Future.wait<void>([
+      if (_foregroundMessageSubscription != null)
+        _foregroundMessageSubscription!.cancel(),
+      if (_messageOpenedAppSubscription != null)
+        _messageOpenedAppSubscription!.cancel(),
+      if (_tokenRefreshSubscription != null)
+        _tokenRefreshSubscription!.cancel(),
+    ]);
+
+    _foregroundMessageSubscription = null;
+    _messageOpenedAppSubscription = null;
+    _tokenRefreshSubscription = null;
+    _tokenRefreshListening = false;
+    await _notificationEvents.close();
   }
 }

@@ -50,7 +50,6 @@ public class TreatmentService {
                 .status(request.getStatus() != null ? request.getStatus() : TreatmentStatus.PLANNED)
                 .startDate(OffsetDateTime.now())
                 .enteredBy(vetStaffId)
-                .notificationSent(true)
                 .build();
 
         TreatmentEntry savedEntry = treatmentEntryRepository.save(entry);
@@ -62,6 +61,10 @@ public class TreatmentService {
                 "Veteriner hekiminiz '" + savedEntry.getTitle() + "' kaydını ekledi.",
                 savedEntry.getId()
         );
+        // Bildirim kaydı/event'i başarıyla oluşturulduktan sonra işaretle. Bu
+        // çağrı hata verirse transaction rollback olur ve kayıt gönderilmiş
+        // görünmez.
+        savedEntry.setNotificationSent(true);
         return savedEntry;
     }
 

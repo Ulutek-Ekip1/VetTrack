@@ -251,6 +251,7 @@ Future<void> init() async {
   // ---------------------------------------------------------------------------
   sl.registerLazySingleton<FirebaseMessagingService>(
     () => FirebaseMessagingService(),
+    dispose: (service) => service.close(),
   );
   sl.registerLazySingleton<NotificationRemoteDataSource>(
     () => NotificationRemoteDataSourceImpl(sl()),

@@ -23,12 +23,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -230,7 +233,7 @@ class TreatmentServiceMutationGuardTest {
         Pet pet = Pet.builder().id(petId).ownerId(ownerId).name("Pamuk").species("Kedi").build();
         TreatmentEntry savedEntry = TreatmentEntry.builder()
                 .id(treatmentId).visitId(visitId).title("Kuduz aşısı")
-                .type("vaccine").status(TreatmentStatus.PLANNED).notificationSent(true).build();
+                .type("vaccine").status(TreatmentStatus.PLANNED).build();
 
         when(visitRepository.findById(visitId)).thenReturn(Optional.of(ongoingVisit));
         when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
@@ -243,8 +246,38 @@ class TreatmentServiceMutationGuardTest {
         TreatmentEntry result = treatmentService.createTreatment(visitId, request, vetStaffId);
 
         assertEquals(treatmentId, result.getId());
+        assertTrue(Boolean.TRUE.equals(result.getNotificationSent()));
         verify(notificationService).sendNotificationToOwner(
                 eq(ownerId), eq(petId), eq(NotificationType.TREATMENT),
                 anyString(), anyString(), eq(treatmentId));
+    }
+
+    @Test
+    @DisplayName("Bildirim kaydı oluşturulamazsa tedavi gönderilmiş olarak işaretlenmemeli")
+    void createTreatment_doesNotMarkNotificationSentWhenNotificationFails() {
+        UUID petId = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        Visit ongoingVisit = Visit.builder().id(visitId).petId(petId).status("ongoing").build();
+        Pet pet = Pet.builder().id(petId).ownerId(ownerId).name("Pamuk").species("Kedi").build();
+        TreatmentEntry savedEntry = TreatmentEntry.builder()
+                .id(treatmentId).visitId(visitId).title("Kuduz aşısı")
+                .type("vaccine").status(TreatmentStatus.PLANNED).build();
+
+        when(visitRepository.findById(visitId)).thenReturn(Optional.of(ongoingVisit));
+        when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
+        when(treatmentEntryRepository.save(any(TreatmentEntry.class))).thenReturn(savedEntry);
+        doThrow(new IllegalStateException("notification unavailable"))
+                .when(notificationService)
+                .sendNotificationToOwner(
+                        eq(ownerId), eq(petId), eq(NotificationType.TREATMENT),
+                        anyString(), anyString(), eq(treatmentId));
+
+        TreatmentCreateRequest request = new TreatmentCreateRequest();
+        request.setType("vaccine");
+        request.setTitle("Kuduz aşısı");
+
+        assertThrows(IllegalStateException.class, () ->
+                treatmentService.createTreatment(visitId, request, vetStaffId));
+        assertFalse(Boolean.TRUE.equals(savedEntry.getNotificationSent()));
     }
 }
