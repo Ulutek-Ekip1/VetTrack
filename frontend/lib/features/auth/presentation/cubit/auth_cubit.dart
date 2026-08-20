@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vettrack_frontend/features/auth/domain/usecases/forgot_password_usecase.dart';
@@ -26,17 +28,17 @@ class AuthCubit extends Cubit<AuthState> {
   final ResendVerificationEmailUsecase resendVerificationEmailUsecase;
   int _sessionOperation = 0;
 
-  AuthCubit(
-      {required this.loginWithEmail,
-      required this.registerUseCase,
-      required this.logoutUseCase,
-      required this.signInWithGoogleUseCase,
-      required this.authRepository,
-      required this.registerDeviceTokenUseCase,
-      required this.unregisterDeviceTokenUseCase,
-      required this.forgotPasswordUseCase,
-      required this.resendVerificationEmailUsecase})
-      : super(AuthInitial());
+  AuthCubit({
+    required this.loginWithEmail,
+    required this.registerUseCase,
+    required this.logoutUseCase,
+    required this.signInWithGoogleUseCase,
+    required this.authRepository,
+    required this.registerDeviceTokenUseCase,
+    required this.unregisterDeviceTokenUseCase,
+    required this.forgotPasswordUseCase,
+    required this.resendVerificationEmailUsecase,
+  }) : super(AuthInitial());
 
   Future<void> checkAuthStatus() async {
     final operation = ++_sessionOperation;
@@ -49,6 +51,7 @@ class AuthCubit extends Cubit<AuthState> {
       if (operation != _sessionOperation) return;
       if (user != null) {
         emit(Authenticated(user));
+        unawaited(_syncNotificationsForOwner(user));
       } else {
         emit(const Unauthenticated());
       }
@@ -73,14 +76,8 @@ class AuthCubit extends Cubit<AuthState> {
         rememberMe: rememberMe,
       );
       if (operation != _sessionOperation) return;
-      try {
-        if (user.role == UserRole.owner) {
-          sl<FirebaseMessagingService>().listenForTokenChanges();
-        }
-      } catch (fcmError) {
-        // Hata yutulur, kullanıcının giriş yapması engellenmez.
-      }
       emit(Authenticated(user));
+      unawaited(_syncNotificationsForOwner(user));
     } catch (e) {
       if (operation != _sessionOperation) return;
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
@@ -98,26 +95,25 @@ class AuthCubit extends Cubit<AuthState> {
         return;
       }
       emit(Authenticated(user));
+      unawaited(_syncNotificationsForOwner(user));
     } catch (e) {
       if (operation != _sessionOperation) return;
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
-  Future<void> signUp(String email, String password, String name, String? phone,
-      UserRole role) async {
+  Future<void> signUp(
+    String email,
+    String password,
+    String name,
+    String? phone,
+    UserRole role,
+  ) async {
     final operation = ++_sessionOperation;
     emit(const AuthLoading());
     try {
-      final user = await registerUseCase(email, password, name, phone, role);
+      await registerUseCase(email, password, name, phone, role);
       if (operation != _sessionOperation) return;
-      try {
-        if (user.role == UserRole.owner) {
-          sl<FirebaseMessagingService>().listenForTokenChanges();
-        }
-      } catch (fcmError) {
-        // Hata yutulur
-      }
       emit(const RegistrationSuccess());
     } catch (e) {
       if (operation != _sessionOperation) return;
@@ -135,8 +131,7 @@ class AuthCubit extends Cubit<AuthState> {
           await sl<FirebaseMessagingService>().removeTokenFromBackend();
         }
       } catch (_) {
-        // FCM token silme işlemi başarsız olsa bile (örneğin sunucuya ulaşılamıyor),
-        // kullanıcının çıkış yapmasını engellememek için hatayı yutuyoruz.
+        // FCM token silme hatası logout akışını engellememeli.
       }
       await logoutUseCase();
       if (operation != _sessionOperation) return;
@@ -171,11 +166,19 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  //Oturum süresi dolunca yerel tokenı silip uygulmayı unauthenticated duruma geçirmek için
   Future<void> handleSessionExpired() async {
     ++_sessionOperation;
     await logoutUseCase();
     emit(const Unauthenticated(
         'Oturumunuzun süresi doldu, lütfen tekrar giriş yapın.'));
+  }
+
+  Future<void> _syncNotificationsForOwner(UserEntity user) async {
+    if (user.role != UserRole.owner) return;
+    try {
+      await sl<FirebaseMessagingService>().syncTokenIfAuthorized();
+    } catch (_) {
+      // Bildirim kurulumu giriş akışını engellememeli.
+    }
   }
 }

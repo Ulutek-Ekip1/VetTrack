@@ -108,6 +108,7 @@ public class ScheduledTreatmentNotifier {
 
                             notificationService.sendNotificationToOwner(
                                     pet.getOwnerId(),
+                                    pet.getId(),
                                     NotificationType.TREATMENT,
                                     title,
                                     body,

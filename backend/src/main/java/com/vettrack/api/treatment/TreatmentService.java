@@ -6,6 +6,10 @@ import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.common.exception.EditWindowExpiredException;
 import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
+import com.vettrack.api.notification.NotificationService;
+import com.vettrack.api.notification.NotificationType;
+import com.vettrack.api.pet.Pet;
+import com.vettrack.api.pet.PetRepository;
 import com.vettrack.api.storage.StorageService;
 import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitRepository;
@@ -27,12 +31,16 @@ public class TreatmentService {
     private final VisitRepository visitRepository;
     private final AuditLogRepository auditLogRepository;
     private final StorageService storageService;
+    private final PetRepository petRepository;
+    private final NotificationService notificationService;
 
     private static final int EDIT_WINDOW_MINUTES = 15;
 
     @Transactional
     public TreatmentEntry createTreatment(UUID visitId, TreatmentCreateRequest request, UUID vetStaffId) {
-        checkVisitOngoing(visitId, "Kapalı ziyarete tedavi girişi yapılamaz");
+        Visit visit = checkVisitOngoing(visitId, "Kapalı ziyarete tedavi girişi yapılamaz");
+        Pet pet = petRepository.findById(visit.getPetId())
+                .orElseThrow(() -> new ResourceNotFoundException("Evcil hayvan bulunamadı"));
 
         TreatmentEntry entry = TreatmentEntry.builder()
                 .visitId(visitId)
@@ -44,7 +52,20 @@ public class TreatmentService {
                 .enteredBy(vetStaffId)
                 .build();
 
-        return treatmentEntryRepository.save(entry);
+        TreatmentEntry savedEntry = treatmentEntryRepository.save(entry);
+        notificationService.sendNotificationToOwner(
+                pet.getOwnerId(),
+                pet.getId(),
+                NotificationType.TREATMENT,
+                "Yeni tedavi kaydı: " + pet.getName(),
+                "Veteriner hekiminiz '" + savedEntry.getTitle() + "' kaydını ekledi.",
+                savedEntry.getId()
+        );
+        // Bildirim kaydı/event'i başarıyla oluşturulduktan sonra işaretle. Bu
+        // çağrı hata verirse transaction rollback olur ve kayıt gönderilmiş
+        // görünmez.
+        savedEntry.setNotificationSent(true);
+        return savedEntry;
     }
 
     @Transactional(readOnly = true)
@@ -160,12 +181,13 @@ public class TreatmentService {
         }
     }
 
-    private void checkVisitOngoing(UUID visitId, String errorMessage) {
+    private Visit checkVisitOngoing(UUID visitId, String errorMessage) {
         Visit visit = visitRepository.findById(visitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ziyaret bulunamadı"));
 
         if (!"ongoing".equalsIgnoreCase(visit.getStatus())) {
             throw new ConflictException(ErrorCode.VISIT_CLOSED, errorMessage);
         }
+        return visit;
     }
 }

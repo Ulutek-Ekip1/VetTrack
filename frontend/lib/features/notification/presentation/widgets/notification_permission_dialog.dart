@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/services/firebase_messaging_service.dart';
 
@@ -25,7 +26,14 @@ class NotificationPermissionDialog extends StatelessWidget {
     if (onSettingsPressed != null) {
       onSettingsPressed!();
     } else {
-      await sl<FirebaseMessagingService>().openNotificationSettings();
+      final service = sl<FirebaseMessagingService>();
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+        await service.requestPermissionFromUser();
+      } else {
+        await service.openNotificationSettings();
+      }
     }
   }
 

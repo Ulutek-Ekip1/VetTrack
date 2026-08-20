@@ -21,92 +21,115 @@ class VetProfileScreen extends StatelessWidget {
           final userName = user?.name ?? 'Klinik Hekimi';
           final userEmail = user?.email ?? 'E-posta belirtilmemiş';
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: theme.colorScheme.secondaryContainer,
-                  child: Icon(
-                    Icons.local_hospital,
-                    size: 40,
-                    color: theme.colorScheme.secondary,
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  userName,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                Text(
-                  userEmail,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Card(
-                  child: BlocBuilder<ThemeCubit, ThemeMode>(
-                    builder: (context, themeMode) {
-                      String themeSubtitle;
-                      switch (themeMode) {
-                        case ThemeMode.light:
-                          themeSubtitle = 'Açık Tema';
-                          break;
-                        case ThemeMode.dark:
-                          themeSubtitle = 'Koyu Tema';
-                          break;
-                        case ThemeMode.system:
-                          themeSubtitle = 'Sistem Teması (Otomatik)';
-                          break;
-                      }
-                      return ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 40,
+                            backgroundColor:
+                                theme.colorScheme.secondaryContainer,
+                            child: Icon(
+                              Icons.local_hospital,
+                              size: 40,
+                              color: theme.colorScheme.secondary,
+                            ),
                           ),
-                          child: Icon(Icons.palette_outlined,
-                              color: theme.colorScheme.primary, size: 20),
-                        ),
-                        title: Text(
-                          'Uygulama Teması',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          const SizedBox(height: 12),
+                          Text(
+                            userName,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
-                        ),
-                        subtitle: Text(
-                          themeSubtitle,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                          Text(
+                            userEmail,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showThemeSelectionDialog(context, themeMode),
-                      );
-                    },
+                          const SizedBox(height: 24),
+                          Card(
+                            child: BlocBuilder<ThemeCubit, ThemeMode>(
+                              builder: (context, themeMode) {
+                                String themeSubtitle;
+                                switch (themeMode) {
+                                  case ThemeMode.light:
+                                    themeSubtitle = 'Açık Tema';
+                                    break;
+                                  case ThemeMode.dark:
+                                    themeSubtitle = 'Koyu Tema';
+                                    break;
+                                  case ThemeMode.system:
+                                    themeSubtitle = 'Sistem Teması (Otomatik)';
+                                    break;
+                                }
+                                return ListTile(
+                                  leading: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary
+                                          .withValues(alpha: 0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.palette_outlined,
+                                        color: theme.colorScheme.primary,
+                                        size: 20),
+                                  ),
+                                  title: Text(
+                                    'Uygulama Teması',
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    themeSubtitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  trailing: const Icon(Icons.chevron_right),
+                                  onTap: () => _showThemeSelectionDialog(
+                                      context, themeMode),
+                                );
+                              },
+                            ),
+                          ),
+                          const Spacer(),
+                          const SizedBox(
+                              height:
+                                  24), // Spacer sıkıştığında minimum dikey boşluk
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              context.read<AuthCubit>().signOut();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.errorContainer,
+                              foregroundColor:
+                                  theme.colorScheme.onErrorContainer,
+                              minimumSize: const Size.fromHeight(50),
+                            ),
+                            icon: const Icon(Icons.logout),
+                            label: const Text('Çıkış Yap'),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                const Spacer(),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    context.read<AuthCubit>().signOut();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.errorContainer,
-                    foregroundColor: theme.colorScheme.onErrorContainer,
-                    minimumSize: const Size.fromHeight(50),
-                  ),
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Çıkış Yap'),
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

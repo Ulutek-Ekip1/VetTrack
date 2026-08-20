@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,6 +18,10 @@ permissions:
 
 jobs:
   build_and_deploy:
+    # Tüm CI çalıştırmaları mevcut production environment secret'larını kullanır.
+    # PR'lar preview URL'sine yayınlansa da production yapılandırmasıyla derlenir.
+    environment:
+      name: soothing-courtesy / production
     runs-on: ubuntu-latest
     steps:
       - name: Repoyu Klonla
@@ -65,7 +70,7 @@ jobs:
 
       # Main branch'e merge edildiğinde asıl canlı ortama deploy eder
       - name: Firebase Hosting Dağıtımı (Live / Production)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
