@@ -98,6 +98,9 @@ public class AiChatService {
         log.info("Processing chat request. ownerId: {}, petId: {}, sanitizedLength: {}", ownerId, request.getPetId(), sanitizedMessage.length());
 
         // 5. Idempotency Check & Reuse Validation (409 Conflict check)
+        boolean userMessageAlreadySaved = false;
+        UUID conversationId = request.getConversationId() != null ? request.getConversationId() : UUID.randomUUID();
+
         if (ownerId != null && request.getClientMessageId() != null && !request.getClientMessageId().isBlank()) {
             Optional<ChatMessage> existingMsg = chatMessageRepository.findByOwnerIdAndClientMessageId(ownerId, request.getClientMessageId());
             if (existingMsg.isPresent()) {
@@ -127,14 +130,18 @@ public class AiChatService {
                             .build();
                 }
 
-                throw new IdempotencyKeyReusedException("İdempotent isteğin daha önce işlendiği görünse de ilgili model yanıtı bulunamadı; lütfen yeniden deneyin.");
+                // If user message was recorded earlier but assistant response was not generated/saved (e.g. timeout/failure),
+                // reuse the existing conversation and user message instead of blocking with 409.
+                log.info("Existing user message found without assistant response for clientMessageId: {}. Proceeding to generate model response.", request.getClientMessageId());
+                if (msg.getConversationId() != null) {
+                    conversationId = msg.getConversationId();
+                }
+                userMessageAlreadySaved = true;
             }
         }
 
-        UUID conversationId = request.getConversationId() != null ? request.getConversationId() : UUID.randomUUID();
-
-        // 6. Save user message to database
-        if (ownerId != null) {
+        // 6. Save user message to database (if not already saved)
+        if (ownerId != null && !userMessageAlreadySaved) {
             saveChatMessage(conversationId, request.getClientMessageId(), ownerId, request.getPetId(), "user", sanitizedMessage, false, null);
         }
 

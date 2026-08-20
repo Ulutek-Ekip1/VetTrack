@@ -91,4 +91,67 @@ class AiChatServiceTest {
         );
         assertEquals(ErrorCode.TOO_MANY_REQUESTS, ex.getErrorCode());
     }
+
+    @Test
+    @DisplayName("Aynı clientMessageId farklı içerikle tekrar gönderildiğinde IdempotencyKeyReusedException (409) fırlatmalıdır")
+    void testIdempotencyConflict_DifferentMessage() {
+        String clientMsgId = "msg-123";
+        AiChatRequest request = AiChatRequest.builder()
+                .message("Yeni farklı mesaj")
+                .clientMessageId(clientMsgId)
+                .aiConsentGiven(true)
+                .build();
+
+        com.vettrack.api.ai.entity.ChatMessage existing = com.vettrack.api.ai.entity.ChatMessage.builder()
+                .id(UUID.randomUUID())
+                .ownerId(ownerId)
+                .clientMessageId(clientMsgId)
+                .content("Eski mesaj")
+                .role("user")
+                .build();
+
+        when(emergencySafetyService.sanitizePromptInput("Yeni farklı mesaj")).thenReturn("Yeni farklı mesaj");
+        when(chatMessageRepository.findByOwnerIdAndClientMessageId(ownerId, clientMsgId)).thenReturn(java.util.Optional.of(existing));
+
+        assertThrows(com.vettrack.api.ai.exception.IdempotencyKeyReusedException.class, () ->
+                aiChatService.processChat(ownerId, "owner", request)
+        );
+    }
+
+    @Test
+    @DisplayName("Aynı clientMessageId ile retry yapıldığında ve model yanıtı yoksa 409 fırlatmadan yanıt üretmelidir")
+    void testIdempotencyRetry_GeneratesAssistantResponse() {
+        String clientMsgId = "msg-retry-123";
+        UUID conversationId = UUID.randomUUID();
+        AiChatRequest request = AiChatRequest.builder()
+                .message("Kedi aşı takvimi")
+                .clientMessageId(clientMsgId)
+                .aiConsentGiven(true)
+                .build();
+
+        com.vettrack.api.ai.entity.ChatMessage existingUserMsg = com.vettrack.api.ai.entity.ChatMessage.builder()
+                .id(UUID.randomUUID())
+                .conversationId(conversationId)
+                .ownerId(ownerId)
+                .clientMessageId(clientMsgId)
+                .content("Kedi aşı takvimi")
+                .role("user")
+                .build();
+
+        when(emergencySafetyService.sanitizePromptInput("Kedi aşı takvimi")).thenReturn("Kedi aşı takvimi");
+        when(chatMessageRepository.findByOwnerIdAndClientMessageId(ownerId, clientMsgId)).thenReturn(java.util.Optional.of(existingUserMsg));
+        when(chatMessageRepository.findFirstByOwnerIdAndReplyToClientMessageIdAndRoleOrderByCreatedAtAsc(ownerId, clientMsgId, "model"))
+                .thenReturn(java.util.Optional.empty());
+        when(chatMessageRepository.findFirstByConversationIdAndRoleAndCreatedAtGreaterThanEqualOrderByCreatedAtAsc(eq(conversationId), eq("model"), any()))
+                .thenReturn(java.util.Optional.empty());
+        when(emergencySafetyService.checkEmergency("Kedi aşı takvimi")).thenReturn(java.util.Optional.empty());
+        when(petContextService.buildOwnerPetsContext(ownerId, null)).thenReturn("Pet context");
+        when(geminiService.generateContent(any(), any(), eq("Kedi aşı takvimi"))).thenReturn("Aşı takvimi yanıtı");
+
+        com.vettrack.api.ai.dto.AiChatResponse response = aiChatService.processChat(ownerId, "owner", request);
+
+        org.junit.jupiter.api.Assertions.assertNotNull(response);
+        assertEquals("Aşı takvimi yanıtı", response.getReply());
+        assertEquals(conversationId, response.getConversationId());
+    }
 }
