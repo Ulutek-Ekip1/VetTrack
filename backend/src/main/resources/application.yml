@@ -17,7 +17,7 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: ${SPRING_FLYWAY_BASELINE_VERSION:2}
-    validate-on-migrate: true
+    validate-on-migrate: ${SPRING_FLYWAY_VALIDATE_ON_MIGRATE:true}
   security:
     oauth2:
       resourceserver:
