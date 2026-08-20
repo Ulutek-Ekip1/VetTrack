@@ -3,10 +3,11 @@ package com.vettrack.api.ai;
 import com.vettrack.api.ai.entity.ChatMessage;
 import com.vettrack.api.ai.repository.ChatMessageRepository;
 import com.vettrack.api.ai.service.ChatMessagePersistenceService;
+import com.vettrack.api.ai.service.ChatMessageTransactionHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,12 +25,19 @@ class ChatMessagePersistenceServiceTest {
     @Mock
     private ChatMessageRepository chatMessageRepository;
 
-    @InjectMocks
+    @Mock
+    private ChatMessageTransactionHelper transactionHelper;
+
     private ChatMessagePersistenceService persistenceService;
 
+    @BeforeEach
+    void setUp() {
+        persistenceService = new ChatMessagePersistenceService(transactionHelper, chatMessageRepository);
+    }
+
     @Test
-    @DisplayName("Benzersiz kısıt ihlali durumunda (DataIntegrityViolationException) var olan kullanıcı mesajını getirmelidir")
-    void whenUniqueConstraintViolationOnUserMessage_thenReturnsExistingMessage() {
+    @DisplayName("İç transaction'dan DataIntegrityViolationException fırlatıldığında dış katmanda yakalanıp var olan kullanıcı mesajı temiz bir transaction ile okunmalıdır")
+    void whenUniqueConstraintViolationOnUserMessage_thenCatchesOutsideAndFetchesExisting() {
         UUID ownerId = UUID.randomUUID();
         UUID petId = UUID.randomUUID();
         String clientMsgId = "client-unique-123";
@@ -42,9 +50,9 @@ class ChatMessagePersistenceServiceTest {
                 .role("user")
                 .build();
 
-        when(chatMessageRepository.saveAndFlush(any(ChatMessage.class)))
+        when(transactionHelper.insertInNewTransaction(any(ChatMessage.class)))
                 .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
-        when(chatMessageRepository.findByOwnerIdAndClientMessageId(ownerId, clientMsgId))
+        when(transactionHelper.findExistingByClientMessageId(ownerId, clientMsgId))
                 .thenReturn(Optional.of(existing));
 
         ChatMessage result = persistenceService.saveChatMessage(
@@ -56,11 +64,13 @@ class ChatMessagePersistenceServiceTest {
         assertNotNull(result);
         assertEquals(existing.getId(), result.getId());
         assertEquals("Merhaba", result.getContent());
+        verify(transactionHelper, times(1)).insertInNewTransaction(any(ChatMessage.class));
+        verify(transactionHelper, times(1)).findExistingByClientMessageId(ownerId, clientMsgId);
     }
 
     @Test
-    @DisplayName("Benzersiz kısıt ihlali durumunda (DataIntegrityViolationException) var olan model mesajını getirmelidir")
-    void whenUniqueConstraintViolationOnModelMessage_thenReturnsExistingModelReply() {
+    @DisplayName("İç transaction'dan DataIntegrityViolationException fırlatıldığında model yanıtı temiz bir transaction ile okunmalıdır")
+    void whenUniqueConstraintViolationOnModelMessage_thenCatchesOutsideAndFetchesExistingModelReply() {
         UUID ownerId = UUID.randomUUID();
         UUID petId = UUID.randomUUID();
         String replyToMsgId = "client-unique-123";
@@ -73,9 +83,9 @@ class ChatMessagePersistenceServiceTest {
                 .role("model")
                 .build();
 
-        when(chatMessageRepository.saveAndFlush(any(ChatMessage.class)))
+        when(transactionHelper.insertInNewTransaction(any(ChatMessage.class)))
                 .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
-        when(chatMessageRepository.findFirstByOwnerIdAndReplyToClientMessageIdAndRoleOrderByCreatedAtAsc(ownerId, replyToMsgId, "model"))
+        when(transactionHelper.findExistingByReplyToClientMessageId(ownerId, replyToMsgId))
                 .thenReturn(Optional.of(existingModelReply));
 
         ChatMessage result = persistenceService.saveChatMessage(
@@ -87,5 +97,19 @@ class ChatMessagePersistenceServiceTest {
         assertNotNull(result);
         assertEquals(existingModelReply.getId(), result.getId());
         assertEquals("Model yanıtı", result.getContent());
+        verify(transactionHelper, times(1)).insertInNewTransaction(any(ChatMessage.class));
+        verify(transactionHelper, times(1)).findExistingByReplyToClientMessageId(ownerId, replyToMsgId);
+    }
+
+    @Test
+    @DisplayName("ChatMessageTransactionHelper insert ve okuma metodları repository'ye doğru delege etmelidir")
+    void testTransactionHelperDelegation() {
+        ChatMessageTransactionHelper directHelper = new ChatMessageTransactionHelper(chatMessageRepository);
+        ChatMessage msg = ChatMessage.builder().id(UUID.randomUUID()).build();
+        when(chatMessageRepository.saveAndFlush(msg)).thenReturn(msg);
+
+        ChatMessage saved = directHelper.insertInNewTransaction(msg);
+        assertEquals(msg.getId(), saved.getId());
+        verify(chatMessageRepository, times(1)).saveAndFlush(msg);
     }
 }

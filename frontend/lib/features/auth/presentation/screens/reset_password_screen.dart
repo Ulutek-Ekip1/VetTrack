@@ -47,12 +47,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         message.contains('expired')) {
       return 'Şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir bağlantı talep ediniz.';
     }
-    
+
     // Eğer mesaj zaten Türkçe ise doğrudan döndür, aksi halde genel Türkçe hata mesajı göster
     if (message.contains('şifre') || message.contains('oturum') || message.contains('bağlantı') || message.contains('hata')) {
       return message;
     }
-    
+
     return 'Şifre güncellenirken bir sorun oluştu. Lütfen tekrar deneyin.';
   }
 

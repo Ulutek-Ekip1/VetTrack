@@ -162,4 +162,3 @@ class VetProfileScreen extends StatelessWidget {
     );
   }
 }
-
