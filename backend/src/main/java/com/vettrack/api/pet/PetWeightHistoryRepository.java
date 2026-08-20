@@ -13,5 +13,5 @@ import java.util.UUID;
 public interface PetWeightHistoryRepository extends JpaRepository<PetWeightHistory, UUID> {
     List<PetWeightHistory> findByPetIdOrderByRecordedAtAscCreatedAtAsc(UUID petId);
     Page<PetWeightHistory> findByPetIdOrderByRecordedAtAscCreatedAtAsc(UUID petId, Pageable pageable);
-    Optional<PetWeightHistory> findTopByPetIdOrderByRecordedAtDescCreatedAtDesc(UUID petId);
+    Optional<PetWeightHistory> findTopByPetIdOrderByCreatedAtDesc(UUID petId);
 }
