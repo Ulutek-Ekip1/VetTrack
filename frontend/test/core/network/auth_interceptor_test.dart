@@ -32,6 +32,9 @@ class MockTokenLocalDataSource implements TokenLocalDataSource {
     deleteTokenCalled = true;
     token = null;
   }
+
+  @override
+  Future<bool> isRememberMe() async => true;
 }
 
 class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {

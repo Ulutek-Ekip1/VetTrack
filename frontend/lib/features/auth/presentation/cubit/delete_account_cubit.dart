@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vettrack_frontend/features/auth/data/datasources/token_local_data_source.dart';
 import 'package:vettrack_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/delete_account_state.dart';
@@ -17,36 +16,42 @@ class DeleteAccountCubit extends Cubit<DeleteAccountState> {
     emit(DeleteAccountLoading());
 
     try {
-      final user = Supabase.instance.client.auth.currentUser;
+      final user = await authRepository.getCurrentUser();
 
-      if (user == null || user.email == null) {
+      if (user == null || user.email.isEmpty) {
         emit(const DeleteAccountError('Kullanıcı bulunamadı.'));
         return;
       }
 
-      final authResponse =
-          await Supabase.instance.client.auth.signInWithPassword(
-        email: user.email!,
-        password: password,
-      );
+      // Read current rememberMe preference so re-auth preserves the session configuration
+      final isRememberMe = await localDataSource.isRememberMe();
 
-      final newToken = authResponse.session?.accessToken;
-      if (newToken != null) {
-        await localDataSource.cacheToken(newToken);
+      // Re-authenticate with user email and password
+      try {
+        await authRepository.loginWithEmail(
+          user.email,
+          password,
+          rememberMe: isRememberMe,
+        );
+      } catch (e) {
+        final errorMsg =
+            e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+        if (errorMsg.contains('E-posta veya şifre hatalı') ||
+            errorMsg.contains('401')) {
+          emit(const DeleteAccountError('Şifre yanlış.'));
+        } else {
+          emit(DeleteAccountError(errorMsg));
+        }
+        return;
       }
 
       await authRepository.deleteAccount();
 
       emit(DeleteAccountSuccess());
-    } on AuthException catch (e) {
-      if (e.statusCode == '400' || e.code == 'invalid_credentials') {
-        emit(const DeleteAccountError('Şifre yanlış.'));
-      } else {
-        emit(DeleteAccountError(e.message));
-      }
     } catch (e) {
       final message = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
       emit(DeleteAccountError(message));
     }
   }
 }
+

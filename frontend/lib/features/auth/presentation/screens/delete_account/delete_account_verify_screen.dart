@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vettrack_frontend/core/constants/app_dimensions.dart';
 import 'package:vettrack_frontend/core/di/injection_container.dart';
 import 'package:vettrack_frontend/core/router/app_router.dart';
+import 'package:vettrack_frontend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/delete_account_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/delete_account_state.dart';
 
@@ -49,6 +50,7 @@ class _DeleteAccountVerifyScreenState extends State<DeleteAccountVerifyScreen> {
         body: BlocConsumer<DeleteAccountCubit, DeleteAccountState>(
           listener: (context, state) {
             if (state is DeleteAccountSuccess) {
+              context.read<AuthCubit>().signOut();
               context.go(AppRoutes.welcome);
             }
 
@@ -146,6 +148,7 @@ class _DeleteAccountVerifyScreenState extends State<DeleteAccountVerifyScreen> {
                       Text(
                         'Şifrenizi Doğrulayın',
                         style: theme.textTheme.headlineSmall?.copyWith(
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.w700,
                         ),
                         textAlign: TextAlign.center,
@@ -170,10 +173,10 @@ class _DeleteAccountVerifyScreenState extends State<DeleteAccountVerifyScreen> {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: colorScheme.errorContainer
-                              .withValues(alpha: 0.35),
+                              .withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: colorScheme.error.withValues(alpha: 0.25),
+                            color: colorScheme.error.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -189,7 +192,7 @@ class _DeleteAccountVerifyScreenState extends State<DeleteAccountVerifyScreen> {
                               child: Text(
                                 'Bu adım tamamlandığında hesabınız ve tüm verileriniz kalıcı olarak silinecektir.',
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.onErrorContainer,
+                                  color: colorScheme.onSurface,
                                   fontWeight: FontWeight.w600,
                                   height: 1.4,
                                 ),
@@ -206,6 +209,9 @@ class _DeleteAccountVerifyScreenState extends State<DeleteAccountVerifyScreen> {
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         textInputAction: TextInputAction.done,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurface,
+                        ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Lütfen şifrenizi girin';
@@ -215,8 +221,15 @@ class _DeleteAccountVerifyScreenState extends State<DeleteAccountVerifyScreen> {
                         onFieldSubmitted: (_) => _onDeletePressed(context),
                         decoration: InputDecoration(
                           labelText: 'Mevcut Şifre',
+                          labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                           hintText: 'Şifrenizi yazın',
-                          prefixIcon: const Icon(Icons.lock_outline_rounded),
+                          hintStyle: TextStyle(
+                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          ),
+                          prefixIcon: Icon(
+                            Icons.lock_outline_rounded,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                           suffixIcon: IconButton(
                             onPressed: () {
                               setState(() {
@@ -227,6 +240,7 @@ class _DeleteAccountVerifyScreenState extends State<DeleteAccountVerifyScreen> {
                               _obscurePassword
                                   ? Icons.visibility_outlined
                                   : Icons.visibility_off_outlined,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                           border: OutlineInputBorder(
@@ -357,6 +371,7 @@ class Loading extends StatelessWidget {
             Text(
               'Hesabınız Siliniyor...',
               style: theme.textTheme.titleLarge?.copyWith(
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
