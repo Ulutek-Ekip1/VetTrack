@@ -40,6 +40,10 @@ class AiChatServiceTest {
     @Mock
     private ChatMessageRepository chatMessageRepository;
 
+    @Spy
+    @InjectMocks
+    private ChatMessagePersistenceService chatMessagePersistenceService;
+
     @InjectMocks
     private AiChatService aiChatService;
 

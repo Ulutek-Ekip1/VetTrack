@@ -59,6 +59,10 @@ class Phase2IntegrationTest {
     @Mock
     private PetRepository petRepository;
 
+    @Spy
+    @InjectMocks
+    private ChatMessagePersistenceService chatMessagePersistenceService;
+
     @InjectMocks
     private AiChatService aiChatService;
 
