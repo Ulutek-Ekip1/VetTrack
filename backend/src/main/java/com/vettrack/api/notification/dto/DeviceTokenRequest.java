@@ -8,7 +8,6 @@ public class DeviceTokenRequest {
     @NotBlank(message = "FCM token boş olamaz")
     private String fcmToken;
 
-    @NotBlank(message = "Platform boş olamaz")
     @Size(max = 10, message = "Platform değeri en fazla 10 karakter olmalıdır")
     private String platform;
 

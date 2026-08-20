@@ -5,6 +5,10 @@ import com.vettrack.api.common.exception.ConflictException;
 import com.vettrack.api.common.exception.ErrorCode;
 import com.vettrack.api.common.exception.ResourceNotFoundException;
 import com.vettrack.api.storage.StorageService;
+import com.vettrack.api.notification.NotificationService;
+import com.vettrack.api.notification.NotificationType;
+import com.vettrack.api.pet.Pet;
+import com.vettrack.api.pet.PetRepository;
 import com.vettrack.api.visit.Visit;
 import com.vettrack.api.visit.VisitRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -43,6 +48,12 @@ class TreatmentServiceMutationGuardTest {
     @Mock
     private StorageService storageService;
 
+    @Mock
+    private PetRepository petRepository;
+
+    @Mock
+    private NotificationService notificationService;
+
     private TreatmentService treatmentService;
 
     private final UUID vetStaffId = UUID.randomUUID();
@@ -55,7 +66,9 @@ class TreatmentServiceMutationGuardTest {
                 treatmentEntryRepository,
                 visitRepository,
                 auditLogRepository,
-                storageService
+                storageService,
+                petRepository,
+                notificationService
         );
     }
 
@@ -206,5 +219,32 @@ class TreatmentServiceMutationGuardTest {
 
         assertNotNull(url);
         verify(treatmentEntryRepository).save(entry);
+    }
+
+    @Test
+    @DisplayName("Tedavi oluşturulunca sahibine anlık bildirim gönderilmeli")
+    void createTreatment_sendsImmediateOwnerNotification() {
+        UUID petId = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        Visit ongoingVisit = Visit.builder().id(visitId).petId(petId).status("ongoing").build();
+        Pet pet = Pet.builder().id(petId).ownerId(ownerId).name("Pamuk").species("Kedi").build();
+        TreatmentEntry savedEntry = TreatmentEntry.builder()
+                .id(treatmentId).visitId(visitId).title("Kuduz aşısı")
+                .type("vaccine").status(TreatmentStatus.PLANNED).notificationSent(true).build();
+
+        when(visitRepository.findById(visitId)).thenReturn(Optional.of(ongoingVisit));
+        when(petRepository.findById(petId)).thenReturn(Optional.of(pet));
+        when(treatmentEntryRepository.save(any(TreatmentEntry.class))).thenReturn(savedEntry);
+
+        TreatmentCreateRequest request = new TreatmentCreateRequest();
+        request.setType("vaccine");
+        request.setTitle("Kuduz aşısı");
+
+        TreatmentEntry result = treatmentService.createTreatment(visitId, request, vetStaffId);
+
+        assertEquals(treatmentId, result.getId());
+        verify(notificationService).sendNotificationToOwner(
+                eq(ownerId), eq(petId), eq(NotificationType.TREATMENT),
+                anyString(), anyString(), eq(treatmentId));
     }
 }

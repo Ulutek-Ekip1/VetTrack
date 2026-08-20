@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/services/firebase_messaging_service.dart';
 import 'notification_state.dart';
 import '../../domain/usecases/get_notifications_usecase.dart';
 import '../../domain/usecases/register_device_token_usecase.dart';
@@ -12,6 +15,8 @@ class NotificationCubit extends Cubit<NotificationState> {
   final MarkAsReadUseCase markAsReadUseCase;
   final MarkAllAsReadUseCase markAllAsReadUseCase;
   final GetUnreadCountUseCase getUnreadCountUseCase;
+  final FirebaseMessagingService firebaseMessagingService;
+  late final StreamSubscription<void> _notificationSubscription;
 
   NotificationCubit({
     required this.getNotificationsUseCase,
@@ -19,7 +24,13 @@ class NotificationCubit extends Cubit<NotificationState> {
     required this.markAsReadUseCase,
     required this.markAllAsReadUseCase,
     required this.getUnreadCountUseCase,
-  }) : super(NotificationInitial());
+    required this.firebaseMessagingService,
+  }) : super(NotificationInitial()) {
+    _notificationSubscription =
+        firebaseMessagingService.notificationEvents.listen((_) {
+      loadNotifications();
+    });
+  }
 
   //Kullanicinin gecmis bilgilerini yukleme
   Future<void> loadNotifications() async {
@@ -63,5 +74,11 @@ class NotificationCubit extends Cubit<NotificationState> {
     } catch (e) {
       // Opt: show error or just ignore
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _notificationSubscription.cancel();
+    return super.close();
   }
 }

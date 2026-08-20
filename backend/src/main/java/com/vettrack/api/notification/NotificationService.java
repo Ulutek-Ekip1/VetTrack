@@ -44,8 +44,19 @@ public class NotificationService {
                                                 String title,
                                                 String body,
                                                 UUID treatmentEntryId) {
+        return sendNotificationToOwner(ownerId, null, type, title, body, treatmentEntryId);
+    }
+
+    @Transactional
+    public Notification sendNotificationToOwner(UUID ownerId,
+                                                UUID petId,
+                                                NotificationType type,
+                                                String title,
+                                                String body,
+                                                UUID treatmentEntryId) {
         Notification notification = Notification.builder()
                 .ownerId(ownerId)
+                .petId(petId)
                 .type(type != null ? type : NotificationType.SYSTEM)
                 .title(title)
                 .body(body)
@@ -84,6 +95,8 @@ public class NotificationService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onNotificationCreated(NotificationCreatedEvent event) {
         if (FirebaseApp.getApps().isEmpty()) {
+            log.warn("FCM gönderimi atlandı: Firebase Admin başlatılmamış. notificationId={}, ownerId={}",
+                    event.getNotificationId(), event.getOwnerId());
             return;
         }
 
@@ -94,6 +107,11 @@ public class NotificationService {
         }
 
         List<DeviceToken> deviceTokens = deviceTokenRepository.findByUserId(event.getOwnerId());
+        if (deviceTokens.isEmpty()) {
+            log.warn("FCM gönderimi atlandı: kullanıcıya ait kayıtlı cihaz token'ı yok. notificationId={}, ownerId={}",
+                    event.getNotificationId(), event.getOwnerId());
+            return;
+        }
         for (DeviceToken deviceToken : deviceTokens) {
             sendWithRetry(deviceToken, notification);
         }

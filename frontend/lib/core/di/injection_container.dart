@@ -273,6 +273,7 @@ Future<void> init() async {
       markAsReadUseCase: sl(),
       markAllAsReadUseCase: sl(),
       getUnreadCountUseCase: sl(),
+      firebaseMessagingService: sl(),
     ),
   );
 
