@@ -28,7 +28,7 @@ dependencies:
   fl_chart: ^0.68.0
   google_sign_in: ^6.2.1
   image_picker: ^1.2.3
-  app_settings: ^5.1.1
+  app_settings: ^8.0.3
 
 dev_dependencies:
   flutter_test:

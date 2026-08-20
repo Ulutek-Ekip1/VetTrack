@@ -25,6 +25,12 @@ class AppTextStyles {
         height: 36 / 28,
         color: textColor,
       ),
+      headlineSmall: GoogleFonts.inter(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        height: 32 / 24,
+        color: textColor,
+      ),
       titleLarge: GoogleFonts.inter(
         fontSize: 22,
         fontWeight: FontWeight.w600,
