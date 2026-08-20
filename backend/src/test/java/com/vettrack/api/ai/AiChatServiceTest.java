@@ -3,6 +3,7 @@ package com.vettrack.api.ai;
 import com.vettrack.api.ai.dto.AiChatRequest;
 import com.vettrack.api.ai.repository.ChatMessageRepository;
 import com.vettrack.api.ai.service.AiChatService;
+import com.vettrack.api.ai.service.ChatMessagePersistenceService;
 import com.vettrack.api.ai.service.EmergencySafetyService;
 import com.vettrack.api.ai.service.GeminiService;
 import com.vettrack.api.ai.service.PetContextService;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.OffsetDateTime;
@@ -39,6 +41,10 @@ class AiChatServiceTest {
 
     @Mock
     private ChatMessageRepository chatMessageRepository;
+
+    @Spy
+    @InjectMocks
+    private ChatMessagePersistenceService chatMessagePersistenceService;
 
     @InjectMocks
     private AiChatService aiChatService;

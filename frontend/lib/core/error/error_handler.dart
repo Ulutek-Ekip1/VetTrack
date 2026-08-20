@@ -38,60 +38,73 @@ class ErrorHandler {
         }
       }
 
+      final errorCode = data is Map<String, dynamic>
+          ? (data['error'] ?? data['errorCode'])?.toString()
+          : null;
+
       switch (statusCode) {
         case 400:
           return ServerException(
             serverMessage ?? defaultMessage ?? 'Geçersiz istek gönderildi.',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         case 401:
           return ServerException(
             serverMessage ?? 'Oturum süreniz doldu veya yetkisiz erişim. Lütfen tekrar giriş yapınız.',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         case 403:
           return ServerException(
             serverMessage ?? 'Bu işlem veya veriye erişim yetkiniz bulunmamaktadır.',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         case 404:
           return ServerException(
             serverMessage ?? defaultMessage ?? 'İstenen kayıt veya sayfa bulunamadı.',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         case 409:
           return ServerException(
             serverMessage ?? defaultMessage ?? 'Bu kayıt zaten mevcut veya işlem çakışması oluştu.',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         case 410:
           return ServerException(
             serverMessage ?? 'Bu işlemin veya davet kodunun süresi dolmuş.',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         case 413:
           return ServerException(
             serverMessage ?? 'Yüklenen dosya boyutu çok büyük (maksimum 15MB).',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         case 415:
           return ServerException(
             serverMessage ?? 'Desteklenmeyen dosya formatı.',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         case 429:
           return ServerException(
             serverMessage ?? 'Çok fazla istek gönderildi. Lütfen bir süre bekleyip tekrar deneyiniz.',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         case 500:
         case 502:
@@ -103,12 +116,14 @@ class ErrorHandler {
                 : 'Sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
         default:
           return ServerException(
             serverMessage ?? defaultMessage ?? 'Sunucu hatası ($statusCode).',
             statusCode,
             retryAfterSeconds,
+            errorCode,
           );
       }
     }

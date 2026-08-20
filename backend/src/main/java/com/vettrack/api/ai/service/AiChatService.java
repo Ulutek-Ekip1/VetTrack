@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AiChatService {
 
     public static final String PROMPT_VERSION = "v1.3-security-guardrail";
@@ -46,13 +45,30 @@ public class AiChatService {
     private final GeminiService geminiService;
     private final ChatMessageRepository chatMessageRepository;
     private final PetRepository petRepository;
+    private final ChatMessagePersistenceService chatMessagePersistenceService;
 
     @Value("${gemini.model:gemini-2.5-flash}")
     private String modelName;
 
     private final ConcurrentHashMap<String, Object> messageLocks = new ConcurrentHashMap<>();
 
-    @Transactional
+    public AiChatService(
+            EmergencySafetyService emergencySafetyService,
+            PetContextService petContextService,
+            GeminiService geminiService,
+            ChatMessageRepository chatMessageRepository,
+            PetRepository petRepository,
+            ChatMessagePersistenceService chatMessagePersistenceService) {
+        this.emergencySafetyService = emergencySafetyService;
+        this.petContextService = petContextService;
+        this.geminiService = geminiService;
+        this.chatMessageRepository = chatMessageRepository;
+        this.petRepository = petRepository;
+        this.chatMessagePersistenceService = chatMessagePersistenceService != null
+                ? chatMessagePersistenceService
+                : new ChatMessagePersistenceService(chatMessageRepository);
+    }
+
     public AiChatResponse processChat(UUID ownerId, String userRole, AiChatRequest request) {
         String lockKey = (ownerId != null && request.getClientMessageId() != null && !request.getClientMessageId().isBlank())
                 ? (ownerId + ":" + request.getClientMessageId())
@@ -285,34 +301,19 @@ public class AiChatService {
     }
 
     private ChatMessage saveChatMessage(UUID conversationId, String clientMessageId, UUID ownerId, UUID petId, String role, String content, boolean emergency, String replyToClientMessageId) {
-        try {
-            ChatMessage msg = ChatMessage.builder()
-                    .conversationId(conversationId)
-                    .clientMessageId(clientMessageId)
-                    .ownerId(ownerId)
-                    .petId(petId)
-                    .role(role)
-                    .content(content)
-                    .emergency(emergency)
-                    .model(modelName)
-                    .promptVersion(PROMPT_VERSION)
-                    .replyToClientMessageId(replyToClientMessageId)
-                    .build();
-            return chatMessageRepository.save(msg);
-        } catch (DataIntegrityViolationException dive) {
-            log.warn("Unique constraint violation for clientMessageId: {} / replyToClientMessageId: {} / ownerId: {}. Fetching existing record.",
-                    clientMessageId, replyToClientMessageId, ownerId);
-            if (clientMessageId != null) {
-                return chatMessageRepository.findByOwnerIdAndClientMessageId(ownerId, clientMessageId).orElse(null);
-            }
-            if (replyToClientMessageId != null) {
-                return chatMessageRepository.findFirstByOwnerIdAndReplyToClientMessageIdAndRoleOrderByCreatedAtAsc(ownerId, replyToClientMessageId, "model").orElse(null);
-            }
-            return null;
-        } catch (Exception e) {
-            log.error("Failed to persist chat message for conversation {}: {}", conversationId, e.getMessage());
-            return null;
-        }
+        String effectiveModel = (modelName != null && !modelName.isBlank()) ? modelName : "gemini-2.5-flash";
+        return chatMessagePersistenceService.saveChatMessage(
+                conversationId,
+                clientMessageId,
+                ownerId,
+                petId,
+                role,
+                content,
+                emergency,
+                effectiveModel,
+                PROMPT_VERSION,
+                replyToClientMessageId
+        );
     }
 
     private List<ChatMessageDto> getRecentHistoryFromDb(UUID ownerId, UUID petId) {

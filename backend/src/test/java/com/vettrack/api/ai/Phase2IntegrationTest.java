@@ -6,6 +6,7 @@ import com.vettrack.api.ai.entity.ChatMessage;
 import com.vettrack.api.ai.exception.GeminiApiException;
 import com.vettrack.api.ai.repository.ChatMessageRepository;
 import com.vettrack.api.ai.service.AiChatService;
+import com.vettrack.api.ai.service.ChatMessagePersistenceService;
 import com.vettrack.api.ai.service.EmergencySafetyService;
 import com.vettrack.api.ai.service.GeminiService;
 import com.vettrack.api.ai.service.PetContextService;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -58,6 +60,10 @@ class Phase2IntegrationTest {
 
     @Mock
     private PetRepository petRepository;
+
+    @Spy
+    @InjectMocks
+    private ChatMessagePersistenceService chatMessagePersistenceService;
 
     @InjectMocks
     private AiChatService aiChatService;
@@ -105,7 +111,7 @@ class Phase2IntegrationTest {
         assertTrue(response.getReply().contains("somonlu"));
 
         // Verify messages saved to database
-        verify(chatMessageRepository, times(2)).save(any(ChatMessage.class));
+        verify(chatMessageRepository, times(2)).saveAndFlush(any(ChatMessage.class));
     }
 
     @Test

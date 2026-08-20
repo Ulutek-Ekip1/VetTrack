@@ -45,7 +45,7 @@ public class PetService {
         pet.setUniqueCode(generateUniqueCode());
         Pet savedPet = petRepository.save(pet);
         if (savedPet.getWeight() != null) {
-            recordWeight(savedPet.getId(), savedPet.getWeight(), LocalDate.now(), savedPet.getOwnerId());
+            recordWeight(savedPet.getId(), savedPet.getWeight(), LocalDate.now(ZoneOffset.UTC), savedPet.getOwnerId());
         }
         return savedPet;
     }
@@ -112,7 +112,7 @@ public class PetService {
         if (request.getEstimatedBirthYear() != null) existingPet.setEstimatedBirthYear(request.getEstimatedBirthYear());
         if (request.getWeight() != null) {
             existingPet.setWeight(request.getWeight());
-            recordWeight(existingPet.getId(), request.getWeight(), LocalDate.now(), existingPet.getOwnerId());
+            recordWeight(existingPet.getId(), request.getWeight(), LocalDate.now(ZoneOffset.UTC), existingPet.getOwnerId());
         }
         if (request.getMicrochipNo() != null) existingPet.setMicrochipNo(request.getMicrochipNo());
         if (request.getIsSpayedOrNeutered() != null) existingPet.setIsSpayedOrNeutered(request.getIsSpayedOrNeutered());
@@ -155,7 +155,7 @@ public class PetService {
         }
 
         OffsetDateTime recordedAt;
-        if (date == null || date.isEqual(LocalDate.now())) {
+        if (date == null || date.isEqual(LocalDate.now(ZoneOffset.UTC))) {
             recordedAt = OffsetDateTime.now(ZoneOffset.UTC);
         } else {
             recordedAt = date.atStartOfDay().atOffset(ZoneOffset.UTC);

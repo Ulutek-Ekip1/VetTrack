@@ -44,7 +44,7 @@ public class ChatMessage {
     @Column(name = "model_name", length = 50)
     private String model;
 
-    @Column(name = "prompt_version", length = 20)
+    @Column(name = "prompt_version", length = 50)
     private String promptVersion;
 
     @Column(name = "reply_to_client_message_id", length = 100)

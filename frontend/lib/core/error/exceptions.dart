@@ -2,11 +2,13 @@ class ServerException implements Exception {
   final String? message;
   final int? statusCode;
   final int? retryAfterSeconds;
+  final String? errorCode;
 
   const ServerException([
     this.message,
     this.statusCode,
     this.retryAfterSeconds,
+    this.errorCode,
   ]);
 
   @override
