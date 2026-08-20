@@ -148,7 +148,95 @@ class VetShellScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final double width = MediaQuery.of(context).size.width;
     final bool isLargeScreen = width >= 800; // Breakpoint for responsive layout
+    final bool isMobile = width < 600; // Mobile view breakpoint
 
+    if (isMobile) {
+      return Scaffold(
+        body: Column(
+          children: [
+            Container(
+              height: 64,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.spacingMd),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLowest,
+                border: Border(
+                  bottom: BorderSide(
+                      color: theme.colorScheme.outlineVariant, width: 1),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Sol Taraf: Logo + Breadcrumb
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _buildBreadcrumbs(context),
+                      ),
+                    ),
+                  ),
+                  // Sağ Taraf: Hızlı İşlemler + Profil
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notification_add_outlined),
+                        onPressed: () => context.push('/notifications'),
+                        tooltip: 'Bildirimler',
+                      ),
+                      const SizedBox(width: AppDimensions.spacingSm),
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: theme.colorScheme.secondary,
+                        child: Text(
+                          'V',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.onSecondary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Sayfanın İçeriği
+            Expanded(
+              child: Container(
+                color: theme.scaffoldBackgroundColor,
+                child: navigationShell,
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: navigationShell.currentIndex,
+          onDestinationSelected: _onTap,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.search_outlined),
+              selectedIcon: Icon(Icons.search),
+              label: 'Hasta Arama',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.assignment_outlined),
+              selectedIcon: Icon(Icons.assignment),
+              label: 'Muayeneler',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.medical_services_outlined),
+              selectedIcon: Icon(Icons.medical_services),
+              label: 'Profil',
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Masaüstü / Tablet geniş ekran yerleşimi
     return Scaffold(
       body: Row(
         children: [
@@ -189,8 +277,8 @@ class VetShellScreen extends StatelessWidget {
             destinations: [
               NavigationRailDestination(
                 icon: const Icon(Icons.search_outlined, size: 22),
-                selectedIcon:
-                    Icon(Icons.search, color: theme.colorScheme.secondary, size: 22),
+                selectedIcon: Icon(Icons.search,
+                    color: theme.colorScheme.secondary, size: 22),
                 label: const Text('Hasta Arama',
                     style: TextStyle(fontWeight: FontWeight.w600)),
               ),

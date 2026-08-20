@@ -54,8 +54,10 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: theme.colorScheme.onSurface),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/login'),
+          icon: Icon(Icons.arrow_back_rounded,
+              color: theme.colorScheme.onSurface),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/login'),
         ),
       ),
       body: BlocConsumer<ClinicInviteCubit, ClinicInviteState>(
@@ -96,7 +98,8 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                               width: 68,
                               height: 68,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF14B8A6).withValues(alpha: 0.12),
+                                color: const Color(0xFF14B8A6)
+                                    .withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -134,8 +137,10 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFFEF2F2),
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                                border: Border.all(color: const Color(0xFFFECACA)),
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
+                                border:
+                                    Border.all(color: const Color(0xFFFECACA)),
                               ),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,11 +153,13 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           _getErrorTitle(state.type),
-                                          style: theme.textTheme.labelLarge?.copyWith(
+                                          style: theme.textTheme.labelLarge
+                                              ?.copyWith(
                                             color: AppColors.error,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -160,7 +167,8 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                                         const SizedBox(height: 2),
                                         Text(
                                           state.message,
-                                          style: theme.textTheme.bodySmall?.copyWith(
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
                                             color: AppColors.onErrorContainer,
                                           ),
                                         ),
@@ -190,16 +198,22 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                               filled: true,
                               fillColor: const Color(0xFFF8FAFC),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                                borderSide: const BorderSide(color: Color(0xFF14B8A6), width: 2),
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF14B8A6), width: 2),
                               ),
                             ),
                             validator: (value) {
@@ -216,36 +230,42 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                           SizedBox(
                             height: 48,
                             child: FilledButton(
-                              onPressed: isValidating ? null : _onValidate,
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF14B8A6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                                onPressed: isValidating ? null : _onValidate,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: const Color(0xFF14B8A6),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        AppDimensions.radiusMd),
+                                  ),
                                 ),
-                              ),
-                              child: isValidating
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Kodu Doğrula ve İlerle',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                            ),
+                                child: isValidating
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'Kodu Doğrula ve İlerle',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      )),
                           ),
                           const SizedBox(height: 20),
 
                           // Zaten Hesabım Var Linki
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 4,
+                            runSpacing: 4,
                             children: [
                               Text(
                                 'Zaten kayıtlı mısınız? ',

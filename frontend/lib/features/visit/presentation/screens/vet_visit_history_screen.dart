@@ -60,7 +60,8 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.assignment_outlined, color: Theme.of(context).colorScheme.onSecondary),
+                  Icon(Icons.assignment_outlined,
+                      color: Theme.of(context).colorScheme.onSecondary),
                   const SizedBox(width: 8),
                   Text(
                     'Muayene Detayı (${visit.id.toShortId()})',
@@ -72,14 +73,15 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                 ],
               ),
               IconButton(
-                icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSecondary),
+                icon: Icon(Icons.close,
+                    color: Theme.of(context).colorScheme.onSecondary),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
         ),
         content: SizedBox(
-          width: 650, // Web ekranında okunabilirlik için sabit genişlik
+          width: MediaQuery.of(context).size.width > 700 ? 650 : null,
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,16 +90,25 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.08),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondary
+                        .withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .secondary
+                            .withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
                       CircleAvatar(
                         radius: 24,
-                        backgroundColor: Theme.of(context).colorScheme.secondary,
-                        child: Icon(Icons.pets, color: Theme.of(context).colorScheme.onSecondary),
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
+                        child: Icon(Icons.pets,
+                            color: Theme.of(context).colorScheme.onSecondary),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -136,9 +147,13 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                   children: [
                     Chip(
                       avatar: Icon(Icons.check_circle,
-                          size: 16, color: Theme.of(context).colorScheme.secondary),
+                          size: 16,
+                          color: Theme.of(context).colorScheme.secondary),
                       label: const Text('Genel Fiziksel Muayene'),
-                      backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .secondary
+                          .withValues(alpha: 0.15),
                     )
                   ],
                 ),
@@ -161,7 +176,8 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                       padding: const EdgeInsets.only(bottom: 4.0),
                       child: Row(
                         children: [
-                          Icon(Icons.arrow_right, color: Theme.of(context).colorScheme.secondary),
+                          Icon(Icons.arrow_right,
+                              color: Theme.of(context).colorScheme.secondary),
                           const Expanded(
                               child:
                                   Text('Genel sağlık kurallarına uyulmalı.')),
@@ -250,37 +266,82 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                   elevation: 2,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (_) => setState(() {}),
-                            decoration: const InputDecoration(
-                              hintText:
-                                  'Hasta adı, sahibi veya teşhis ile ara...',
-                              prefixIcon: Icon(Icons.search),
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 16),
-                            ),
+                    child: isNarrow
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              TextField(
+                                controller: _searchController,
+                                onChanged: (_) => setState(() {}),
+                                decoration: const InputDecoration(
+                                  hintText:
+                                      'Hasta adı, sahibi veya teşhis ile ara...',
+                                  prefixIcon: Icon(Icons.search),
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 16),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              DropdownButtonFormField<String>(
+                                initialValue: _selectedFilter,
+                                decoration: const InputDecoration(
+                                  labelText: 'Filtrele',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 16),
+                                ),
+                                items: [
+                                  'Tümü',
+                                  'Devam Edenler',
+                                  'Tamamlananlar'
+                                ]
+                                    .map((f) => DropdownMenuItem(
+                                        value: f, child: Text(f)))
+                                    .toList(),
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    setState(() => _selectedFilter = val);
+                                  }
+                                },
+                              ),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _searchController,
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: const InputDecoration(
+                                    hintText:
+                                        'Hasta adı, sahibi veya teşhis ile ara...',
+                                    prefixIcon: Icon(Icons.search),
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        vertical: 12, horizontal: 16),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              DropdownButton<String>(
+                                value: _selectedFilter,
+                                items: [
+                                  'Tümü',
+                                  'Devam Edenler',
+                                  'Tamamlananlar'
+                                ]
+                                    .map((f) => DropdownMenuItem(
+                                        value: f, child: Text(f)))
+                                    .toList(),
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    setState(() => _selectedFilter = val);
+                                  }
+                                },
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        DropdownButton<String>(
-                          value: _selectedFilter,
-                          items: ['Tümü', 'Devam Edenler', 'Tamamlananlar']
-                              .map((f) =>
-                                  DropdownMenuItem(value: f, child: Text(f)))
-                              .toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedFilter = val);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -329,15 +390,23 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                 leading: CircleAvatar(
                                   radius: 22,
                                   backgroundColor: isOngoing
-                                      ? Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.15)
-                                      : Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
+                                      ? Theme.of(context)
+                                          .colorScheme
+                                          .tertiary
+                                          .withValues(alpha: 0.15)
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .secondary
+                                          .withValues(alpha: 0.15),
                                   child: Icon(
                                     isOngoing
                                         ? Icons.pending_actions
                                         : Icons.check_circle_outline,
                                     color: isOngoing
                                         ? Theme.of(context).colorScheme.tertiary
-                                        : Theme.of(context).colorScheme.secondary,
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
                                   ),
                                 ),
                                 title: Row(
@@ -353,7 +422,9 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surfaceContainerHigh,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
@@ -377,18 +448,32 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                     ),
                                     if (isNarrow) ...[
                                       const SizedBox(height: 12),
-                                      Row(
+                                      Wrap(
+                                        spacing: 12,
+                                        runSpacing: 8,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 10, vertical: 6),
                                             decoration: BoxDecoration(
                                               color: isOngoing
-                                                  ? Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.15)
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .tertiary
+                                                      .withValues(alpha: 0.15)
                                                   : isCancelled
-                                                      ? Theme.of(context).colorScheme.errorContainer
-                                                      : Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
-                                              borderRadius: BorderRadius.circular(8),
+                                                      ? Theme.of(context)
+                                                          .colorScheme
+                                                          .errorContainer
+                                                      : Theme.of(context)
+                                                          .colorScheme
+                                                          .secondary
+                                                          .withValues(
+                                                              alpha: 0.15),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: Text(
                                               isOngoing
@@ -398,25 +483,33 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                                       : 'Tamamlandı',
                                               style: TextStyle(
                                                 color: isOngoing
-                                                    ? Theme.of(context).colorScheme.tertiary
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .tertiary
                                                     : isCancelled
-                                                        ? Theme.of(context).colorScheme.error
-                                                        : Theme.of(context).colorScheme.secondary,
+                                                        ? Theme.of(context)
+                                                            .colorScheme
+                                                            .error
+                                                        : Theme.of(context)
+                                                            .colorScheme
+                                                            .secondary,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(width: 12),
                                           OutlinedButton.icon(
-                                            onPressed: () => _showVisitDetailsDialog(
-                                                context, visit),
+                                            onPressed: () =>
+                                                _showVisitDetailsDialog(
+                                                    context, visit),
                                             icon: const Icon(
                                                 Icons.visibility_outlined,
                                                 size: 18),
                                             label: const Text('Detay'),
                                             style: OutlinedButton.styleFrom(
-                                              foregroundColor: Theme.of(context).colorScheme.secondary,
+                                              foregroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
                                             ),
                                           ),
                                         ],
@@ -435,11 +528,21 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                                 horizontal: 10, vertical: 6),
                                             decoration: BoxDecoration(
                                               color: isOngoing
-                                                  ? Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.15)
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .tertiary
+                                                      .withValues(alpha: 0.15)
                                                   : isCancelled
-                                                      ? Theme.of(context).colorScheme.errorContainer
-                                                      : Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
-                                              borderRadius: BorderRadius.circular(8),
+                                                      ? Theme.of(context)
+                                                          .colorScheme
+                                                          .errorContainer
+                                                      : Theme.of(context)
+                                                          .colorScheme
+                                                          .secondary
+                                                          .withValues(
+                                                              alpha: 0.15),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: Text(
                                               isOngoing
@@ -449,10 +552,16 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                                       : 'Tamamlandı',
                                               style: TextStyle(
                                                 color: isOngoing
-                                                    ? Theme.of(context).colorScheme.tertiary
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .tertiary
                                                     : isCancelled
-                                                        ? Theme.of(context).colorScheme.error
-                                                        : Theme.of(context).colorScheme.secondary,
+                                                        ? Theme.of(context)
+                                                            .colorScheme
+                                                            .error
+                                                        : Theme.of(context)
+                                                            .colorScheme
+                                                            .secondary,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -460,14 +569,17 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                           ),
                                           const SizedBox(width: 12),
                                           OutlinedButton.icon(
-                                            onPressed: () => _showVisitDetailsDialog(
-                                                context, visit),
+                                            onPressed: () =>
+                                                _showVisitDetailsDialog(
+                                                    context, visit),
                                             icon: const Icon(
                                                 Icons.visibility_outlined,
                                                 size: 18),
                                             label: const Text('Detay'),
                                             style: OutlinedButton.styleFrom(
-                                              foregroundColor: Theme.of(context).colorScheme.secondary,
+                                              foregroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
                                             ),
                                           ),
                                         ],
