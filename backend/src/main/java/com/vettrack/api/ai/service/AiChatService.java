@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AiChatService {
 
     public static final String PROMPT_VERSION = "v1.3-security-guardrail";
@@ -52,6 +51,23 @@ public class AiChatService {
     private String modelName;
 
     private final ConcurrentHashMap<String, Object> messageLocks = new ConcurrentHashMap<>();
+
+    public AiChatService(
+            EmergencySafetyService emergencySafetyService,
+            PetContextService petContextService,
+            GeminiService geminiService,
+            ChatMessageRepository chatMessageRepository,
+            PetRepository petRepository,
+            ChatMessagePersistenceService chatMessagePersistenceService) {
+        this.emergencySafetyService = emergencySafetyService;
+        this.petContextService = petContextService;
+        this.geminiService = geminiService;
+        this.chatMessageRepository = chatMessageRepository;
+        this.petRepository = petRepository;
+        this.chatMessagePersistenceService = chatMessagePersistenceService != null
+                ? chatMessagePersistenceService
+                : new ChatMessagePersistenceService(chatMessageRepository);
+    }
 
     public AiChatResponse processChat(UUID ownerId, String userRole, AiChatRequest request) {
         String lockKey = (ownerId != null && request.getClientMessageId() != null && !request.getClientMessageId().isBlank())
@@ -285,6 +301,7 @@ public class AiChatService {
     }
 
     private ChatMessage saveChatMessage(UUID conversationId, String clientMessageId, UUID ownerId, UUID petId, String role, String content, boolean emergency, String replyToClientMessageId) {
+        String effectiveModel = (modelName != null && !modelName.isBlank()) ? modelName : "gemini-2.5-flash";
         return chatMessagePersistenceService.saveChatMessage(
                 conversationId,
                 clientMessageId,
@@ -293,7 +310,7 @@ public class AiChatService {
                 role,
                 content,
                 emergency,
-                modelName,
+                effectiveModel,
                 PROMPT_VERSION,
                 replyToClientMessageId
         );
