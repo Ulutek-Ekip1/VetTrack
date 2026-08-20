@@ -262,41 +262,51 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SizedBox(height: 12),
 
                                 // Beni Hatırla & Şifremi Unuttum Satırı
-                                Row(
+                                Wrap(
+                                  alignment: WrapAlignment.spaceBetween,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 8,
+                                  runSpacing: 4,
                                   children: [
-                                    SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: Checkbox(
-                                        value: _rememberMe,
-                                        activeColor: theme.colorScheme.primary,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: Checkbox(
+                                            value: _rememberMe,
+                                            activeColor:
+                                                theme.colorScheme.primary,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                            ),
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _rememberMe = value ?? false;
+                                              });
+                                            },
+                                          ),
                                         ),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _rememberMe = value ?? false;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _rememberMe = !_rememberMe;
-                                        });
-                                      },
-                                      child: Text(
-                                        "Beni Hatırla",
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                          color: theme.colorScheme.onSurface,
+                                        const SizedBox(width: 8),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _rememberMe = !_rememberMe;
+                                            });
+                                          },
+                                          child: Text(
+                                            "Beni Hatırla",
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                              color:
+                                                  theme.colorScheme.onSurface,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                    const Spacer(),
                                     TextButton(
                                       onPressed: () => context
                                           .push(AppRoutes.forgotPassword),
@@ -317,7 +327,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ],
                                 ),
-
                                 const SizedBox(height: 20),
 
                                 // Giriş Yap Butonu
@@ -494,8 +503,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ] else ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4,
+                          runSpacing: 4,
                           children: [
                             Text(
                               "Hesabınız yok mu?",

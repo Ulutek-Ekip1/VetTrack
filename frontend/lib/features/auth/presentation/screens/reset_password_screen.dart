@@ -6,7 +6,6 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/utils/validators.dart';
 
-
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
 
@@ -43,16 +42,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     if (message.contains('Password should be')) {
       return 'Şifreniz en az 8 karakter olmalı, harf ve rakam içermelidir.';
     }
-    if (message.contains('Token has expired') ||
-        message.contains('expired')) {
+    if (message.contains('Token has expired') || message.contains('expired')) {
       return 'Şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir bağlantı talep ediniz.';
     }
-    
+
     // Eğer mesaj zaten Türkçe ise doğrudan döndür, aksi halde genel Türkçe hata mesajı göster
-    if (message.contains('şifre') || message.contains('oturum') || message.contains('bağlantı') || message.contains('hata')) {
+    if (message.contains('şifre') ||
+        message.contains('oturum') ||
+        message.contains('bağlantı') ||
+        message.contains('hata')) {
       return message;
     }
-    
+
     return 'Şifre güncellenirken bir sorun oluştu. Lütfen tekrar deneyin.';
   }
 
@@ -146,7 +147,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   // Card Form Container
                   Card(
                     elevation: 2,
-                    shadowColor: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                    shadowColor:
+                        theme.colorScheme.onSurface.withValues(alpha: 0.08),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -249,7 +251,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 label: Text.rich(
                                   TextSpan(
                                     children: [
-                                      const TextSpan(text: "Yeni Şifre (Tekrar)"),
+                                      const TextSpan(
+                                          text: "Yeni Şifre (Tekrar)"),
                                       TextSpan(
                                         text: " *",
                                         style: TextStyle(
@@ -315,46 +318,52 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             SizedBox(
                               height: 52,
                               child: ElevatedButton(
-                                onPressed:
-                                    _isLoading ? null : _handleResetPassword,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: theme.colorScheme.primary,
-                                  foregroundColor: theme.colorScheme.onPrimary,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                  onPressed:
+                                      _isLoading ? null : _handleResetPassword,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    foregroundColor:
+                                        theme.colorScheme.onPrimary,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
-                                ),
-                                child: _isLoading
-                                    ? SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.5,
-                                          color: theme.colorScheme.onPrimary,
-                                        ),
-                                      )
-                                    : Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Şifreyi Güncelle',
-                                            style: theme.textTheme.titleMedium
-                                                ?.copyWith(
-                                              color: theme.colorScheme.onPrimary,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Icon(
-                                            Icons.arrow_forward,
-                                            size: 20,
+                                  child: _isLoading
+                                      ? SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
                                             color: theme.colorScheme.onPrimary,
                                           ),
-                                        ],
-                                      ),
-                              ),
+                                        )
+                                      : FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                'Şifreyi Güncelle',
+                                                style: theme
+                                                    .textTheme.titleMedium
+                                                    ?.copyWith(
+                                                  color: theme
+                                                      .colorScheme.onPrimary,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Icon(
+                                                Icons.arrow_forward,
+                                                size: 20,
+                                                color:
+                                                    theme.colorScheme.onPrimary,
+                                              ),
+                                            ],
+                                          ),
+                                        )),
                             ),
                           ],
                         ),
