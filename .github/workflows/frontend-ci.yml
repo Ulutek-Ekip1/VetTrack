@@ -18,10 +18,10 @@ permissions:
 
 jobs:
   build_and_deploy:
-    # PR'lar staging secret'larını, main ve manuel main çalıştırmaları
-    # production secret'larını kullanır.
+    # Tüm CI çalıştırmaları yalnızca production environment secret'larını kullanır.
+    # PR'lar preview URL'sine yayınlansa da production yapılandırmasıyla derlenir.
     environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+      name: production
     runs-on: ubuntu-latest
     steps:
       - name: Repoyu Klonla
