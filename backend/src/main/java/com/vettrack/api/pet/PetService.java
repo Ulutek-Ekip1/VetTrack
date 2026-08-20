@@ -155,7 +155,7 @@ public class PetService {
         }
 
         OffsetDateTime recordedAt;
-        if (date == null || date.isEqual(LocalDate.now())) {
+        if (date == null || date.isEqual(LocalDate.now(ZoneOffset.UTC))) {
             recordedAt = OffsetDateTime.now(ZoneOffset.UTC);
         } else {
             recordedAt = date.atStartOfDay().atOffset(ZoneOffset.UTC);

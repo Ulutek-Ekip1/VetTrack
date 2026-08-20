@@ -107,7 +107,7 @@ class PetWeightHistoryIntegrationTest {
         assertNotNull(history);
         assertEquals(3, history.size());
         assertEquals(21.0, history.get(0).getWeight());
-        assertEquals(LocalDate.now(), history.get(0).getDate());
+        assertEquals(LocalDate.now(java.time.ZoneOffset.UTC), history.get(0).getDate());
         assertEquals(22.0, history.get(1).getWeight());
         assertEquals(nextMonth, history.get(1).getDate());
         assertEquals(23.0, history.get(2).getWeight());
