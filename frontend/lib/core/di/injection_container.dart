@@ -164,6 +164,7 @@ Future<void> init() async {
   sl.registerFactory(
     () => DeleteAccountCubit(
       authRepository: sl(),
+      localDataSource: sl(),
     ),
   );
 

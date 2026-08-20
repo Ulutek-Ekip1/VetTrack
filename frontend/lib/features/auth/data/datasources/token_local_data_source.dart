@@ -4,6 +4,7 @@ abstract class TokenLocalDataSource {
   Future<void> cacheToken(String token, {bool persist = true});
   Future<String?> getToken();
   Future<void> deleteToken();
+  Future<bool> isRememberMe();
 }
 
 class TokenLocalDataSourceImpl implements TokenLocalDataSource {
@@ -41,5 +42,11 @@ class TokenLocalDataSourceImpl implements TokenLocalDataSource {
     _sessionToken = null;
     await secureStorage.delete(key: cachedTokenKey);
     await secureStorage.delete(key: rememberMeKey);
+  }
+
+  @override
+  Future<bool> isRememberMe() async {
+    final rememberMe = await secureStorage.read(key: rememberMeKey);
+    return rememberMe == 'true';
   }
 }
