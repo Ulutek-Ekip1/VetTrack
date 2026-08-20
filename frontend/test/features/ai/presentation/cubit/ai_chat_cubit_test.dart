@@ -199,9 +199,9 @@ void main() {
       await cubit.sendMessage('Test 403');
       expect(cubit.state.errorMessage, contains('erişim yetkiniz'));
 
-      // 409 Testi
+      // 409 Testi (IDEMPOTENCY_KEY_REUSED)
       mockRepository.sendMessageException =
-          const ServerException('Conflict', 409);
+          const ServerException('Conflict', 409, null, 'IDEMPOTENCY_KEY_REUSED');
       await cubit.sendMessage('Test 409');
       expect(cubit.state.statusCode, equals(409));
       expect(cubit.state.errorMessage, contains('Mesaj kimlik çakışması'));

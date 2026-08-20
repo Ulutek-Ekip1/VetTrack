@@ -105,7 +105,7 @@ class Phase2IntegrationTest {
         assertTrue(response.getReply().contains("somonlu"));
 
         // Verify messages saved to database
-        verify(chatMessageRepository, times(2)).save(any(ChatMessage.class));
+        verify(chatMessageRepository, times(2)).saveAndFlush(any(ChatMessage.class));
     }
 
     @Test
