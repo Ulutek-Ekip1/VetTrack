@@ -83,19 +83,15 @@ public class PetService {
 
         List<UUID> visitIds = visits.stream().map(Visit::getId).toList();
         List<TreatmentEntry> treatments = visitIds.isEmpty()
-                ? Collections.emptyList()
+                ? List.of()
                 : treatmentEntryRepository.findByVisitIdInOrderByCreatedAtDesc(visitIds);
 
         List<Recommendation> recommendations = visitIds.isEmpty()
-                ? Collections.emptyList()
+                ? List.of()
                 : recommendationRepository.findByVisitIdInOrderByCreatedAtDesc(visitIds);
 
-        return new PetHealthHistoryResponse(
-                pet,
-                weightHistory,
-                visits,
-                treatments,
-                recommendations
+        return PetHealthHistoryResponse.from(
+                pet, weightHistory, visits, treatments, recommendations
         );
     }
 
