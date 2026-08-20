@@ -127,7 +127,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
                           side: BorderSide(
-                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                            color: theme.colorScheme.outlineVariant
+                                .withValues(alpha: 0.5),
                             width: 1,
                           ),
                         ),
@@ -261,41 +262,51 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SizedBox(height: 12),
 
                                 // Beni Hatırla & Şifremi Unuttum Satırı
-                                Row(
+                                Wrap(
+                                  alignment: WrapAlignment.spaceBetween,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 8,
+                                  runSpacing: 4,
                                   children: [
-                                    SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: Checkbox(
-                                        value: _rememberMe,
-                                        activeColor: theme.colorScheme.primary,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: Checkbox(
+                                            value: _rememberMe,
+                                            activeColor:
+                                                theme.colorScheme.primary,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                            ),
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _rememberMe = value ?? false;
+                                              });
+                                            },
+                                          ),
                                         ),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _rememberMe = value ?? false;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _rememberMe = !_rememberMe;
-                                        });
-                                      },
-                                      child: Text(
-                                        "Beni Hatırla",
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                          color: theme.colorScheme.onSurface,
+                                        const SizedBox(width: 8),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _rememberMe = !_rememberMe;
+                                            });
+                                          },
+                                          child: Text(
+                                            "Beni Hatırla",
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                              color:
+                                                  theme.colorScheme.onSurface,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                    const Spacer(),
                                     TextButton(
                                       onPressed: () => context
                                           .push(AppRoutes.forgotPassword),
@@ -316,7 +327,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ],
                                 ),
-
                                 const SizedBox(height: 20),
 
                                 // Giriş Yap Butonu
@@ -325,8 +335,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: ElevatedButton(
                                     onPressed: isLoading ? null : _onLogin,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: theme.colorScheme.primary,
-                                      foregroundColor: theme.colorScheme.onPrimary,
+                                      backgroundColor:
+                                          theme.colorScheme.primary,
+                                      foregroundColor:
+                                          theme.colorScheme.onPrimary,
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),
@@ -338,7 +350,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                             height: 24,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2.5,
-                                              color: theme.colorScheme.onPrimary,
+                                              color:
+                                                  theme.colorScheme.onPrimary,
                                             ),
                                           )
                                         : Row(
@@ -350,7 +363,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 style: theme
                                                     .textTheme.titleMedium
                                                     ?.copyWith(
-                                                  color: theme.colorScheme.onPrimary,
+                                                  color: theme
+                                                      .colorScheme.onPrimary,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -358,7 +372,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                               Icon(
                                                 Icons.arrow_forward,
                                                 size: 20,
-                                                color: theme.colorScheme.onPrimary,
+                                                color:
+                                                    theme.colorScheme.onPrimary,
                                               ),
                                             ],
                                           ),
@@ -373,22 +388,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                     children: [
                                       Expanded(
                                         child: Divider(
-                                          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                          color: theme
+                                              .colorScheme.outlineVariant
+                                              .withValues(alpha: 0.5),
                                           thickness: 1,
                                         ),
                                       ),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16),
                                         child: Text(
                                           "veya",
-                                          style: theme.textTheme.bodyMedium?.copyWith(
-                                            color: theme.colorScheme.onSurfaceVariant,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                            color: theme
+                                                .colorScheme.onSurfaceVariant,
                                           ),
                                         ),
                                       ),
                                       Expanded(
                                         child: Divider(
-                                          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                          color: theme
+                                              .colorScheme.outlineVariant
+                                              .withValues(alpha: 0.5),
                                           thickness: 1,
                                         ),
                                       ),
@@ -404,18 +426,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                       onPressed: isLoading
                                           ? null
                                           : () {
-                                              context.read<AuthCubit>().signInWithGoogle();
+                                              context
+                                                  .read<AuthCubit>()
+                                                  .signInWithGoogle();
                                             },
                                       style: OutlinedButton.styleFrom(
                                         side: BorderSide(
-                                          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                          color: theme
+                                              .colorScheme.outlineVariant
+                                              .withValues(alpha: 0.5),
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
                                         ),
                                       ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Image.asset(
                                             "assets/icons/google_g.png",
@@ -425,8 +453,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                           const SizedBox(width: 12),
                                           Text(
                                             'Google ile Giriş Yap',
-                                            style: theme.textTheme.titleMedium?.copyWith(
-                                              color: theme.colorScheme.onSurface,
+                                            style: theme.textTheme.titleMedium
+                                                ?.copyWith(
+                                              color:
+                                                  theme.colorScheme.onSurface,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -445,14 +475,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Kayıt Ol Yönlendirmesi
                       if (AppPlatform.isVetWebExperience) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4,
+                          runSpacing: 4,
                           children: [
                             Text(
                               "Kliniğinize katılmak için davet kodunuz mu var?",
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                             TextButton(
                               onPressed: () {
@@ -469,8 +503,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ] else ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4,
+                          runSpacing: 4,
                           children: [
                             Text(
                               "Hesabınız yok mu?",

@@ -7,7 +7,6 @@ import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/utils/validators.dart';
 
-
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -163,47 +162,56 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   width: double.infinity,
                                   height: 52,
                                   child: ElevatedButton(
-                                    onPressed:
-                                        isLoading ? null : _onResetPassword,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: theme.colorScheme.primary,
-                                      foregroundColor: theme.colorScheme.onPrimary,
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                      onPressed:
+                                          isLoading ? null : _onResetPassword,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            theme.colorScheme.primary,
+                                        foregroundColor:
+                                            theme.colorScheme.onPrimary,
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
                                       ),
-                                    ),
-                                    child: isLoading
-                                        ? SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.5,
-                                              color: theme.colorScheme.onPrimary,
-                                            ),
-                                          )
-                                        : Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                'Sıfırlama Bağlantısı Gönder',
-                                                style: theme
-                                                    .textTheme.titleMedium
-                                                    ?.copyWith(
-                                                  color: theme.colorScheme.onPrimary,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                      child: isLoading
+                                          ? SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                color:
+                                                    theme.colorScheme.onPrimary,
                                               ),
-                                              const SizedBox(width: 8),
-                                              Icon(
-                                                Icons.send_rounded,
-                                                size: 20,
-                                                color: theme.colorScheme.onPrimary,
+                                            )
+                                          : FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    'Sıfırlama Bağlantısı Gönder',
+                                                    style: theme
+                                                        .textTheme.titleMedium
+                                                        ?.copyWith(
+                                                      color: theme.colorScheme
+                                                          .onPrimary,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Icon(
+                                                    Icons.send_rounded,
+                                                    size: 20,
+                                                    color: theme
+                                                        .colorScheme.onPrimary,
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                  ),
+                                            )),
                                 ),
                               ],
                             ),
@@ -253,5 +261,3 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 }
-
-

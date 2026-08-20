@@ -28,17 +28,17 @@ class AuthCubit extends Cubit<AuthState> {
   final ResendVerificationEmailUsecase resendVerificationEmailUsecase;
   int _sessionOperation = 0;
 
-  AuthCubit(
-      {required this.loginWithEmail,
-      required this.registerUseCase,
-      required this.logoutUseCase,
-      required this.signInWithGoogleUseCase,
-      required this.authRepository,
-      required this.registerDeviceTokenUseCase,
-      required this.unregisterDeviceTokenUseCase,
-      required this.forgotPasswordUseCase,
-      required this.resendVerificationEmailUsecase})
-      : super(AuthInitial());
+  AuthCubit({
+    required this.loginWithEmail,
+    required this.registerUseCase,
+    required this.logoutUseCase,
+    required this.signInWithGoogleUseCase,
+    required this.authRepository,
+    required this.registerDeviceTokenUseCase,
+    required this.unregisterDeviceTokenUseCase,
+    required this.forgotPasswordUseCase,
+    required this.resendVerificationEmailUsecase,
+  }) : super(AuthInitial());
 
   Future<void> checkAuthStatus() async {
     final operation = ++_sessionOperation;
@@ -50,6 +50,7 @@ class AuthCubit extends Cubit<AuthState> {
           );
       if (operation != _sessionOperation) return;
       if (user != null) {
+        _setupNotificationListeners(user);
         emit(Authenticated(user));
         unawaited(_syncNotificationsForOwner(user));
       } else {
@@ -94,6 +95,7 @@ class AuthCubit extends Cubit<AuthState> {
         emit(AuthInitial());
         return;
       }
+      _setupNotificationListeners(user);
       emit(Authenticated(user));
       unawaited(_syncNotificationsForOwner(user));
     } catch (e) {
@@ -102,20 +104,18 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> signUp(String email, String password, String name, String? phone,
-      UserRole role) async {
+  Future<void> signUp(
+    String email,
+    String password,
+    String name,
+    String? phone,
+    UserRole role,
+  ) async {
     final operation = ++_sessionOperation;
     emit(const AuthLoading());
     try {
-      final user = await registerUseCase(email, password, name, phone, role);
+      await registerUseCase(email, password, name, phone, role);
       if (operation != _sessionOperation) return;
-      try {
-        if (user.role == UserRole.owner) {
-          sl<FirebaseMessagingService>().listenForTokenChanges();
-        }
-      } catch (fcmError) {
-        // Hata yutulur
-      }
       emit(const RegistrationSuccess());
     } catch (e) {
       if (operation != _sessionOperation) return;
@@ -133,8 +133,7 @@ class AuthCubit extends Cubit<AuthState> {
           await sl<FirebaseMessagingService>().removeTokenFromBackend();
         }
       } catch (_) {
-        // FCM token silme işlemi başarsız olsa bile (örneğin sunucuya ulaşılamıyor),
-        // kullanıcının çıkış yapmasını engellememek için hatayı yutuyoruz.
+        // FCM token silme hatası logout akışını engellememeli.
       }
       await logoutUseCase();
       if (operation != _sessionOperation) return;
@@ -169,7 +168,6 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  //Oturum süresi dolunca yerel tokenı silip uygulmayı unauthenticated duruma geçirmek için
   Future<void> handleSessionExpired() async {
     ++_sessionOperation;
     await logoutUseCase();

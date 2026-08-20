@@ -80,6 +80,7 @@ class DeleteAccountScreen extends StatelessWidget {
               Text(
                 'Hesabınızı silmek istediğinize',
                 style: theme.textTheme.headlineSmall?.copyWith(
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                 ),
                 textAlign: TextAlign.center,
@@ -114,7 +115,7 @@ class DeleteAccountScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withValues(alpha: 0.45),
+                  color: colorScheme.errorContainer.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: colorScheme.error.withValues(alpha: 0.35),
@@ -181,10 +182,10 @@ class DeleteAccountScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.2),
+                    color: colorScheme.primary.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -207,6 +208,7 @@ class DeleteAccountScreen extends StatelessWidget {
                         'Verileriniz güvenli bir şekilde silinecek '
                         've hiçbir şekilde geri getirilemeyecektir.',
                         style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface,
                           height: 1.4,
                           fontWeight: FontWeight.w500,
                         ),
@@ -316,6 +318,7 @@ class DeleteAccountScreen extends StatelessWidget {
               Text(
                 title,
                 style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                 ),
               ),
