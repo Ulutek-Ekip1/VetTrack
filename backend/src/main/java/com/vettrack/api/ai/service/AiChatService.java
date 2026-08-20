@@ -298,7 +298,7 @@ public class AiChatService {
                     .promptVersion(PROMPT_VERSION)
                     .replyToClientMessageId(replyToClientMessageId)
                     .build();
-            return chatMessageRepository.save(msg);
+            return chatMessageRepository.saveAndFlush(msg);
         } catch (DataIntegrityViolationException dive) {
             log.warn("Unique constraint violation for clientMessageId: {} / replyToClientMessageId: {} / ownerId: {}. Fetching existing record.",
                     clientMessageId, replyToClientMessageId, ownerId);
