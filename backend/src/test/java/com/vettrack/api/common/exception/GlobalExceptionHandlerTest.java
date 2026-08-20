@@ -3,6 +3,7 @@ package com.vettrack.api.common.exception;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.vettrack.api.storage.StorageException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -89,5 +90,19 @@ class GlobalExceptionHandlerTest {
         String message = (String) response.getBody().get("message");
         assertFalse(message.contains(hugeValue));
         assertTrue(message.contains("a".repeat(50) + "..."));
+    }
+
+    @Test
+    @DisplayName("StorageException (örn. Supabase Storage'da eksik/yanlış bucket) generic 500'e değil, 502 BAD_GATEWAY + STORAGE_ERROR'a düşmeli")
+    void whenStorageExceptionThrown_thenReturns502StorageError() {
+        StorageException ex = new StorageException("Supabase Storage isteği başarısız: 404 Not Found");
+
+        ResponseEntity<Map<String, Object>> response = handler.handleStorageException(ex);
+
+        assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
+        assertEquals(ErrorCode.STORAGE_ERROR.name(), response.getBody().get("error"));
+        assertNotNull(response.getBody().get("message"));
+        // Ham Supabase/exception mesajı değil, kullanıcıya güvenli/anlaşılır bir mesaj dönmeli
+        assertFalse(((String) response.getBody().get("message")).contains("404"));
     }
 }

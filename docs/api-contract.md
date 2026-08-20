@@ -58,6 +58,7 @@
 | `FILE_TOO_LARGE` | 413 | Dosya 15MB sınırını aşıyor | EC-06 |
 | `UNSUPPORTED_FILE_TYPE` | 415 | Sadece JPEG, PNG, WebP kabul edilir | EC-06 |
 | `TOO_MANY_REQUESTS` | 429 | İstek limiti aşıldı (rate limit / Supabase e-posta limiti) | — |
+| `STORAGE_ERROR` | 502 | Supabase Storage isteği başarısız (upstream hata, örn. eksik bucket) | — |
 
 ---
 

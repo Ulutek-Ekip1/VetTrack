@@ -41,7 +41,10 @@ public enum ErrorCode {
     UNSUPPORTED_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE),
 
     // 429 Too Many Requests
-    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS);
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS),
+
+    // 502 Bad Gateway
+    STORAGE_ERROR(HttpStatus.BAD_GATEWAY);
 
     private final HttpStatus status;
 
