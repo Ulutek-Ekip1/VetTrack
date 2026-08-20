@@ -3,6 +3,7 @@ package com.vettrack.api.common.exception;
 import com.vettrack.api.ai.exception.GeminiApiException;
 import com.vettrack.api.ai.exception.IdempotencyKeyReusedException;
 import com.vettrack.api.storage.FileTooLargeException;
+import com.vettrack.api.storage.StorageException;
 import com.vettrack.api.storage.UnsupportedFileTypeException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -117,6 +118,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnsupportedFileTypeException.class)
     public ResponseEntity<Map<String, Object>> handleUnsupportedFileType(UnsupportedFileTypeException ex) {
         return buildResponse(ErrorCode.UNSUPPORTED_FILE_TYPE.getStatus(), ErrorCode.UNSUPPORTED_FILE_TYPE.name(), ex.getMessage());
+    }
+
+    /**
+     * StorageException'ın önceden hiç dedicated handler'ı yoktu, bu yüzden Supabase Storage'a
+     * (örn. eksik/yanlış bucket, ağ hatası) bağlı HER hata generic Exception.class handler'ına
+     * düşüp 500 + "Beklenmeyen bir hata oluştu" dönüyordu - hem gerçek nedeni (upstream storage
+     * servisi) gizliyor hem de frontend/backend ayrımını imkansızlaştırıyordu.
+     */
+    @ExceptionHandler(StorageException.class)
+    public ResponseEntity<Map<String, Object>> handleStorageException(StorageException ex) {
+        log.error("Depolama (Supabase Storage) hatası", ex);
+        return buildResponse(ErrorCode.STORAGE_ERROR.getStatus(), ErrorCode.STORAGE_ERROR.name(),
+                "Dosya işlenirken depolama servisinde bir sorun oluştu. Lütfen daha sonra tekrar deneyiniz.");
     }
 
     @ExceptionHandler(AccessDeniedException.class)
