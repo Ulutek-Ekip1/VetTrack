@@ -13,6 +13,8 @@ import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_state
 import '../../../../features/notification/presentation/cubit/notification_cubit.dart';
 import '../../../../features/notification/presentation/widgets/notification_badge_button.dart';
 import '../../../../features/notification/presentation/widgets/notification_permission_dialog.dart';
+import '../../../../core/di/injection_container.dart';
+import '../../../../core/services/firebase_messaging_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -43,6 +45,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      context.read<NotificationCubit>().loadNotifications();
       _checkAndPromptNotificationPermission();
     }
   }
@@ -50,6 +53,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _checkAndPromptNotificationPermission() async {
     final settings = await FirebaseMessaging.instance.getNotificationSettings();
     final status = settings.authorizationStatus;
+
+    if (status == AuthorizationStatus.authorized ||
+        status == AuthorizationStatus.provisional) {
+      try {
+        await sl<FirebaseMessagingService>().syncTokenIfAuthorized();
+      } catch (_) {
+        // Token sonraki girişte veya uygulama resume olduğunda tekrar denenir.
+      }
+      return;
+    }
 
     if (!_hasShownPermissionDialogInSession &&
         (status == AuthorizationStatus.notDetermined ||

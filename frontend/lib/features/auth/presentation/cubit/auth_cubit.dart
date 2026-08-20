@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vettrack_frontend/features/auth/domain/usecases/forgot_password_usecase.dart';
@@ -48,8 +50,8 @@ class AuthCubit extends Cubit<AuthState> {
           );
       if (operation != _sessionOperation) return;
       if (user != null) {
-        _setupNotificationListeners(user);
         emit(Authenticated(user));
+        unawaited(_syncNotificationsForOwner(user));
       } else {
         emit(const Unauthenticated());
       }
@@ -74,8 +76,8 @@ class AuthCubit extends Cubit<AuthState> {
         rememberMe: rememberMe,
       );
       if (operation != _sessionOperation) return;
-      _setupNotificationListeners(user);
       emit(Authenticated(user));
+      unawaited(_syncNotificationsForOwner(user));
     } catch (e) {
       if (operation != _sessionOperation) return;
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
@@ -92,8 +94,8 @@ class AuthCubit extends Cubit<AuthState> {
         emit(AuthInitial());
         return;
       }
-      _setupNotificationListeners(user);
       emit(Authenticated(user));
+      unawaited(_syncNotificationsForOwner(user));
     } catch (e) {
       if (operation != _sessionOperation) return;
       emit(AuthError(e.toString().replaceAll("Exception: ", "")));
@@ -171,12 +173,12 @@ class AuthCubit extends Cubit<AuthState> {
         'Oturumunuzun süresi doldu, lütfen tekrar giriş yapın.'));
   }
 
-  void _setupNotificationListeners(UserEntity user) {
+  Future<void> _syncNotificationsForOwner(UserEntity user) async {
     if (user.role != UserRole.owner) return;
     try {
-      sl<FirebaseMessagingService>().listenForTokenChanges();
+      await sl<FirebaseMessagingService>().syncTokenIfAuthorized();
     } catch (_) {
-      // Bildirim dinleyici hatası auth akışını engellememeli.
+      // Bildirim kurulumu giriş akışını engellememeli.
     }
   }
 }

@@ -73,7 +73,7 @@ class ScheduledTreatmentNotifierTest {
         notifier.scanAndSendTreatmentReminders();
 
         verify(notificationService).sendNotificationToOwner(
-                eq(ownerId), eq(NotificationType.TREATMENT), anyString(), anyString(), eq(entryId));
+                eq(ownerId), eq(petId), eq(NotificationType.TREATMENT), anyString(), anyString(), eq(entryId));
     }
 
     @Test

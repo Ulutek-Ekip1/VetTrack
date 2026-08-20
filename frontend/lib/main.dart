@@ -10,12 +10,12 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  var firebaseInitialized = false;
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    final messagingService = FirebaseMessagingService();
-    await messagingService.initNotifications();
+    firebaseInitialized = true;
   } catch (e) {
     debugPrint('Firebase başlatılamadı: $e');
   }
@@ -26,6 +26,10 @@ void main() async {
   );
 
   await di.init();
+
+  if (firebaseInitialized) {
+    await di.sl<FirebaseMessagingService>().initNotifications();
+  }
 
   runApp(const VetTrackApp());
 }
