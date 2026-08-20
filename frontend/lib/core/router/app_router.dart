@@ -47,6 +47,7 @@ import '../../features/clinic/presentation/cubit/clinic_invite_cubit.dart';
 import '../../features/clinic/presentation/screens/vet_invite_code_screen.dart';
 import '../../features/clinic/presentation/screens/vet_invite_register_screen.dart';
 import '../../features/clinic/presentation/screens/no_clinic_membership_screen.dart';
+import '../../features/auth/presentation/screens/vet_mobile_warning_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription<dynamic> _subscription;
@@ -72,6 +73,8 @@ abstract class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String ownerEmailVerification = '/owner/email-verification';
   static const String resetPassword = '/reset-password';
+  static const String vetMobileWarning =
+      '/vet/mobile-warning'; // Veteriner mobil warning screen rotası
 
   // Clinic Davet & Onboarding Rotaları
   static const String vetInvite = '/vet/invite';
@@ -151,7 +154,9 @@ class AppRouter {
 
         // 1. Giriş yapılmamışsa:
         if (!isLoggedIn) {
-          if (isPublicAuthRoute || isInviteRoute || location == AppRoutes.noClinic) {
+          if (isPublicAuthRoute ||
+              isInviteRoute ||
+              location == AppRoutes.noClinic) {
             return null; // Public rotalara doğrudan izin ver
           }
           return AppRoutes.welcome;
@@ -192,6 +197,13 @@ class AppRouter {
           return AppRoutes.vetSearch;
         }
 
+        // Mobil panel yalnız hayvan sahiplerine (owner) açıktır.
+        if (AppPlatform.isMobileExperience && user.role == UserRole.vet) {
+          if (location == AppRoutes.vetMobileWarning) {
+            return null;
+          }
+          return AppRoutes.vetMobileWarning;
+        }
         return null;
       },
       routes: [
@@ -258,6 +270,11 @@ class AppRouter {
           path: AppRoutes.resetPassword,
           name: 'resetPassword',
           builder: (context, state) => const ResetPasswordScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.vetMobileWarning,
+          name: 'vetMobileWarning',
+          builder: (context, state) => const VetMobileWarningScreen(),
         ),
 
         //Hayvan Sahibi StatefulShellRoute
