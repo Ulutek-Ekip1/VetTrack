@@ -91,6 +91,7 @@ import 'package:vettrack_frontend/features/clinic/data/repositories/clinic_repos
 import 'package:vettrack_frontend/features/clinic/domain/repositories/clinic_repository.dart';
 import 'package:vettrack_frontend/features/clinic/domain/usecases/validate_invite_usecase.dart';
 import 'package:vettrack_frontend/features/clinic/domain/usecases/accept_invite_usecase.dart';
+import 'package:vettrack_frontend/features/clinic/domain/usecases/register_and_accept_invite_usecase.dart';
 import 'package:vettrack_frontend/features/clinic/presentation/cubit/clinic_invite_cubit.dart';
 
 final sl = GetIt.instance;
@@ -311,18 +312,19 @@ Future<void> init() async {
   // CLINIC FEATURE
   // ---------------------------------------------------------------------------
   sl.registerLazySingleton<ClinicRemoteDataSource>(
-    () => ClinicRemoteDataSourceImpl(sl()),
+    () => ClinicRemoteDataSourceImpl(sl(), sl()),
   );
   sl.registerLazySingleton<ClinicRepository>(
     () => ClinicRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => ValidateInviteUseCase(sl()));
   sl.registerLazySingleton(() => AcceptInviteUseCase(sl()));
+  sl.registerLazySingleton(() => RegisterAndAcceptInviteUseCase(sl()));
   sl.registerFactory(
     () => ClinicInviteCubit(
       validateInviteUseCase: sl(),
       acceptInviteUseCase: sl(),
-      registerUseCase: sl(),
+      registerAndAcceptInviteUseCase: sl(),
     ),
   );
 

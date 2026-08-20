@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
+import 'package:http_parser/http_parser.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../models/user_model.dart';
 import '../models/owner_model.dart';
@@ -201,10 +202,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<String> updateProfilPhoto(String filePath) async {
     try {
       final fileName = filePath.split('/').last;
+      final extension = fileName.split('.').last.toLowerCase();
+      
+      MediaType? contentType;
+      if (extension == 'jpg' || extension == 'jpeg') {
+        contentType = MediaType('image', 'jpeg');
+      } else if (extension == 'png') {
+        contentType = MediaType('image', 'png');
+      } else if (extension == 'webp') {
+        contentType = MediaType('image', 'webp');
+      }
+
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
           filePath,
           filename: fileName,
+          contentType: contentType,
         ),
       });
       final response = await dio.post(
