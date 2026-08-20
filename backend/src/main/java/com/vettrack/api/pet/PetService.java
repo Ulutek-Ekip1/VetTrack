@@ -146,13 +146,16 @@ public class PetService {
             throw new IllegalArgumentException("Kilo değeri 0'dan büyük ve en fazla 2000 kg olmalıdır");
         }
         
-        var lastRecord = petWeightHistoryRepository.findTopByPetIdOrderByRecordedAtDescCreatedAtDesc(petId);
+        // Dedup en son EKLENEN kayda göre yapılmalı (createdAt), recordedAt'e göre değil:
+        // recordedAt geçmişe dönük (backdated) girilebiliyor, bu durumda "kronolojik olarak en son"
+        // ile "en son eklenen" farklı satırlar olabilir ve yanlış kayda karşı kıyaslama yapılırdı.
+        var lastRecord = petWeightHistoryRepository.findTopByPetIdOrderByCreatedAtDesc(petId);
         if (lastRecord.isPresent() && lastRecord.get().getWeight().equals(weight)) {
             return;
         }
-        
+
         OffsetDateTime recordedAt;
-        if (date == null || date.isEqual(LocalDate.now(ZoneOffset.UTC))) {
+        if (date == null || date.isEqual(LocalDate.now())) {
             recordedAt = OffsetDateTime.now(ZoneOffset.UTC);
         } else {
             recordedAt = date.atStartOfDay().atOffset(ZoneOffset.UTC);

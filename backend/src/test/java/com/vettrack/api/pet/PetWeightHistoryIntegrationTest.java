@@ -291,6 +291,33 @@ class PetWeightHistoryIntegrationTest {
     }
 
     @Test
+    @DisplayName("Geriye dönük (backdated) kayıt eklendiğinde dedup kontrolü en son EKLENEN kayda göre yapılmalı, en güncel tarihli kayda göre değil")
+    void shouldDedupAgainstMostRecentlyInsertedRecordNotMostRecentDate() {
+        UUID ownerId = UUID.randomUUID();
+        // weight=null: createPet otomatik kayıt atmasın, ilk kayıt biz kontrol edelim
+        Pet pet = Pet.builder()
+                .ownerId(ownerId)
+                .name("Pamuk")
+                .species("Kedi")
+                .gender(Gender.female)
+                .build();
+        Pet createdPet = petService.createPet(pet);
+
+        // Önce bugünün kilosunu gir (kronolojik olarak en güncel tarih)
+        petService.recordWeight(createdPet.getId(), 22.0, LocalDate.now(), ownerId);
+
+        // Sonra geçmişe dönük bir ziyaretin kilosunu gir (recordedAt daha eski ama insertion sırası daha yeni)
+        LocalDate lastWeek = LocalDate.now().minusDays(7);
+        petService.recordWeight(createdPet.getId(), 21.0, lastWeek, ownerId);
+        // Aynı geçmiş kilo tekrar girilirse (örn. formu tekrar submit etme) hâlâ dedup çalışmalı
+        petService.recordWeight(createdPet.getId(), 21.0, lastWeek, ownerId);
+
+        List<PetWeightHistoryResponse> history = petService.getWeightHistory(createdPet.getId());
+        assertEquals(2, history.size(),
+            "Backdated kayıt bugünün kilosuna göre değil, kendisinden önce EKLENEN kayda göre dedup edilmeli");
+    }
+
+    @Test
     @DisplayName("Service katmanında NaN veya Infinite kilo değeri IllegalArgumentException fırlatmalı")
     void shouldThrowExceptionForNaNOrInfiniteWeightInService() {
         UUID ownerId = UUID.randomUUID();
