@@ -13,6 +13,7 @@ class UiChatMessage extends Equatable {
   final MessageSendStatus sendStatus;
   final String? errorMessage;
   final int? errorCode;
+  final String? errorType;
   final String createdAt;
 
   const UiChatMessage({
@@ -26,6 +27,7 @@ class UiChatMessage extends Equatable {
     required this.sendStatus,
     this.errorMessage,
     this.errorCode,
+    this.errorType,
     required this.createdAt,
   });
 
@@ -42,6 +44,8 @@ class UiChatMessage extends Equatable {
     bool clearErrorMessage = false,
     int? errorCode,
     bool clearErrorCode = false,
+    String? errorType,
+    bool clearErrorType = false,
     String? createdAt,
   }) {
     return UiChatMessage(
@@ -56,6 +60,7 @@ class UiChatMessage extends Equatable {
       errorMessage:
           clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       errorCode: clearErrorCode ? null : (errorCode ?? this.errorCode),
+      errorType: clearErrorType ? null : (errorType ?? this.errorType),
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -72,6 +77,7 @@ class UiChatMessage extends Equatable {
         sendStatus,
         errorMessage,
         errorCode,
+        errorType,
         createdAt,
       ];
 }

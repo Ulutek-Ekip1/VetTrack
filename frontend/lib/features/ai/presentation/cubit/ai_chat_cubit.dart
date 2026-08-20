@@ -283,6 +283,7 @@ class AiChatCubit extends Cubit<AiChatState> {
           sendStatus: MessageSendStatus.sending,
           clearErrorMessage: true,
           clearErrorCode: true,
+          clearErrorType: true,
         );
       }
       return m;
@@ -316,6 +317,7 @@ class AiChatCubit extends Cubit<AiChatState> {
           sendStatus: MessageSendStatus.sending,
           clearErrorMessage: true,
           clearErrorCode: true,
+          clearErrorType: true,
         );
       }
       return m;
@@ -335,7 +337,8 @@ class AiChatCubit extends Cubit<AiChatState> {
     );
   }
 
-  String _mapErrorCodeToUserMessage(int? statusCode, String rawExceptionMsg) {
+  String _mapErrorCodeToUserMessage(int? statusCode, String rawExceptionMsg,
+      {String? errorType}) {
     if (statusCode == 400) {
       return 'Geçersiz veya boş mesaj. Lütfen mesajınızı kontrol edip tekrar deneyiniz.';
     } else if (statusCode == 401) {
@@ -343,7 +346,10 @@ class AiChatCubit extends Cubit<AiChatState> {
     } else if (statusCode == 403) {
       return 'Bu evcil hayvana veya sohbete erişim yetkiniz bulunmuyor.';
     } else if (statusCode == 409) {
-      return 'Mesaj kimlik çakışması (409). Yeni mesaj kimliği üreterek tekrar gönderebilirsiniz.';
+      if (errorType == 'IDEMPOTENCY_KEY_REUSED') {
+        return 'Mesaj kimlik çakışması (409). Yeni mesaj kimliği üreterek tekrar gönderebilirsiniz.';
+      }
+      return 'İşlem veya veri çakışması oluştu (409). Lütfen tekrar deneyiniz.';
     } else if (statusCode == 429) {
       return 'Çok fazla mesaj gönderdiniz (429 Hız Limiti). Lütfen kısa bir süre bekledikten sonra tekrar deneyiniz.';
     } else if (statusCode == 503) {
@@ -383,6 +389,7 @@ class AiChatCubit extends Cubit<AiChatState> {
             sendStatus: MessageSendStatus.sent,
             clearErrorMessage: true,
             clearErrorCode: true,
+            clearErrorType: true,
           );
         }
         return m;
@@ -447,16 +454,19 @@ class AiChatCubit extends Cubit<AiChatState> {
 
       int? statusCode;
       int? retryAfterSeconds;
+      String? errorType;
       String rawErrorMsg = e.toString();
 
       if (e is ServerException && e.message != null && e.message!.isNotEmpty) {
         rawErrorMsg = e.message!;
         statusCode = e.statusCode;
         retryAfterSeconds = e.retryAfterSeconds;
+        errorType = e.errorCode;
       }
 
-      final userFriendlyErrorMsg =
-          _mapErrorCodeToUserMessage(statusCode, rawErrorMsg);
+      final userFriendlyErrorMsg = _mapErrorCodeToUserMessage(
+          statusCode, rawErrorMsg,
+          errorType: errorType);
 
       final updatedMessages = state.messages.map((m) {
         if (m.id == existingUserMessageId) {
@@ -464,6 +474,7 @@ class AiChatCubit extends Cubit<AiChatState> {
             sendStatus: MessageSendStatus.error,
             errorMessage: userFriendlyErrorMsg,
             errorCode: statusCode,
+            errorType: errorType,
           );
         }
         return m;

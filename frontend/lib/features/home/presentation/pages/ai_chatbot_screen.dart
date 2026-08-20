@@ -1081,7 +1081,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      if (msg.errorCode == 409)
+                      if (msg.errorType == 'IDEMPOTENCY_KEY_REUSED')
                         InkWell(
                           onTap: () {
                             context
