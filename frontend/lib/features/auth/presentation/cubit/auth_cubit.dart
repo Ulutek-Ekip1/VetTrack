@@ -50,7 +50,6 @@ class AuthCubit extends Cubit<AuthState> {
           );
       if (operation != _sessionOperation) return;
       if (user != null) {
-        _setupNotificationListeners(user);
         emit(Authenticated(user));
         unawaited(_syncNotificationsForOwner(user));
       } else {
@@ -95,7 +94,6 @@ class AuthCubit extends Cubit<AuthState> {
         emit(AuthInitial());
         return;
       }
-      _setupNotificationListeners(user);
       emit(Authenticated(user));
       unawaited(_syncNotificationsForOwner(user));
     } catch (e) {
