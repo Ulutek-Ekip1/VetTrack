@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,8 +50,29 @@ public class AiChatService {
     @Value("${gemini.model:gemini-2.5-flash}")
     private String modelName;
 
+    private final ConcurrentHashMap<String, Object> messageLocks = new ConcurrentHashMap<>();
+
     @Transactional
     public AiChatResponse processChat(UUID ownerId, String userRole, AiChatRequest request) {
+        String lockKey = (ownerId != null && request.getClientMessageId() != null && !request.getClientMessageId().isBlank())
+                ? (ownerId + ":" + request.getClientMessageId())
+                : null;
+
+        if (lockKey != null) {
+            Object lock = messageLocks.computeIfAbsent(lockKey, k -> new Object());
+            synchronized (lock) {
+                try {
+                    return doProcessChat(ownerId, userRole, request);
+                } finally {
+                    messageLocks.remove(lockKey, lock);
+                }
+            }
+        }
+
+        return doProcessChat(ownerId, userRole, request);
+    }
+
+    private AiChatResponse doProcessChat(UUID ownerId, String userRole, AiChatRequest request) {
         long startTime = System.currentTimeMillis();
         boolean isStaff = isStaffRole(userRole);
 
@@ -62,17 +84,7 @@ public class AiChatService {
             throw new ApiException(ErrorCode.AI_CONSENT_REQUIRED, "Yapay zeka asistanını kullanabilmek için açık rıza (opt-in) onayı gereklidir.");
         }
 
-        // 2. Günlük Mesaj Kotası / Rate Limit Denetimi (Son 24 saat)
-        if (ownerId != null && !isStaff) {
-            OffsetDateTime oneDayAgo = OffsetDateTime.now().minusDays(1);
-            long userMessageCount = chatMessageRepository.countByOwnerIdAndRoleAndCreatedAtGreaterThanEqual(ownerId, "user", oneDayAgo);
-            if (userMessageCount >= DAILY_MESSAGE_LIMIT) {
-                log.warn("Rate limit exceeded for ownerId: {}. Total messages in last 24h: {}", ownerId, userMessageCount);
-                throw new ApiException(ErrorCode.TOO_MANY_REQUESTS, "Günlük yapay zeka mesaj kotanız (" + DAILY_MESSAGE_LIMIT + ") dolmuştur. Lütfen yarın tekrar deneyiniz.");
-            }
-        }
-
-        // 3. Pet Ownership Check
+        // 2. Pet Ownership Check
         if (request.getPetId() != null && ownerId != null) {
             Optional<Pet> petOpt = petRepository.findById(request.getPetId());
             if (petOpt.isPresent() && !isStaff) {
@@ -83,7 +95,7 @@ public class AiChatService {
             }
         }
 
-        // 4. Conversation Ownership & Pet Integrity Check
+        // 3. Conversation Ownership & Pet Integrity Check
         if (request.getConversationId() != null && ownerId != null) {
             Optional<ChatMessage> firstMsgOpt = chatMessageRepository.findFirstByConversationId(request.getConversationId());
             if (firstMsgOpt.isPresent()) {
@@ -97,10 +109,14 @@ public class AiChatService {
             }
         }
 
-        String sanitizedMessage = emergencySafetyService.sanitizePromptInput(request.getMessage());
+        String rawSanitized = emergencySafetyService.sanitizePromptInput(request.getMessage());
+        String sanitizedMessage = rawSanitized != null ? rawSanitized : (request.getMessage() != null ? request.getMessage() : "");
         log.info("Processing chat request. ownerId: {}, petId: {}, sanitizedLength: {}", ownerId, request.getPetId(), sanitizedMessage.length());
 
-        // 5. Idempotency Check & Reuse Validation (409 Conflict check)
+        // 4. Idempotency Check & Reuse Validation (409 Conflict check)
+        boolean userMessageAlreadySaved = false;
+        UUID conversationId = request.getConversationId() != null ? request.getConversationId() : UUID.randomUUID();
+
         if (ownerId != null && request.getClientMessageId() != null && !request.getClientMessageId().isBlank()) {
             Optional<ChatMessage> existingMsg = chatMessageRepository.findByOwnerIdAndClientMessageId(ownerId, request.getClientMessageId());
             if (existingMsg.isPresent()) {
@@ -130,14 +146,28 @@ public class AiChatService {
                             .build();
                 }
 
-                throw new IdempotencyKeyReusedException("İdempotent isteğin daha önce işlendiği görünse de ilgili model yanıtı bulunamadı; lütfen yeniden deneyin.");
+                // If user message was recorded earlier but assistant response was not generated/saved (e.g. timeout/failure),
+                // reuse the existing conversation and user message instead of blocking with 409.
+                log.info("Existing user message found without assistant response for clientMessageId: {}. Proceeding to generate model response.", request.getClientMessageId());
+                if (msg.getConversationId() != null) {
+                    conversationId = msg.getConversationId();
+                }
+                userMessageAlreadySaved = true;
             }
         }
 
-        UUID conversationId = request.getConversationId() != null ? request.getConversationId() : UUID.randomUUID();
+        // 5. Günlük Mesaj Kotası / Rate Limit Denetimi (Yalnızca Yeni Mesajlar İçin - P2)
+        if (ownerId != null && !isStaff && !userMessageAlreadySaved) {
+            OffsetDateTime oneDayAgo = OffsetDateTime.now().minusDays(1);
+            long userMessageCount = chatMessageRepository.countByOwnerIdAndRoleAndCreatedAtGreaterThanEqual(ownerId, "user", oneDayAgo);
+            if (userMessageCount >= DAILY_MESSAGE_LIMIT) {
+                log.warn("Rate limit exceeded for ownerId: {}. Total messages in last 24h: {}", ownerId, userMessageCount);
+                throw new ApiException(ErrorCode.TOO_MANY_REQUESTS, "Günlük yapay zeka mesaj kotanız (" + DAILY_MESSAGE_LIMIT + ") dolmuştur. Lütfen yarın tekrar deneyiniz.");
+            }
+        }
 
-        // 6. Save user message to database
-        if (ownerId != null) {
+        // 6. Save user message to database (if not already saved)
+        if (ownerId != null && !userMessageAlreadySaved) {
             saveChatMessage(conversationId, request.getClientMessageId(), ownerId, request.getPetId(), "user", sanitizedMessage, false, null);
         }
 
@@ -270,9 +300,13 @@ public class AiChatService {
                     .build();
             return chatMessageRepository.save(msg);
         } catch (DataIntegrityViolationException dive) {
-            log.warn("Unique constraint violation for clientMessageId: {} / ownerId: {}. Fetching existing record.", clientMessageId, ownerId);
+            log.warn("Unique constraint violation for clientMessageId: {} / replyToClientMessageId: {} / ownerId: {}. Fetching existing record.",
+                    clientMessageId, replyToClientMessageId, ownerId);
             if (clientMessageId != null) {
                 return chatMessageRepository.findByOwnerIdAndClientMessageId(ownerId, clientMessageId).orElse(null);
+            }
+            if (replyToClientMessageId != null) {
+                return chatMessageRepository.findFirstByOwnerIdAndReplyToClientMessageIdAndRoleOrderByCreatedAtAsc(ownerId, replyToClientMessageId, "model").orElse(null);
             }
             return null;
         } catch (Exception e) {
