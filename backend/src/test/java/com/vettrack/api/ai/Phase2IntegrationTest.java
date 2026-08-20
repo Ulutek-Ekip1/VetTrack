@@ -5,6 +5,7 @@ import com.vettrack.api.ai.dto.AiChatResponse;
 import com.vettrack.api.ai.entity.ChatMessage;
 import com.vettrack.api.ai.exception.GeminiApiException;
 import com.vettrack.api.ai.repository.ChatMessageRepository;
+import com.vettrack.api.ai.service.AiChatService;
 import com.vettrack.api.ai.service.ChatMessagePersistenceService;
 import com.vettrack.api.ai.service.EmergencySafetyService;
 import com.vettrack.api.ai.service.GeminiService;
