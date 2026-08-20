@@ -16,4 +16,21 @@ class ClinicRepositoryImpl implements ClinicRepository {
   Future<void> acceptInvite(String token) async {
     return await remoteDataSource.acceptInvite(token);
   }
+
+  @override
+  Future<void> registerAndAcceptInvite({
+    required String email,
+    required String password,
+    required String name,
+    String? phone,
+    required String token,
+  }) async {
+    return await remoteDataSource.registerAndAcceptInvite(
+      email: email,
+      password: password,
+      name: name,
+      phone: phone,
+      token: token,
+    );
+  }
 }

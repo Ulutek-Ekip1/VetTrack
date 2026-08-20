@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/exceptions.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/domain/usecases/register_usecase.dart';
+import '../../domain/usecases/register_and_accept_invite_usecase.dart';
 import '../../domain/usecases/accept_invite_usecase.dart';
 import '../../domain/usecases/validate_invite_usecase.dart';
 import 'clinic_invite_state.dart';
@@ -9,12 +8,12 @@ import 'clinic_invite_state.dart';
 class ClinicInviteCubit extends Cubit<ClinicInviteState> {
   final ValidateInviteUseCase validateInviteUseCase;
   final AcceptInviteUseCase acceptInviteUseCase;
-  final RegisterUseCase registerUseCase;
+  final RegisterAndAcceptInviteUseCase registerAndAcceptInviteUseCase;
 
   ClinicInviteCubit({
     required this.validateInviteUseCase,
     required this.acceptInviteUseCase,
-    required this.registerUseCase,
+    required this.registerAndAcceptInviteUseCase,
   }) : super(const ClinicInviteInitial());
 
   void reset() {
@@ -86,17 +85,14 @@ class ClinicInviteCubit extends Cubit<ClinicInviteState> {
     emit(const ClinicInviteSubmitting());
 
     try {
-      // 1. Veteriner hekim hesap kaydı oluşturulur (Supabase Auth & Profiles)
-      await registerUseCase(
-        email.trim(),
-        password,
-        name.trim(),
-        phone?.trim(),
-        UserRole.vet,
+      // Veteriner hekim hesap kaydı oluşturulur ve klinik üyeliği bağlanır (Atomik)
+      await registerAndAcceptInviteUseCase(
+        email: email,
+        password: password,
+        name: name,
+        phone: phone,
+        token: token,
       );
-
-      // 2. Hesaba klinik üyeliği bağlanır (clinic_memberships)
-      await acceptInviteUseCase(token.trim());
 
       emit(ClinicInviteSuccess(
         clinicName: clinicName,
