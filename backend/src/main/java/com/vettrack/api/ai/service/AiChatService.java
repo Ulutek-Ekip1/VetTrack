@@ -55,7 +55,10 @@ public class AiChatService {
         boolean isStaff = isStaffRole(userRole);
 
         // 1. Açık Rıza (Opt-In) Doğrulaması (AI_CONSENT_REQUIRED)
-        if (!Boolean.TRUE.equals(request.getAiConsentGiven())) {
+        // OpenAPI sözleşmesi gereğince varsayılan değer true'dur. Frontend göndermediğinde veya null olduğunda true kabul edilir.
+        // Yalnızca istemci açıkça false gönderdiğinde 403 AI_CONSENT_REQUIRED hatası fırlatılır.
+        boolean consentGiven = request.getAiConsentGiven() != null ? request.getAiConsentGiven() : true;
+        if (!consentGiven) {
             throw new ApiException(ErrorCode.AI_CONSENT_REQUIRED, "Yapay zeka asistanını kullanabilmek için açık rıza (opt-in) onayı gereklidir.");
         }
 

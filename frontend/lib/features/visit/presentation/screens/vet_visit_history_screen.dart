@@ -33,7 +33,9 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
       if (_selectedFilter == 'Devam Edenler') {
         return matchesSearch && visit.isOngoing;
       } else if (_selectedFilter == 'Tamamlananlar') {
-        return matchesSearch && !visit.isOngoing;
+        return matchesSearch && visit.isCompleted;
+      } else if (_selectedFilter == 'İptal Edilenler') {
+        return matchesSearch && visit.isCancelled;
       }
       return matchesSearch;
     }).toList();
@@ -49,28 +51,28 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
         contentPadding: const EdgeInsets.all(24),
         title: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          decoration: const BoxDecoration(
-            color: Colors.teal,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.secondary,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.assignment_outlined, color: Colors.white),
+                  Icon(Icons.assignment_outlined, color: Theme.of(context).colorScheme.onSecondary),
                   const SizedBox(width: 8),
                   Text(
                     'Muayene Detayı (${visit.id.toShortId()})',
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSecondary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
+                icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSecondary),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -86,16 +88,16 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.teal.shade50,
+                    color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.teal.shade200),
+                    border: Border.all(color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 24,
-                        backgroundColor: Colors.teal,
-                        child: Icon(Icons.pets, color: Colors.white),
+                        backgroundColor: Theme.of(context).colorScheme.secondary,
+                        child: Icon(Icons.pets, color: Theme.of(context).colorScheme.onSecondary),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -128,15 +130,15 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 6),
-                const Wrap(
+                Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
                     Chip(
                       avatar: Icon(Icons.check_circle,
-                          size: 16, color: Colors.teal),
-                      label: Text('Genel Fiziksel Muayene'),
-                      backgroundColor: Color(0xFFE0F2F1),
+                          size: 16, color: Theme.of(context).colorScheme.secondary),
+                      label: const Text('Genel Fiziksel Muayene'),
+                      backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
                     )
                   ],
                 ),
@@ -152,15 +154,15 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 6),
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.only(bottom: 4.0),
+                      padding: const EdgeInsets.only(bottom: 4.0),
                       child: Row(
                         children: [
-                          Icon(Icons.arrow_right, color: Colors.teal),
-                          Expanded(
+                          Icon(Icons.arrow_right, color: Theme.of(context).colorScheme.secondary),
+                          const Expanded(
                               child:
                                   Text('Genel sağlık kurallarına uyulmalı.')),
                         ],
@@ -184,7 +186,8 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal, foregroundColor: Colors.white),
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                foregroundColor: Theme.of(context).colorScheme.onSecondary),
             icon: const Icon(Icons.check),
             label: const Text('Kapat'),
           )
@@ -195,12 +198,13 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
 
   // Detay bölümü için yardımcı widget
   Widget _buildDetailSection(String title, String content, IconData icon) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 18, color: Colors.teal),
+            Icon(icon, size: 18, color: theme.colorScheme.secondary),
             const SizedBox(width: 6),
             Text(title,
                 style:
@@ -212,9 +216,9 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
+            color: theme.colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
           child:
               Text(content, style: const TextStyle(fontSize: 13, height: 1.3)),
@@ -225,11 +229,12 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double width = MediaQuery.of(context).size.width;
+    final bool isNarrow = width < 768;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Klinik Muayene Geçmişi'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
+        title: const Text('Hekim Muayene Geçmişi'),
       ),
       body: Center(
         child: ConstrainedBox(
@@ -297,11 +302,12 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                       if (state is VisitHistoryLoaded) {
                         final filtered = _getFilteredVisits(state.visits);
                         if (filtered.isEmpty) {
-                          return const Center(
+                          return Center(
                             child: Text(
                               'Arama kriterlerine uygun muayene kaydı bulunamadı.',
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 16),
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.outline,
+                                  fontSize: 16),
                             ),
                           );
                         }
@@ -310,6 +316,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                           itemBuilder: (context, index) {
                             final visit = filtered[index];
                             final isOngoing = visit.isOngoing;
+                            final isCancelled = visit.isCancelled;
 
                             return Card(
                               elevation: 1,
@@ -322,15 +329,15 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                 leading: CircleAvatar(
                                   radius: 22,
                                   backgroundColor: isOngoing
-                                      ? Colors.orange.shade100
-                                      : Colors.teal.shade100,
+                                      ? Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.15)
+                                      : Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
                                   child: Icon(
                                     isOngoing
                                         ? Icons.pending_actions
                                         : Icons.check_circle_outline,
                                     color: isOngoing
-                                        ? Colors.orange.shade800
-                                        : Colors.teal.shade800,
+                                        ? Theme.of(context).colorScheme.tertiary
+                                        : Theme.of(context).colorScheme.secondary,
                                   ),
                                 ),
                                 title: Row(
@@ -346,7 +353,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.shade200,
+                                        color: Theme.of(context).colorScheme.surfaceContainerHigh,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
@@ -358,53 +365,113 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                                     ),
                                   ],
                                 ),
-                                subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 6.0),
-                                  child: Text(
-                                    'Pet ID: ${visit.petId.toShortId()}\nŞikayet/Teşhis: ${visit.chiefComplaint ?? 'Belirtilmemiş'} • Tarih: ${visit.startedAt.toFormattedDateTime()}',
-                                    style: const TextStyle(height: 1.3),
-                                  ),
-                                ),
-                                isThreeLine: true,
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: isOngoing
-                                            ? Colors.orange.shade100
-                                            : Colors.green.shade100,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 6.0),
                                       child: Text(
-                                        isOngoing
-                                            ? 'Devam Ediyor'
-                                            : 'Tamamlandı',
-                                        style: TextStyle(
-                                          color: isOngoing
-                                              ? Colors.orange.shade900
-                                              : Colors.green.shade800,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        'Pet ID: ${visit.petId.toShortId()}\nŞikayet/Teşhis: ${visit.chiefComplaint ?? 'Belirtilmemiş'} • Tarih: ${visit.startedAt.toFormattedDateTime()}',
+                                        style: const TextStyle(height: 1.3),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    OutlinedButton.icon(
-                                      onPressed: () => _showVisitDetailsDialog(
-                                          context, visit),
-                                      icon: const Icon(
-                                          Icons.visibility_outlined,
-                                          size: 18),
-                                      label: const Text('Detay'),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.teal,
+                                    if (isNarrow) ...[
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: isOngoing
+                                                  ? Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.15)
+                                                  : isCancelled
+                                                      ? Theme.of(context).colorScheme.errorContainer
+                                                      : Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              isOngoing
+                                                  ? 'Devam Ediyor'
+                                                  : isCancelled
+                                                      ? 'İptal Edildi'
+                                                      : 'Tamamlandı',
+                                              style: TextStyle(
+                                                color: isOngoing
+                                                    ? Theme.of(context).colorScheme.tertiary
+                                                    : isCancelled
+                                                        ? Theme.of(context).colorScheme.error
+                                                        : Theme.of(context).colorScheme.secondary,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          OutlinedButton.icon(
+                                            onPressed: () => _showVisitDetailsDialog(
+                                                context, visit),
+                                            icon: const Icon(
+                                                Icons.visibility_outlined,
+                                                size: 18),
+                                            label: const Text('Detay'),
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: Theme.of(context).colorScheme.secondary,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
+                                    ],
                                   ],
                                 ),
+                                isThreeLine: !isNarrow,
+                                trailing: isNarrow
+                                    ? null
+                                    : Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: isOngoing
+                                                  ? Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.15)
+                                                  : isCancelled
+                                                      ? Theme.of(context).colorScheme.errorContainer
+                                                      : Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              isOngoing
+                                                  ? 'Devam Ediyor'
+                                                  : isCancelled
+                                                      ? 'İptal Edildi'
+                                                      : 'Tamamlandı',
+                                              style: TextStyle(
+                                                color: isOngoing
+                                                    ? Theme.of(context).colorScheme.tertiary
+                                                    : isCancelled
+                                                        ? Theme.of(context).colorScheme.error
+                                                        : Theme.of(context).colorScheme.secondary,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          OutlinedButton.icon(
+                                            onPressed: () => _showVisitDetailsDialog(
+                                                context, visit),
+                                            icon: const Icon(
+                                                Icons.visibility_outlined,
+                                                size: 18),
+                                            label: const Text('Detay'),
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: Theme.of(context).colorScheme.secondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                               ),
                             );
                           },

@@ -22,6 +22,8 @@ class VisitEntity extends Equatable {
   });
 
   bool get isOngoing => status.toLowerCase() == 'ongoing';
+  bool get isCancelled => status.toLowerCase() == 'cancelled';
+  bool get isCompleted => !isOngoing && !isCancelled;
 
   @override
   List<Object?> get props => [

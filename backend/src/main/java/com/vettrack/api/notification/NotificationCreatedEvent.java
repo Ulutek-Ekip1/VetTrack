@@ -1,5 +1,6 @@
 package com.vettrack.api.notification;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -11,13 +12,9 @@ import java.util.UUID;
  * NotificationService's {@code @TransactionalEventListener}.
  */
 @Getter
+@AllArgsConstructor
 public class NotificationCreatedEvent {
 
     private final UUID notificationId;
     private final UUID ownerId;
-
-    public NotificationCreatedEvent(UUID notificationId, UUID ownerId) {
-        this.notificationId = notificationId;
-        this.ownerId = ownerId;
-    }
 }

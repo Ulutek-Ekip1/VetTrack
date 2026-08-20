@@ -12,9 +12,9 @@ class AuthInterceptor extends Interceptor {
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
     final path = options.path;
-    
-    // Giriş ve kayıt gibi genel (public) isteklerde Authorization header'ı ekleme
-    if (path != '/auth/login' && path != '/auth/register') {
+
+    // Giriş, kayıt ve şifre sıfırlama gibi genel (public) isteklerde Authorization header'ı ekleme
+    if (!_isPublicAuthPath(path)) {
       final token = await localDataSource.getToken();
       if (token != null) {
         options.headers['Authorization'] = 'Bearer $token';
@@ -29,12 +29,36 @@ class AuthInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final hasAuthorizationHeader =
         err.requestOptions.headers['Authorization'] != null;
+
     if (err.response?.statusCode == 401 && hasAuthorizationHeader) {
       final requestPath = err.requestOptions.path;
-      if (requestPath != '/auth/login' && requestPath != '/auth/register') {
-        getAuthCubit().handleSessionExpired();
+
+      if (!_isPublicAuthPath(requestPath)) {
+        final data = err.response?.data;
+        final errorCode = (data is Map) ? data['error'] : null;
+
+        // Yetki/özel durum hatalarında (örn. REAUTHENTICATION_REQUIRED, EMAIL_NOT_VERIFIED)
+        // kullanıcı oturumu hemen kapatılmamalı; yalnızca gerçek token süresi dolması /
+        // geçersiz token durumlarında (UNAUTHORIZED veya standart 401) oturum sonlandırılmalıdır.
+        final isSpecificNonExpiryError =
+            errorCode == 'REAUTHENTICATION_REQUIRED' ||
+                errorCode == 'EMAIL_NOT_VERIFIED' ||
+                errorCode == 'INVALID_CREDENTIALS';
+
+        if (!isSpecificNonExpiryError) {
+          getAuthCubit().handleSessionExpired();
+        }
       }
     }
+
     super.onError(err, handler);
+  }
+
+  bool _isPublicAuthPath(String path) {
+    return path == '/auth/login' ||
+        path == '/auth/register' ||
+        path == '/auth/resend-verification' ||
+        path == '/auth/forgot-password' ||
+        path == '/auth/reset-password';
   }
 }

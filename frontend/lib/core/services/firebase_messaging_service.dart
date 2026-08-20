@@ -1,7 +1,7 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:vettrack_frontend/core/services/top_notification.dart';
 import '../../features/notification/domain/usecases/unregister_device_token_usecase.dart';
 import '../di/injection_container.dart';
@@ -53,9 +53,17 @@ class FirebaseMessagingService {
 
   Future<bool> openNotificationSettings() async {
     if (kIsWeb) return false;
-    final uri = Uri.parse('app-settings:');
-    if (!await canLaunchUrl(uri)) return false;
-    return launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      await AppSettings.openAppSettings(type: AppSettingsType.notification);
+      return true;
+    } catch (_) {
+      try {
+        await AppSettings.openAppSettings(type: AppSettingsType.settings);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
   }
 
   void _handleNotificationClick(RemoteMessage message) {

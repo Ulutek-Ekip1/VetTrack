@@ -2,11 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vettrack_frontend/core/error/exceptions.dart';
 import 'package:vettrack_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:vettrack_frontend/features/auth/domain/repositories/auth_repository.dart';
-import 'package:vettrack_frontend/features/auth/domain/usecases/register_usecase.dart';
 import 'package:vettrack_frontend/features/clinic/domain/entities/invite_validation_entity.dart';
 import 'package:vettrack_frontend/features/clinic/domain/repositories/clinic_repository.dart';
 import 'package:vettrack_frontend/features/clinic/domain/usecases/accept_invite_usecase.dart';
 import 'package:vettrack_frontend/features/clinic/domain/usecases/validate_invite_usecase.dart';
+import 'package:vettrack_frontend/features/clinic/domain/usecases/register_and_accept_invite_usecase.dart';
 import 'package:vettrack_frontend/features/clinic/presentation/cubit/clinic_invite_cubit.dart';
 import 'package:vettrack_frontend/features/clinic/presentation/cubit/clinic_invite_state.dart';
 
@@ -19,6 +19,12 @@ class MockClinicRepository implements ClinicRepository {
   ServerException? acceptException;
   int acceptCallCount = 0;
   String? lastAcceptedToken;
+
+  bool shouldFailRegisterAndAccept = false;
+  ServerException? registerAndAcceptException;
+  int registerAndAcceptCallCount = 0;
+  String? lastRegisterAndAcceptToken;
+  String? lastRegisterAndAcceptEmail;
 
   @override
   Future<InviteValidationEntity> validateInviteToken(String token) async {
@@ -39,6 +45,22 @@ class MockClinicRepository implements ClinicRepository {
     lastAcceptedToken = token;
     if (shouldFailAccept) {
       throw acceptException ?? const ServerException('Kabul edilemedi', 400);
+    }
+  }
+
+  @override
+  Future<void> registerAndAcceptInvite({
+    required String email,
+    required String password,
+    required String name,
+    String? phone,
+    required String token,
+  }) async {
+    registerAndAcceptCallCount++;
+    lastRegisterAndAcceptToken = token;
+    lastRegisterAndAcceptEmail = email;
+    if (shouldFailRegisterAndAccept) {
+      throw registerAndAcceptException ?? const ServerException('İşlem başarısız', 400);
     }
   }
 }
@@ -73,23 +95,21 @@ class MockAuthRepository implements AuthRepository {
 
 void main() {
   late MockClinicRepository mockClinicRepository;
-  late MockAuthRepository mockAuthRepository;
   late ValidateInviteUseCase validateInviteUseCase;
   late AcceptInviteUseCase acceptInviteUseCase;
-  late RegisterUseCase registerUseCase;
+  late RegisterAndAcceptInviteUseCase registerAndAcceptInviteUseCase;
   late ClinicInviteCubit cubit;
 
   setUp(() {
     mockClinicRepository = MockClinicRepository();
-    mockAuthRepository = MockAuthRepository();
     validateInviteUseCase = ValidateInviteUseCase(mockClinicRepository);
     acceptInviteUseCase = AcceptInviteUseCase(mockClinicRepository);
-    registerUseCase = RegisterUseCase(mockAuthRepository);
+    registerAndAcceptInviteUseCase = RegisterAndAcceptInviteUseCase(mockClinicRepository);
 
     cubit = ClinicInviteCubit(
       validateInviteUseCase: validateInviteUseCase,
       acceptInviteUseCase: acceptInviteUseCase,
-      registerUseCase: registerUseCase,
+      registerAndAcceptInviteUseCase: registerAndAcceptInviteUseCase,
     );
   });
 
@@ -133,7 +153,7 @@ void main() {
       expect(err.type, ClinicInviteErrorType.alreadyUsed);
     });
 
-    test('5. registerAndAccept akışı hem auth kaydını hem clinic kabulünü çalıştırmalıdır', () async {
+    test('5. registerAndAccept akışı hem auth kaydını hem clinic kabulünü atomik olarak çalıştırmalıdır', () async {
       await cubit.registerAndAccept(
         email: 'dr.ahmet@klinik.com',
         password: 'password123',
@@ -143,18 +163,17 @@ void main() {
         clinicName: 'Test Veteriner Kliniği',
       );
 
-      expect(mockAuthRepository.registerCallCount, 1);
-      expect(mockAuthRepository.lastRegisteredRole, UserRole.vet);
-      expect(mockClinicRepository.acceptCallCount, 1);
-      expect(mockClinicRepository.lastAcceptedToken, 'INV-TOKEN-99');
+      expect(mockClinicRepository.registerAndAcceptCallCount, 1);
+      expect(mockClinicRepository.lastRegisterAndAcceptToken, 'INV-TOKEN-99');
+      expect(mockClinicRepository.lastRegisterAndAcceptEmail, 'dr.ahmet@klinik.com');
       expect(cubit.state, isA<ClinicInviteSuccess>());
       final success = cubit.state as ClinicInviteSuccess;
       expect(success.clinicName, 'Test Veteriner Kliniği');
     });
 
     test('6. registerAndAccept sırasında hata olursa acceptFailed tipiyle hata dönmelidir', () async {
-      mockClinicRepository.shouldFailAccept = true;
-      mockClinicRepository.acceptException = const ServerException('Bağlantı hatası', 500);
+      mockClinicRepository.shouldFailRegisterAndAccept = true;
+      mockClinicRepository.registerAndAcceptException = const ServerException('Bağlantı hatası', 500);
 
       await cubit.registerAndAccept(
         email: 'dr.mehmet@klinik.com',
@@ -176,7 +195,7 @@ void main() {
         clinicName: 'Test Kliniği',
       );
 
-      expect(mockAuthRepository.registerCallCount, 0); // Yeniden register çağrılmaz
+      expect(mockClinicRepository.registerAndAcceptCallCount, 0); // Yeniden register çağrılmaz
       expect(mockClinicRepository.acceptCallCount, 1);
       expect(cubit.state, isA<ClinicInviteSuccess>());
     });

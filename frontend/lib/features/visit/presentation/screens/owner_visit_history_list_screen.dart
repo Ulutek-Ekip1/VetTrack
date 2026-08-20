@@ -38,6 +38,7 @@ class OwnerVisitHistoryListScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final visit = visits[index];
                 final isOngoing = visit.isOngoing;
+                final isCancelled = visit.isCancelled;
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12.0),
                   child: ListTile(
@@ -55,13 +56,25 @@ class OwnerVisitHistoryListScreen extends StatelessWidget {
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isOngoing ? Colors.blue.shade100 : Colors.green.shade100,
+                        color: isOngoing
+                            ? Colors.blue.shade100
+                            : isCancelled
+                                ? Colors.red.shade100
+                                : Colors.green.shade100,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        isOngoing ? 'Devam Ediyor' : 'Tamamlandı',
+                        isOngoing
+                            ? 'Devam Ediyor'
+                            : isCancelled
+                                ? 'İptal Edildi'
+                                : 'Tamamlandı',
                         style: TextStyle(
-                          color: isOngoing ? Colors.blue.shade800 : Colors.green.shade800,
+                          color: isOngoing
+                              ? Colors.blue.shade800
+                              : isCancelled
+                                  ? Colors.red.shade800
+                                  : Colors.green.shade800,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),

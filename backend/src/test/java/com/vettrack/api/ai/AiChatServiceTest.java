@@ -51,8 +51,8 @@ class AiChatServiceTest {
     }
 
     @Test
-    @DisplayName("aiConsentGiven false veya null olduğunda AI_CONSENT_REQUIRED fırlatmalıdır")
-    void testConsentRequiredWhenFalseOrNull() {
+    @DisplayName("aiConsentGiven açıkça false olduğunda AI_CONSENT_REQUIRED fırlatmalıdır")
+    void testConsentRequiredWhenExplicitlyFalse() {
         AiChatRequest requestFalse = AiChatRequest.builder()
                 .message("Kedim tüy döküyor")
                 .aiConsentGiven(false)
@@ -62,16 +62,6 @@ class AiChatServiceTest {
                 aiChatService.processChat(ownerId, "owner", requestFalse)
         );
         assertEquals(ErrorCode.AI_CONSENT_REQUIRED, exFalse.getErrorCode());
-
-        AiChatRequest requestNull = AiChatRequest.builder()
-                .message("Kedim tüy döküyor")
-                .aiConsentGiven(null)
-                .build();
-
-        ApiException exNull = assertThrows(ApiException.class, () ->
-                aiChatService.processChat(ownerId, "owner", requestNull)
-        );
-        assertEquals(ErrorCode.AI_CONSENT_REQUIRED, exNull.getErrorCode());
     }
 
     @Test
