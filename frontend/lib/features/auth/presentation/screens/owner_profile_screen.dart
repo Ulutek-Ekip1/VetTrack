@@ -612,17 +612,17 @@ class _OwnerProfileAvatar extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 36,
-                backgroundColor: theme.colorScheme.primaryContainer,
+                backgroundColor: theme.colorScheme.primary,
                 backgroundImage: avatarImage,
                 child: isUploading
-                    ? const CircularProgressIndicator(strokeWidth: 2)
+                    ? const CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
                     : (avatarImage == null
                         ? Text(
                             userName.isNotEmpty
                                 ? userName[0].toUpperCase()
                                 : 'U',
                             style: theme.textTheme.headlineMedium?.copyWith(
-                              color: theme.colorScheme.primary,
+                              color: theme.colorScheme.onPrimary,
                               fontWeight: FontWeight.bold,
                             ),
                           )

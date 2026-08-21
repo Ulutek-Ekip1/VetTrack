@@ -197,11 +197,11 @@ class VetShellScreen extends StatelessWidget {
                           const SizedBox(width: AppDimensions.spacingSm),
                           CircleAvatar(
                             radius: 16,
-                            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                            backgroundColor: theme.colorScheme.primary,
                             child: Text(
                               userInitial,
                               style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.primary,
+                                color: theme.colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
@@ -367,11 +367,11 @@ class VetShellScreen extends StatelessWidget {
                                     children: [
                                       CircleAvatar(
                                         radius: 18,
-                                        backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                                        backgroundColor: theme.colorScheme.primary,
                                         child: Text(
                                           userInitial,
                                           style: theme.textTheme.titleMedium?.copyWith(
-                                            color: theme.colorScheme.primary,
+                                            color: theme.colorScheme.onPrimary,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),

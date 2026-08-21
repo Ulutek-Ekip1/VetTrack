@@ -234,11 +234,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           size: 20,
                           color: theme.colorScheme.primary,
                         ),
-                        label: Text(
-                          "Giriş Ekranına Dön",
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            "Giriş Ekranına Dön",
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
