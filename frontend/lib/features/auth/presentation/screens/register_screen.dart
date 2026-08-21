@@ -754,6 +754,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
