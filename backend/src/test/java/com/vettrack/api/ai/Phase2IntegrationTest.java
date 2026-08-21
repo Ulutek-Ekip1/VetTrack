@@ -167,7 +167,7 @@ class Phase2IntegrationTest {
         ResponseEntity<Map<String, Object>> response = handler.handleGeminiApiException(ex);
 
         assertEquals(HttpStatus.TOO_MANY_REQUESTS, response.getStatusCode());
-        assertTrue(response.getBody().get("message").toString().contains("yoğun"));
+        assertTrue(response.getBody().get("message").toString().contains("kota"));
     }
 
     @Test
