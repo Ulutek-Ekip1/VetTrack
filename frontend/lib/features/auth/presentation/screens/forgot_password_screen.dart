@@ -50,7 +50,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: BlocConsumer<AuthCubit, AuthState>(
+              child: Center(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width > 600 ? 460 : double.infinity,
+                  child: BlocConsumer<AuthCubit, AuthState>(
                 listener: (context, state) {
                   if (state.errorMessage != null) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -253,6 +256,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ],
                   );
                 },
+              ),
+                ),
               ),
             ),
           ),

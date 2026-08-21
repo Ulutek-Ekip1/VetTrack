@@ -52,7 +52,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
         title: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.primary,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           ),
           child: Row(
@@ -61,12 +61,12 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
               Row(
                 children: [
                   Icon(Icons.assignment_outlined,
-                      color: Theme.of(context).colorScheme.onSecondary),
+                      color: Theme.of(context).colorScheme.onPrimary),
                   const SizedBox(width: 8),
                   Text(
                     'Muayene Detayı (${visit.id.toShortId()})',
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSecondary,
+                        color: Theme.of(context).colorScheme.onPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold),
                   ),
@@ -74,7 +74,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
               ),
               IconButton(
                 icon: Icon(Icons.close,
-                    color: Theme.of(context).colorScheme.onSecondary),
+                    color: Theme.of(context).colorScheme.onPrimary),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -92,13 +92,13 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(context)
                         .colorScheme
-                        .secondary
+                        .primary
                         .withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                         color: Theme.of(context)
                             .colorScheme
-                            .secondary
+                            .primary
                             .withValues(alpha: 0.3)),
                   ),
                   child: Row(
@@ -106,9 +106,9 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                       CircleAvatar(
                         radius: 24,
                         backgroundColor:
-                            Theme.of(context).colorScheme.secondary,
+                            Theme.of(context).colorScheme.primary,
                         child: Icon(Icons.pets,
-                            color: Theme.of(context).colorScheme.onSecondary),
+                            color: Theme.of(context).colorScheme.onPrimary),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -148,11 +148,11 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                     Chip(
                       avatar: Icon(Icons.check_circle,
                           size: 16,
-                          color: Theme.of(context).colorScheme.secondary),
+                          color: Theme.of(context).colorScheme.primary),
                       label: const Text('Genel Fiziksel Muayene'),
                       backgroundColor: Theme.of(context)
                           .colorScheme
-                          .secondary
+                          .primary
                           .withValues(alpha: 0.15),
                     )
                   ],
@@ -177,7 +177,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
                       child: Row(
                         children: [
                           Icon(Icons.arrow_right,
-                              color: Theme.of(context).colorScheme.secondary),
+                              color: Theme.of(context).colorScheme.primary),
                           const Expanded(
                               child:
                                   Text('Genel sağlık kurallarına uyulmalı.')),
@@ -202,8 +202,8 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                foregroundColor: Theme.of(context).colorScheme.onSecondary),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary),
             icon: const Icon(Icons.check),
             label: const Text('Kapat'),
           )
@@ -220,7 +220,7 @@ class _VetVisitHistoryScreenState extends State<VetVisitHistoryScreen> {
       children: [
         Row(
           children: [
-            Icon(icon, size: 18, color: theme.colorScheme.secondary),
+            Icon(icon, size: 18, color: theme.colorScheme.primary),
             const SizedBox(width: 6),
             Text(title,
                 style:
