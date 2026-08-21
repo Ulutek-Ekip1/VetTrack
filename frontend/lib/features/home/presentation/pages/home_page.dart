@@ -37,6 +37,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       context.read<ProfileCubit>().fetchProfile();
     }
     _checkAndPromptNotificationPermission();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      sl<FirebaseMessagingService>().flushPendingNavigation();
+    });
   }
 
   @override
