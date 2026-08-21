@@ -15,11 +15,16 @@ class PetVisitHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Geçmiş Ziyaretler (Pet #$petId)'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Geçmiş Ziyaretler (Pet #$petId)',
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: BlocBuilder<VisitCubit, VisitState>(
         builder: (context, state) {
@@ -47,9 +52,9 @@ class PetVisitHistoryScreen extends StatelessWidget {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12.0),
                   child: ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: Colors.teal,
-                      child: Icon(Icons.event_note, color: Colors.white),
+                    leading: CircleAvatar(
+                      backgroundColor: theme.colorScheme.primaryContainer,
+                      child: Icon(Icons.event_note, color: theme.colorScheme.onPrimaryContainer),
                     ),
                     title: Text(
                       '${visit.chiefComplaint ?? 'Genel Kontrol'} (#${visit.id.toShortId()})',

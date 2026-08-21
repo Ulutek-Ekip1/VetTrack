@@ -161,14 +161,22 @@ class AppRouter {
           }
           return AppRoutes.welcome;
         }
+        final user = authState.user;
+
+        // Mobil panel yalnız hayvan sahiplerine (owner) açıktır.
+        // Veterinerlerin mobil kısıtlamayı davet rotalarıyla atlatmaması için bu kontrol davet rotalarından önce değerlendirilir.
+        if (AppPlatform.isMobileExperience && user.role == UserRole.vet) {
+          if (location == AppRoutes.vetMobileWarning) {
+            return null;
+          }
+          return AppRoutes.vetMobileWarning;
+        }
 
         // 2. Davet rotaları (/vet/invite, /vet/invite/register):
         // Kullanıcı giriş yapmış olsa bile (owner veya vet) davet bağlantısını açıp kliniğe bağlanabilmelidir.
         if (isInviteRoute) {
           return null;
         }
-
-        final user = authState.user;
 
         // 3. Web klinik paneli yalnız veterinerlere açıktır.
         // Eğer kullanıcı Web üzerinde owner rolündeyse (aktif klinik üyeliği yoksa) /no-clinic sayfasına yönlendirilir.
@@ -195,14 +203,6 @@ class AppRouter {
         // Vet rolündeki kullanıcı hayvan sahibi paneline erişemez (/owner/*)
         if (user.role == UserRole.vet && location.startsWith('/owner')) {
           return AppRoutes.vetSearch;
-        }
-
-        // Mobil panel yalnız hayvan sahiplerine (owner) açıktır.
-        if (AppPlatform.isMobileExperience && user.role == UserRole.vet) {
-          if (location == AppRoutes.vetMobileWarning) {
-            return null;
-          }
-          return AppRoutes.vetMobileWarning;
         }
         return null;
       },

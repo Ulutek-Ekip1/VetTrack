@@ -230,6 +230,10 @@ class _VetInviteRegisterScreenState extends State<VetInviteRegisterScreen> {
                               icon: const Icon(Icons.login_rounded, size: 20),
                               label: const Text('Giriş Ekranına Git'),
                               style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppDimensions.spacingMd,
+                                  vertical: AppDimensions.spacingSm,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                                 ),
