@@ -36,6 +36,7 @@ supabase:
     service-key: ${SUPABASE_SERVICE_KEY}
 
 firebase:
+  credentials-json: ${FIREBASE_CREDENTIALS_JSON:}
   credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
 
 sentry:

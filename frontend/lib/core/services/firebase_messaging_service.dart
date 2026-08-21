@@ -67,7 +67,8 @@ class FirebaseMessagingService {
 
   Future<void> initNotifications() async {
     if (_disposed) {
-      throw StateError('FirebaseMessagingService kapatıldıktan sonra başlatılamaz.');
+      throw StateError(
+          'FirebaseMessagingService kapatıldıktan sonra başlatılamaz.');
     }
     if (_initialized) return;
     _initialized = true;
@@ -95,8 +96,8 @@ class FirebaseMessagingService {
     late final NotificationSettings settings;
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      final androidPlugin = _localNotifications
-          .resolvePlatformSpecificImplementation<
+      final androidPlugin =
+          _localNotifications.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
       final granted = await androidPlugin?.requestNotificationsPermission();
 
