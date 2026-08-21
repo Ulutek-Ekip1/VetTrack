@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class PetCard extends StatefulWidget {
   final PetEntity pet;
@@ -43,19 +42,21 @@ class _PetCardState extends State<PetCard> {
                   color: theme.colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16)),
-                child: QrImageView(
-                  data: widget.pet.uniqueCode,
-                  version: QrVersions.auto,
-                  size: 180.0,
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFE8DE),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.key_rounded,
+                  color: Color(0xFFD95D38),
+                  size: 24,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 'Eşsiz Kimlik Kodu',
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -68,11 +69,10 @@ class _PetCardState extends State<PetCard> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.tertiaryContainer,
+                  color: const Color(0xFFFFEEE8),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: theme.colorScheme.tertiary,
-                    width: 1.5,
+                    color: const Color(0xFFFFCBB8),
                   ),
                 ),
                 child: SelectableText(
@@ -80,7 +80,7 @@ class _PetCardState extends State<PetCard> {
                   textAlign: TextAlign.center,
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: theme.colorScheme.onTertiaryContainer,
+                    color: const Color(0xFFA53B1C),
                     letterSpacing: 2.0,
                   ),
                 ),
@@ -123,8 +123,8 @@ class _PetCardState extends State<PetCard> {
                         );
                       },
                       style: FilledButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: theme.colorScheme.onPrimary,
+                        backgroundColor: const Color(0xFFD95D38),
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
