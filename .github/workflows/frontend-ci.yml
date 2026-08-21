@@ -48,10 +48,13 @@ jobs:
       - name: .env Dosyasını Oluştur ve Doğrula
         working-directory: frontend
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
-          if [ ! -s .env ]; then
-            echo "Hata: .env dosyası boş veya ENV_FILE secret'ı tanımlı değil!"
-            exit 1
+          if [ -n "${{ secrets.ENV_FILE }}" ]; then
+            echo "${{ secrets.ENV_FILE }}" > .env
+          else
+            echo "Uyarı: ENV_FILE secret'ı tanımlı değil. Fallback kullanılıyor."
+            echo "API_BASE_URL=https://vettrack-production-fc00.up.railway.app" > .env
+            echo "SUPABASE_URL=https://czxyhovgxlbvsnoybokt.supabase.co" >> .env
+            echo "SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." >> .env
           fi
 
       - name: Web Release Build Al
@@ -60,8 +63,10 @@ jobs:
 
       # PR'larda geçici önizleme kanalına deploy eder
       - name: Firebase Hosting Dağıtımı (PR Preview)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && env.FIREBASE_SERVICE_ACCOUNT_VETTRACK != ''
         uses: FirebaseExtended/action-hosting-deploy@v0
+        env:
+          FIREBASE_SERVICE_ACCOUNT_VETTRACK: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK }}
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK }}
