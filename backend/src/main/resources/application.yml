@@ -68,6 +68,8 @@ app:
 gemini:
   api-key: ${GEMINI_API_KEY:}
   model: ${GEMINI_MODEL:gemini-1.5-flash}
+  connect-timeout-seconds: ${GEMINI_CONNECT_TIMEOUT_SECONDS:15}
+  read-timeout-seconds: ${GEMINI_READ_TIMEOUT_SECONDS:60}
 
 server:
   port: ${PORT:8080}
