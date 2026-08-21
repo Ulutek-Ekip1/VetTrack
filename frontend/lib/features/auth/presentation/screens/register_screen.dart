@@ -675,26 +675,29 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                               color: theme.colorScheme.onPrimary,
                                             ),
                                           )
-                                        : Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                'Kayıt Ol',
-                                                style: theme
-                                                    .textTheme.titleMedium
-                                                    ?.copyWith(
-                                                  color: theme.colorScheme.onPrimary,
-                                                  fontWeight: FontWeight.bold,
+                                        : FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Kayıt Ol',
+                                                  style: theme
+                                                      .textTheme.titleMedium
+                                                      ?.copyWith(
+                                                    color: theme.colorScheme.onPrimary,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Icon(
-                                                Icons.arrow_forward,
-                                                size: 20,
-                                                color: theme.colorScheme.onPrimary,
-                                              ),
-                                            ],
+                                                const SizedBox(width: 8),
+                                                Icon(
+                                                  Icons.arrow_forward,
+                                                  size: 20,
+                                                  color: theme.colorScheme.onPrimary,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                   ),
                                 ),
