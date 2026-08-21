@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/di/injection_container.dart';
@@ -553,7 +554,13 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           padding: const EdgeInsets.only(left: 8.0),
           child: IconButton(
             icon: Icon(Icons.arrow_back, color: theme.colorScheme.primary),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                context.go('/');
+              }
+            },
           ),
         ),
         titleSpacing: 0,
@@ -1044,17 +1051,6 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                           ),
                         ),
                       )),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'Daha Fazla',
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

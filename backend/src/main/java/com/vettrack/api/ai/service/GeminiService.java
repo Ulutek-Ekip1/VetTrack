@@ -119,15 +119,15 @@ public class GeminiService {
                 log.warn("Gemini API returned empty response structure for model: {}", targetModel);
             } catch (GeminiApiException e) {
                 lastException = e;
-                if (e.getStatusCode() == 401 || e.getStatusCode() == 403) {
-                    // Auth errors cannot be fixed by switching models
-                    log.error("Gemini API auth error ({}), aborting model fallback.", e.getStatusCode());
+                if (e.getStatusCode() != 404) {
+                    // Only fallback on 404 (model not found). Abort on others.
+                    log.error("Gemini API error ({}), aborting model fallback.", e.getStatusCode());
                     throw e;
                 }
                 log.warn("Model {} failed with status {}. Trying next fallback model if available.", targetModel, e.getStatusCode());
             } catch (Exception e) {
                 log.error("Error communicating with Gemini REST API model {}: {}", targetModel, e.getMessage(), e);
-                lastException = new GeminiApiException("Yapay zeka servisiyle iletişim hatası (" + targetModel + "): " + e.getMessage());
+                throw new GeminiApiException("Yapay zeka servisiyle iletişim hatası (" + targetModel + "): " + e.getMessage());
             }
         }
 
