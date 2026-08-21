@@ -280,7 +280,10 @@ class AppRouter {
         //Hayvan Sahibi StatefulShellRoute
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
-            return OwnerShellScreen(navigationShell: navigationShell);
+            return BlocProvider<ProfileCubit>.value(
+              value: sl<ProfileCubit>()..fetchProfile(),
+              child: OwnerShellScreen(navigationShell: navigationShell),
+            );
           },
           branches: [
             StatefulShellBranch(
@@ -288,10 +291,7 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.ownerHome,
                   name: 'ownerHome',
-                  builder: (context, state) => BlocProvider<ProfileCubit>(
-                    create: (context) => sl<ProfileCubit>()..fetchProfile(),
-                    child: const HomePage(),
-                  ),
+                  builder: (context, state) => const HomePage(),
                 ),
               ],
             ),
@@ -390,18 +390,12 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.ownerProfile,
                   name: 'ownerProfile',
-                  builder: (context, state) => BlocProvider<ProfileCubit>(
-                    create: (context) => sl<ProfileCubit>()..fetchProfile(),
-                    child: const OwnerProfileScreen(),
-                  ),
+                  builder: (context, state) => const OwnerProfileScreen(),
                   routes: [
                     GoRoute(
                       path: 'edit',
                       name: 'editProfile',
-                      builder: (context, state) => BlocProvider<ProfileCubit>(
-                        create: (context) => sl<ProfileCubit>(),
-                        child: const EditProfileScreen(),
-                      ),
+                      builder: (context, state) => const EditProfileScreen(),
                     ),
                   ],
                 ),
