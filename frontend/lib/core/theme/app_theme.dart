@@ -84,17 +84,17 @@ class AppTheme {
         }),
       ),
 
-      navigationRailTheme: const NavigationRailThemeData(
+      navigationRailTheme: NavigationRailThemeData(
         backgroundColor: AppColors.surfaceContainerLowest,
-        indicatorColor: AppColors.secondaryContainer,
+        indicatorColor: AppColors.primaryContainer.withValues(alpha: 0.2),
         elevation: 1,
-        selectedIconTheme: IconThemeData(color: AppColors.secondary),
-        unselectedIconTheme: IconThemeData(color: AppColors.outline),
-        selectedLabelTextStyle: TextStyle(
+        selectedIconTheme: const IconThemeData(color: AppColors.primary),
+        unselectedIconTheme: const IconThemeData(color: AppColors.outline),
+        selectedLabelTextStyle: const TextStyle(
           fontWeight: FontWeight.bold,
-          color: AppColors.secondary,
+          color: AppColors.primary,
         ),
-        unselectedLabelTextStyle: TextStyle(
+        unselectedLabelTextStyle: const TextStyle(
           color: AppColors.outline,
         ),
       ),
@@ -314,17 +314,17 @@ class AppTheme {
         }),
       ),
 
-      navigationRailTheme: const NavigationRailThemeData(
+      navigationRailTheme: NavigationRailThemeData(
         backgroundColor: AppColors.darkSurfaceContainerLow,
-        indicatorColor: AppColors.darkSecondaryContainer,
+        indicatorColor: AppColors.darkPrimaryContainer.withValues(alpha: 0.3),
         elevation: 1,
-        selectedIconTheme: IconThemeData(color: AppColors.darkOnSecondaryContainer),
-        unselectedIconTheme: IconThemeData(color: AppColors.darkOutline),
-        selectedLabelTextStyle: TextStyle(
+        selectedIconTheme: const IconThemeData(color: AppColors.darkPrimary),
+        unselectedIconTheme: const IconThemeData(color: AppColors.darkOutline),
+        selectedLabelTextStyle: const TextStyle(
           fontWeight: FontWeight.bold,
-          color: AppColors.darkSecondary,
+          color: AppColors.darkPrimary,
         ),
-        unselectedLabelTextStyle: TextStyle(
+        unselectedLabelTextStyle: const TextStyle(
           color: AppColors.darkOnSurfaceVariant,
         ),
       ),
