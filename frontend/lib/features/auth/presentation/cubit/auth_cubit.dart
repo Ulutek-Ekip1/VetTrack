@@ -15,6 +15,7 @@ import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/signin_with_google_usecase.dart';
 import '../../domain/repositories/auth_repository.dart';
 import 'auth_state.dart';
+import 'profile_cubit.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final LoginWithEmailUseCase loginWithEmail;
@@ -134,6 +135,7 @@ class AuthCubit extends Cubit<AuthState> {
         // FCM token silme hatası logout akışını engellememeli.
       }
       await logoutUseCase();
+      sl<ProfileCubit>().reset();
       if (operation != _sessionOperation) return;
       emit(const Unauthenticated());
     } catch (e) {
@@ -169,6 +171,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> handleSessionExpired() async {
     ++_sessionOperation;
     await logoutUseCase();
+    sl<ProfileCubit>().reset();
     emit(const Unauthenticated(
         'Oturumunuzun süresi doldu, lütfen tekrar giriş yapın.'));
   }
