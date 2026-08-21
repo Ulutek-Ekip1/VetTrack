@@ -1237,7 +1237,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               const SizedBox(height: 12),
               // Backend Reply Metni (Aynen gösterilir)
               SelectableText(
-                msg.content,
+                msg.displayContent,
                 style: const TextStyle(
                   color: Color(0xFF7F1D1D),
                   fontSize: 14.0,
@@ -1245,6 +1245,25 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              if (msg.quickReplies.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: msg.quickReplies.map((reply) {
+                    return ActionChip(
+                      label: Text(reply),
+                      onPressed: () => _sendMessage(text: reply),
+                      backgroundColor: Colors.white.withValues(alpha: 0.9),
+                      labelStyle: const TextStyle(color: Color(0xFFB91C1C), fontSize: 12, fontWeight: FontWeight.bold),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: Color(0xFFFCA5A5)),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
@@ -1294,13 +1313,32 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SelectableText(
-              msg.content,
+              msg.displayContent,
               style: TextStyle(
                 color: theme.colorScheme.onSurface,
                 fontSize: 14.0,
                 height: 1.4,
               ),
             ),
+            if (msg.quickReplies.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: msg.quickReplies.map((reply) {
+                  return ActionChip(
+                    label: Text(reply),
+                    onPressed: () => _sendMessage(text: reply),
+                    backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    labelStyle: TextStyle(color: theme.colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
             const SizedBox(height: 6),
             Align(
               alignment: Alignment.centerRight,
