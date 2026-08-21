@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+    types: [ opened, synchronize, reopened, closed ]
   workflow_dispatch:
 
 concurrency:
@@ -18,6 +19,9 @@ permissions:
 
 jobs:
   build_and_deploy:
+    # PR kapanma event'inde deploy'a gerek yok, sadece preview channel'ı silen
+    # cleanup_preview_channel job'ı çalışsın.
+    if: github.event_name != 'pull_request' || github.event.action != 'closed'
     # Tüm CI çalıştırmaları mevcut production environment secret'larını kullanır.
     # PR'lar preview URL'sine yayınlansa da production yapılandırmasıyla derlenir.
     environment:
@@ -73,3 +77,31 @@ jobs:
           projectId: vettrack-ce0ad
           channelId: live
           entryPoint: frontend
+
+  # PR kapandığında (merge veya direkt kapatma) o PR'ın açtığı preview channel'ı
+  # siler. Bu adım olmadan her PR kendi channel'ını süresiz biriktiriyor ve
+  # Firebase Hosting'in preview channel kotasını dolduruyor (bkz. #174 CI hatası).
+  cleanup_preview_channel:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR'a Ait Preview Channel'ı Sil
+        env:
+          FIREBASE_SERVICE_ACCOUNT_VETTRACK: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT_VETTRACK" > /tmp/firebase-sa.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-sa.json
+
+          CHANNEL_ID=$(npx firebase-tools@latest hosting:channel:list --project vettrack-ce0ad --json \
+            | jq -r --arg prefix "/pr${PR_NUMBER}-" '.result.channels[] | select(.name | contains($prefix)) | .name' \
+            | sed 's#.*/##')
+
+          if [ -n "$CHANNEL_ID" ]; then
+            echo "Siliniyor: $CHANNEL_ID"
+            npx firebase-tools@latest hosting:channel:delete "$CHANNEL_ID" --project vettrack-ce0ad --force
+          else
+            echo "PR #$PR_NUMBER için silinecek preview channel bulunamadı (zaten silinmiş ya da hiç oluşmamış olabilir)."
+          fi
+
+          rm -f /tmp/firebase-sa.json
