@@ -8,6 +8,7 @@ import '../../../../features/auth/presentation/cubit/auth_state.dart';
 import '../../../../features/pet/presentation/cubit/pet_cubit.dart';
 import '../../../../features/pet/presentation/cubit/pet_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_state.dart';
 import '../../../../features/notification/presentation/cubit/notification_cubit.dart';
@@ -293,9 +294,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   ),
                   const SizedBox(height: 6),
 
-                  // Evcil Hayvan Yatay Listesi
+                  // Evcil Hayvan Yatay Listesi (Full Image Cover Hero Cards)
                   SizedBox(
-                    height: 148,
+                    height: 220,
                     child: BlocBuilder<PetCubit, PetState>(
                       builder: (context, petState) {
                         if (petState is PetLoading) {
@@ -320,94 +321,229 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             itemCount: pets.length,
                             itemBuilder: (context, index) {
                               final pet = pets[index];
+                              final hasPhoto = pet.photoUrl != null &&
+                                  pet.photoUrl!.isNotEmpty;
+
                               return Container(
-                                width: 215,
-                                margin: const EdgeInsets.only(right: 12),
+                                width: 175,
+                                margin: const EdgeInsets.only(right: 14),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.surfaceContainerLow,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: theme.colorScheme.outlineVariant
-                                        .withValues(alpha: 0.5),
-                                    width: 1,
-                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                  color: theme.colorScheme.surfaceContainerHighest,
+                                  image: hasPhoto
+                                      ? DecorationImage(
+                                          image: NetworkImage(pet.photoUrl!),
+                                          fit: BoxFit.cover,
+                                          alignment: Alignment.topCenter,
+                                        )
+                                      : null,
+                                  gradient: !hasPhoto
+                                      ? LinearGradient(
+                                          colors: [
+                                            theme.colorScheme.primaryContainer,
+                                            theme.colorScheme.tertiaryContainer,
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        )
+                                      : null,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.12),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
-                                child: InkWell(
-                                  onTap: () =>
-                                      context.go('/owner/pets/${pet.id}'),
-                                  borderRadius: BorderRadius.circular(20),
-                                  splashColor: theme.colorScheme.primary
-                                      .withValues(alpha: 0.08),
-                                  hoverColor: theme.colorScheme.primary
-                                      .withValues(alpha: 0.04),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 30,
-                                          backgroundColor:
-                                              theme.colorScheme.primaryContainer,
-                                          backgroundImage:
-                                              pet.photoUrl != null &&
-                                                      pet.photoUrl!.isNotEmpty
-                                                  ? NetworkImage(pet.photoUrl!)
-                                                  : null,
-                                          child: pet.photoUrl == null ||
-                                                  pet.photoUrl!.isEmpty
-                                              ? Icon(Icons.pets,
-                                                  size: 30,
-                                                  color:
-                                                      theme.colorScheme.primary)
-                                              : null,
+                                clipBehavior: Clip.antiAlias,
+                                child: Stack(
+                                  children: [
+                                    // Resim olmadığında ortada büyük ikon
+                                    if (!hasPhoto)
+                                      Center(
+                                        child: Icon(
+                                          Icons.pets,
+                                          size: 64,
+                                          color: theme.colorScheme.onPrimaryContainer
+                                              .withValues(alpha: 0.35),
                                         ),
-                                        const SizedBox(width: 14),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                      ),
+
+                                    // Metinlerin okunabilirliği için Koyu Gradyan Kaplama (Overlay)
+                                    Positioned.fill(
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withValues(alpha: 0.25),
+                                              Colors.black.withValues(alpha: 0.85),
+                                            ],
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            stops: const [0.0, 0.45, 1.0],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Cinsiyet Rozeti (Sağ Üst)
+                                    if (pet.gender != Gender.unknown)
+                                      Positioned(
+                                        top: 12,
+                                        right: 12,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: (pet.gender == Gender.male
+                                                    ? const Color(0xFF1E88E5)
+                                                    : const Color(0xFFE91E63))
+                                                .withValues(alpha: 0.9),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Colors.black26,
+                                                blurRadius: 4,
+                                                offset: Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Text(
-                                                pet.name,
-                                                style: theme
-                                                    .textTheme.titleMedium
-                                                    ?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      theme.colorScheme.onSurface,
-                                                  fontSize: 16,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
+                                              Icon(
+                                                pet.gender == Gender.male
+                                                    ? Icons.male_rounded
+                                                    : Icons.female_rounded,
+                                                size: 13,
+                                                color: Colors.white,
                                               ),
-                                              const SizedBox(height: 4),
+                                              const SizedBox(width: 2),
                                               Text(
-                                                pet.breed ??
-                                                    'Tür Belirtilmemiş',
-                                                style: theme.textTheme.bodySmall
-                                                    ?.copyWith(
-                                                  color: theme.colorScheme.onSurfaceVariant,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 6),
-                                              Text(
-                                                '${pet.age ?? 0} yaşında',
-                                                style: TextStyle(
-                                                  color: theme.colorScheme.primary,
+                                                pet.gender == Gender.male
+                                                    ? 'Erkek'
+                                                    : 'Dişi',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: 13,
                                                 ),
                                               ),
                                             ],
                                           ),
                                         ),
-                                      ],
+                                      ),
+
+                                    // Alt Bilgiler (İsim, Irk, Yaş/Kilo)
+                                    Positioned(
+                                      left: 14,
+                                      right: 14,
+                                      bottom: 14,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            pet.name,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 18,
+                                              shadows: [
+                                                Shadow(
+                                                  color: Colors.black54,
+                                                  blurRadius: 6,
+                                                ),
+                                              ],
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            pet.breed ?? 'Tür Belirtilmemiş',
+                                            style: TextStyle(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.85),
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Wrap(
+                                            spacing: 6,
+                                            runSpacing: 4,
+                                            children: [
+                                              if (pet.age != null)
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 3),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white
+                                                        .withValues(alpha: 0.25),
+                                                    borderRadius:
+                                                        BorderRadius.circular(8),
+                                                  ),
+                                                  child: Text(
+                                                    '${pet.age} Yaş',
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              if (pet.weight != null)
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 3),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white
+                                                        .withValues(alpha: 0.25),
+                                                    borderRadius:
+                                                        BorderRadius.circular(8),
+                                                  ),
+                                                  child: Text(
+                                                    '${pet.weight} kg',
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
+
+                                    // Dokunma (Ripple) Efekti
+                                    Positioned.fill(
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () => context
+                                              .go('/owner/pets/${pet.id}'),
+                                          splashColor: Colors.white
+                                              .withValues(alpha: 0.2),
+                                          highlightColor: Colors.white
+                                              .withValues(alpha: 0.1),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               );
                             },

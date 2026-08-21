@@ -72,19 +72,30 @@ class PetCubit extends Cubit<PetState> {
       if (petPhotoUrl != null) {
         await updatePetPhotoUseCase.call(photoPath: petPhotoUrl, id: newPet.id);
       }
+      await fetchPets();
       emit(const PetActionSuccess(message: 'Pet başarıyla eklendi'));
-      fetchPets();
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }
   }
 
   Future<void> getPetById({required String id}) async {
-    emit(PetLoading());
     try {
       final pet = await getPetByIdUseCase.call(id: id);
       if (pet != null) {
-        emit(PetLoaded(pets: [pet]));
+        final currentState = state;
+        if (currentState is PetLoaded) {
+          final currentList = List<PetEntity>.from(currentState.pets);
+          final index = currentList.indexWhere((p) => p.id == id);
+          if (index != -1) {
+            currentList[index] = pet;
+          } else {
+            currentList.add(pet);
+          }
+          emit(PetLoaded(pets: currentList));
+        } else {
+          await fetchPets();
+        }
       } else {
         emit(const PetError(message: 'Pet bulunamadı'));
       }
@@ -137,8 +148,8 @@ class PetCubit extends Cubit<PetState> {
         );
       }
 
+      await fetchPets();
       emit(const PetActionSuccess(message: 'Pet başarıyla güncellendi'));
-      fetchPets();
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }
@@ -154,8 +165,8 @@ class PetCubit extends Cubit<PetState> {
         id: id,
         photoPath: photoPath,
       );
+      await fetchPets();
       emit(const PetActionSuccess(message: 'Pet fotoğrafı güncellendi'));
-      fetchPets();
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }
@@ -165,8 +176,8 @@ class PetCubit extends Cubit<PetState> {
     emit(PetActionLoading());
     try {
       await deletePetUseCase.call(id);
+      await fetchPets();
       emit(const PetActionSuccess(message: 'Pet silindi'));
-      fetchPets();
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }

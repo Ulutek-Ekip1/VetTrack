@@ -376,11 +376,11 @@ class SkeletonLoadingView extends StatelessWidget {
                 child: Row(
                   children: [
                     Container(
-                      width: 64,
-                      height: 64,
+                      width: 84,
+                      height: 84,
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerHighest,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                     const SizedBox(width: 16),

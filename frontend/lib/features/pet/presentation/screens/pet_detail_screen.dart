@@ -50,37 +50,6 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surfaceDim,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new,
-              color: theme.colorScheme.onSurface, size: 20),
-          onPressed: () => context.pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.auto_awesome, color: theme.colorScheme.primary),
-            tooltip: "AI'ya Sor",
-            onPressed: () {
-              final petState = context.read<PetCubit>().state;
-              if (petState is PetLoaded) {
-                try {
-                  final pet =
-                      petState.pets.firstWhere((p) => p.id == widget.petId);
-                  context.push('/chatbot', extra: pet);
-                } catch (_) {
-                  context.push('/chatbot?petId=${widget.petId}');
-                }
-              } else {
-                context.push('/chatbot?petId=${widget.petId}');
-              }
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurface),
-            onPressed: () {},
-          ),
-        ],
-      ),
       body: BlocBuilder<PetCubit, PetState>(
         builder: (context, state) {
           if (state is PetLoaded) {
@@ -93,79 +62,278 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                 breedText = parts.length > 1 ? parts[1] : parts[0];
               }
 
+              final hasPhoto =
+                  pet.photoUrl != null && pet.photoUrl!.isNotEmpty;
+
               return NestedScrollView(
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
                   return [
                     SliverToBoxAdapter(
-                      child: Column(
-                        children: [
-                          // Fotoğraf
-                          Hero(
-                            tag: 'pet-photo-${pet.id}',
-                            child: CircleAvatar(
-                              radius: 50,
-                              backgroundColor: const Color(0xFFDBEAFE),
-                              backgroundImage: pet.photoUrl != null &&
-                                      pet.photoUrl!.isNotEmpty
-                                  ? NetworkImage(pet.photoUrl!)
-                                  : null,
-                              child:
-                                  pet.photoUrl == null || pet.photoUrl!.isEmpty
-                                      ? Icon(Icons.pets,
-                                          size: 40, color: primaryBlue)
-                                      : null,
-                            ),
+                      child: Container(
+                        height: 310,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(32),
                           ),
-                          const SizedBox(height: 16),
-                          // İsim ve Düzenle İkonu
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                pet.name,
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.colorScheme.onSurface,
+                          image: hasPhoto
+                              ? DecorationImage(
+                                  image: NetworkImage(pet.photoUrl!),
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.topCenter,
+                                )
+                              : null,
+                          gradient: !hasPhoto
+                              ? LinearGradient(
+                                  colors: [
+                                    theme.colorScheme.primaryContainer,
+                                    theme.colorScheme.tertiaryContainer,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                )
+                              : null,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Stack(
+                          children: [
+                            Hero(
+                              tag: 'pet-photo-${pet.id}',
+                              child: const SizedBox.expand(),
+                            ),
+
+                            if (!hasPhoto)
+                              Center(
+                                child: Icon(
+                                  Icons.pets,
+                                  size: 96,
+                                  color: theme.colorScheme.onPrimaryContainer
+                                      .withValues(alpha: 0.35),
                                 ),
                               ),
-                              IconButton(
-                                icon: Icon(Icons.edit_outlined,
-                                    size: 20, color: primaryBlue),
-                                onPressed: () =>
-                                    context.push('/owner/pets/${pet.id}/edit'),
+
+                            // Gradyan Maskesi (Metinler için)
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.black.withValues(alpha: 0.65),
+                                      Colors.transparent,
+                                      Colors.black.withValues(alpha: 0.90),
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    stops: const [0.0, 0.35, 1.0],
+                                  ),
+                                ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          // Künye Bilgileri
-                          Text(
-                            '$breedText  •  ${pet.age ?? '?'} Yaş  •  ${pet.gender.name == 'male' ? 'Erkek' : 'Dişi'}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          // AI'ya Sor Aksiyon Butonu
-                          ElevatedButton.icon(
-                            onPressed: () =>
-                                context.push('/chatbot', extra: pet),
-                            icon: const Icon(Icons.auto_awesome, size: 18),
-                            label: Text('${pet.name} İçin AI\'ya Sor'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFECE5),
-                              foregroundColor: const Color(0xFFD9531E),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20)),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
+
+                            // Üst Aksiyon Barı (Geri, AI, Düzenle)
+                            Positioned(
+                              top: MediaQuery.of(context).padding.top + 8,
+                              left: 16,
+                              right: 16,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  // Geri Butonu
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () => context.pop(),
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black
+                                              .withValues(alpha: 0.4),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.3),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.arrow_back_ios_new,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Sağ Butonlar (AI & Düzenle)
+                                  Row(
+                                    children: [
+                                      // AI'ya Sor
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () {
+                                            context.push('/chatbot',
+                                                extra: pet);
+                                          },
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFD9531E)
+                                                  .withValues(alpha: 0.95),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              boxShadow: const [
+                                                BoxShadow(
+                                                    color: Colors.black26,
+                                                    blurRadius: 4,
+                                                    offset: Offset(0, 2)),
+                                              ],
+                                            ),
+                                            child: const Row(
+                                              children: [
+                                                Icon(Icons.auto_awesome,
+                                                    color: Colors.white,
+                                                    size: 16),
+                                                SizedBox(width: 6),
+                                                Text(
+                                                  "AI'ya Sor",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      // Düzenle
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () => context.push(
+                                              '/owner/pets/${pet.id}/edit'),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black
+                                                  .withValues(alpha: 0.4),
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: Colors.white
+                                                    .withValues(alpha: 0.3),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: const Icon(
+                                              Icons.edit_outlined,
+                                              color: Colors.white,
+                                              size: 18,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
+
+                            // Alt Bilgiler (İsim, Irk, Cinsiyet & Yaş Çipleri)
+                            Positioned(
+                              left: 20,
+                              right: 20,
+                              bottom: 20,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    pet.name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 30,
+                                      shadows: [
+                                        Shadow(
+                                            color: Colors.black87,
+                                            blurRadius: 8),
+                                      ],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  if (breedText.isNotEmpty)
+                                    Text(
+                                      breedText,
+                                      style: TextStyle(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.9),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  const SizedBox(height: 12),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 6,
+                                    children: [
+                                      if (pet.gender != Gender.unknown)
+                                        _buildHeaderGlassChip(
+                                          icon: pet.gender == Gender.male
+                                              ? Icons.male_rounded
+                                              : Icons.female_rounded,
+                                          label: pet.gender == Gender.male
+                                              ? 'Erkek'
+                                              : 'Dişi',
+                                          color: pet.gender == Gender.male
+                                              ? const Color(0xFF64B5F6)
+                                              : const Color(0xFFF48FB1),
+                                        ),
+                                      if (pet.age != null)
+                                        _buildHeaderGlassChip(
+                                          icon: Icons.cake_outlined,
+                                          label: '${pet.age} Yaşında',
+                                        ),
+                                      if (pet.weight != null)
+                                        _buildHeaderGlassChip(
+                                          icon: Icons.scale_outlined,
+                                          label: '${pet.weight} kg',
+                                        ),
+                                      if (pet.isSpayedOrNeutered == true)
+                                        _buildHeaderGlassChip(
+                                          icon:
+                                              Icons.health_and_safety_outlined,
+                                          label: 'Kısırlaştırılmış',
+                                          color: Colors.tealAccent,
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     SliverPersistentHeader(
@@ -1030,11 +1198,44 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                     ),
                   );
                 }),
-              const SizedBox(height: 40),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildHeaderGlassChip({
+    required IconData icon,
+    required String label,
+    Color? color,
+  }) {
+    final textColor = color ?? Colors.white;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: textColor),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

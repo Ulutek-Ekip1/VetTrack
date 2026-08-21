@@ -146,6 +146,8 @@ class _PetCardState extends State<PetCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasPhoto =
+        widget.pet.photoUrl != null && widget.pet.photoUrl!.isNotEmpty;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _scale = 0.98),
@@ -155,170 +157,340 @@ class _PetCardState extends State<PetCard> {
         duration: const Duration(milliseconds: 120),
         transform: Matrix4.diagonal3Values(_scale, _scale, 1.0),
         transformAlignment: Alignment.center,
-        child: Card(
-          elevation: 2,
-          color: theme.colorScheme.surfaceContainerLowest,
-          margin: const EdgeInsets.only(bottom: 14.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-            side: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        margin: const EdgeInsets.only(bottom: 16.0),
+        child: Container(
+          height: 220,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24.0),
+            color: theme.colorScheme.surfaceContainerHighest,
+            image: hasPhoto
+                ? DecorationImage(
+                    image: NetworkImage(widget.pet.photoUrl!),
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  )
+                : null,
+            gradient: !hasPhoto
+                ? LinearGradient(
+                    colors: [
+                      theme.colorScheme.primaryContainer,
+                      theme.colorScheme.tertiaryContainer,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 5),
+              ),
+            ],
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
               width: 1,
             ),
           ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16.0),
-            onTap: () {
-              context.push('/owner/pets/${widget.pet.id}');
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Hero(
-                        tag: 'pet-photo-${widget.pet.id}',
-                        child: Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            shape: BoxShape.circle,
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: widget.pet.photoUrl != null && widget.pet.photoUrl!.isNotEmpty
-                              ? Image.network(
-                                  widget.pet.photoUrl!,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return Center(
-                                      child: SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          value: loadingProgress.expectedTotalBytes !=
-                                                  null
-                                              ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  (loadingProgress
-                                                          .expectedTotalBytes ??
-                                                      1)
-                                              : null,
-                                          strokeWidth: 2.5,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                    color: theme.colorScheme.primaryContainer,
-                                    child: Icon(
-                                      Icons.pets,
-                                      size: 28,
-                                      color: theme.colorScheme.onPrimaryContainer,
-                                    ),
-                                  ),
-                                )
-                              : Container(
-                                  color: theme.colorScheme.primaryContainer,
-                                  child: Icon(
-                                    Icons.pets,
-                                    size: 28,
-                                    color: theme.colorScheme.onPrimaryContainer,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          widget.pet.name,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                    ],
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              // Hero Tag için görünmez katman
+              Hero(
+                tag: 'pet-photo-${widget.pet.id}',
+                child: const SizedBox.expand(),
+              ),
+
+              // Resim yoksa ortada büyük pet simgesi
+              if (!hasPhoto)
+                Center(
+                  child: Icon(
+                    Icons.pets,
+                    size: 72,
+                    color: theme.colorScheme.onPrimaryContainer
+                        .withValues(alpha: 0.35),
                   ),
-                  if (widget.pet.uniqueCode.isNotEmpty) ...[
-                    const Divider(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        InkWell(
-                          onTap: () => _showUniqueCodeDialog(context),
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.tertiaryContainer,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: theme.colorScheme.tertiary.withValues(alpha: 0.5),
-                                width: 1.2,
+                ),
+
+              // Metinlerin Okunabilirliği İçin Koyu Gradyan Maskesi (Overlay)
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withValues(alpha: 0.2),
+                        Colors.black.withValues(alpha: 0.35),
+                        Colors.black.withValues(alpha: 0.88),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.45, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+
+              // --- ÜST SAĞ: CİNSİYET & KOD ROZETLERİ ---
+              Positioned(
+                top: 14,
+                left: 14,
+                right: 14,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Eşsiz Kod Rozeti
+                    if (widget.pet.uniqueCode.isNotEmpty)
+                      InkWell(
+                        onTap: () => _showUniqueCodeDialog(context),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.qr_code_2_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.pet.uniqueCode,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      const SizedBox(),
+
+                    // Cinsiyet Rozeti
+                    if (widget.pet.gender != Gender.unknown)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: (widget.pet.gender == Gender.male
+                                  ? const Color(0xFF1E88E5)
+                                  : const Color(0xFFE91E63))
+                              .withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              widget.pet.gender == Gender.male
+                                  ? Icons.male_rounded
+                                  : Icons.female_rounded,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              widget.pet.gender == Gender.male
+                                  ? 'Erkek'
+                                  : 'Dişi',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.tag_rounded,
-                                  size: 16,
-                                  color: theme.colorScheme.onTertiaryContainer,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  widget.pet.uniqueCode,
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: theme.colorScheme.onTertiaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.open_in_full,
-                                  size: 14,
-                                  color: theme.colorScheme.onTertiaryContainer,
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // --- ALT BİLGİ ALANI ---
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 14,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Sol Taraf: İsim, Irk ve Çipler
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Evcil Hayvan Adı
+                          Text(
+                            widget.pet.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 22,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black54,
+                                  blurRadius: 6,
                                 ),
                               ],
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                          const SizedBox(height: 2),
+
+                          // Irk (Breed)
+                          if (widget.pet.breed != null &&
+                              widget.pet.breed!.isNotEmpty)
+                            Text(
+                              widget.pet.breed!,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.88),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          const SizedBox(height: 8),
+
+                          // Çipler (Yaş, Kilo, Kısırlaştırma)
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              if (widget.pet.age != null)
+                                _buildGlassChip(
+                                  icon: Icons.cake_outlined,
+                                  label: '${widget.pet.age} Yaş',
+                                ),
+                              if (widget.pet.weight != null)
+                                _buildGlassChip(
+                                  icon: Icons.scale_outlined,
+                                  label: '${widget.pet.weight} kg',
+                                ),
+                              if (widget.pet.isSpayedOrNeutered == true)
+                                _buildGlassChip(
+                                  icon: Icons.health_and_safety_outlined,
+                                  label: 'Kısır',
+                                  color: Colors.tealAccent,
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    // Sağ Taraf: Detaylar Butonu
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          width: 1,
                         ),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            context.push('/owner/pets/${widget.pet.id}');
-                          },
-                          icon: Icon(Icons.arrow_forward, size: 16, color: theme.colorScheme.primary),
-                          label: Text(
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
                             'Detaylar',
                             style: TextStyle(
-                              color: theme.colorScheme.primary,
+                              color: Colors.white,
                               fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: theme.colorScheme.primary, width: 1.5),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                          SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 12,
+                            color: Colors.white,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
+
+              // Dokunma (Ripple) Efekti
+              Positioned.fill(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      context.push('/owner/pets/${widget.pet.id}');
+                    },
+                    splashColor: Colors.white.withValues(alpha: 0.15),
+                    highlightColor: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildGlassChip({
+    required IconData icon,
+    required String label,
+    Color? color,
+  }) {
+    final chipTextColor = color ?? Colors.white;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: chipTextColor),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: chipTextColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
