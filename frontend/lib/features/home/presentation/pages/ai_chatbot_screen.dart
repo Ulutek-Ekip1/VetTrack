@@ -47,6 +47,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
 
   String? _activePetId;
   PetEntity? _activePet;
+  bool _showDisclaimer = true;
 
   @override
   void initState() {
@@ -806,46 +807,48 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                 ),
 
               // Sabit Yasal Bilgilendirme (Disclaimer) Banner'ı
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: theme.brightness == Brightness.dark
-                      ? theme.colorScheme.surfaceContainerHighest
-                      : const Color(0xFFFFFBEB),
-                  border: Border(
-                    top: BorderSide(
-                        color: theme.brightness == Brightness.dark
-                            ? theme.colorScheme.outlineVariant
-                            : const Color(0xFFFDE68A),
-                        width: 1),
+              if (_showDisclaimer)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.shade400.withValues(alpha: 0.3)),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline,
-                        size: 15,
-                        color: theme.brightness == Brightness.dark
-                            ? theme.colorScheme.primary
-                            : const Color(0xFFB45309)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'YASAL UYARI: Yapay zeka yanıtları yalnızca genel bilgilendirme amaçlıdır. Teşhis veya reçeteli tedavi yerine geçmez.',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          color: theme.brightness == Brightness.dark
-                              ? theme.colorScheme.onSurfaceVariant
-                              : const Color(0xFF92400E),
-                          fontWeight: FontWeight.w500,
-                          height: 1.3,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'YASAL UYARI: ',
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+                              ),
+                              TextSpan(
+                                text: 'Yapay zeka yanıtları yalnızca genel bilgilendirme amaçlıdır. Teşhis veya reçeteli tedavi yerine geçmez.',
+                                style: TextStyle(color: Color(0xFF434655), fontSize: 11),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _showDisclaimer = false;
+                          });
+                        },
+                        child: const Icon(Icons.close, color: Colors.black38, size: 18),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
               // Mesaj Giriş Alanı
               if (rateLimitRemaining > 0)
@@ -1234,7 +1237,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               const SizedBox(height: 12),
               // Backend Reply Metni (Aynen gösterilir)
               SelectableText(
-                msg.content,
+                msg.displayContent,
                 style: const TextStyle(
                   color: Color(0xFF7F1D1D),
                   fontSize: 14.0,
@@ -1242,6 +1245,31 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              if (msg.quickReplies.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: msg.quickReplies.map((reply) {
+                    return ActionChip(
+                      label: Text(reply),
+                      onPressed: () {
+                        final cubit = context.read<AiChatCubit>();
+                        if (!cubit.state.isSending) {
+                          cubit.sendMessage(reply);
+                          _scrollToBottom();
+                        }
+                      },
+                      backgroundColor: Colors.white.withValues(alpha: 0.9),
+                      labelStyle: const TextStyle(color: Color(0xFFB91C1C), fontSize: 12, fontWeight: FontWeight.bold),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: Color(0xFFFCA5A5)),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
@@ -1291,13 +1319,38 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SelectableText(
-              msg.content,
+              msg.displayContent,
               style: TextStyle(
                 color: theme.colorScheme.onSurface,
                 fontSize: 14.0,
                 height: 1.4,
               ),
             ),
+            if (msg.quickReplies.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: msg.quickReplies.map((reply) {
+                  return ActionChip(
+                    label: Text(reply),
+                    onPressed: () {
+                      final cubit = context.read<AiChatCubit>();
+                      if (!cubit.state.isSending) {
+                        cubit.sendMessage(reply);
+                        _scrollToBottom();
+                      }
+                    },
+                    backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    labelStyle: TextStyle(color: theme.colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
             const SizedBox(height: 6),
             Align(
               alignment: Alignment.centerRight,
