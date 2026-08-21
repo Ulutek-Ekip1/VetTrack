@@ -108,10 +108,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
                             content: Text(
-                              'Hoş Geldiniz, ${state.user.name}',
+                              'Hoş Geldiniz, ${state.user.name} 👋',
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
                           ),
