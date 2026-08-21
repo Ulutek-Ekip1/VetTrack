@@ -252,14 +252,14 @@ class OwnerProfileScreen extends StatelessWidget {
                             Icons.delete_outline_outlined,
                             size: 16,
                             color: theme.colorScheme.onErrorContainer
-                                .withValues(alpha: 0.65),
+                                .withValues(alpha: 0.78),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             'Hesabımı sil',
                             style: TextStyle(
                                 color: theme.colorScheme.onErrorContainer
-                                    .withValues(alpha: 0.65),
+                                    .withValues(alpha: 0.78),
                                 fontWeight: FontWeight.w500,
                                 fontSize: 13),
                           ),
