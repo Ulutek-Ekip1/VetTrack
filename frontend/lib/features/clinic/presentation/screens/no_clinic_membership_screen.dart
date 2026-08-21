@@ -11,6 +11,8 @@ class NoClinicMembershipScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final goldColor = isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -48,13 +50,13 @@ class NoClinicMembershipScreen extends StatelessWidget {
                               width: 72,
                               height: 72,
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.2),
+                                color: goldColor.withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.domain_disabled_rounded,
                                 size: 36,
-                                color: theme.colorScheme.onSecondaryContainer,
+                                color: goldColor,
                               ),
                             ),
                             const SizedBox(height: 24),

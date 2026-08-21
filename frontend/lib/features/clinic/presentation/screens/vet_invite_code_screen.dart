@@ -47,9 +47,11 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final goldColor = isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -60,33 +62,48 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
               context.canPop() ? context.pop() : context.go('/login'),
         ),
       ),
-      body: BlocConsumer<ClinicInviteCubit, ClinicInviteState>(
-        listener: (context, state) {
-          if (state is ClinicInviteValidated) {
-            // Kod geçerli -> Kayıt formuna yönlendir
-            context.go(
-              '/vet/invite/register?token=${Uri.encodeComponent(state.token)}&clinicName=${Uri.encodeComponent(state.clinicName)}',
-            );
-          }
-        },
-        builder: (context, state) {
-          final isValidating = state is ClinicInviteValidating;
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              theme.colorScheme.surfaceContainerLow,
+              theme.colorScheme.surface,
+            ],
+          ),
+        ),
+        child: BlocConsumer<ClinicInviteCubit, ClinicInviteState>(
+          listener: (context, state) {
+            if (state is ClinicInviteValidated) {
+              // Kod geçerli -> Kayıt formuna yönlendir
+              context.go(
+                '/vet/invite/register?token=${Uri.encodeComponent(state.token)}&clinicName=${Uri.encodeComponent(state.clinicName)}',
+              );
+            }
+          },
+          builder: (context, state) {
+            final isValidating = state is ClinicInviteValidating;
 
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppDimensions.spacingLg),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
-                child: Card(
-                  elevation: 0,
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                    side: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Form(
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppDimensions.spacingLg),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: Card(
+                    elevation: 2,
+                    shadowColor: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                    color: theme.colorScheme.surfaceContainerLowest,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                      side: BorderSide(
+                        color: theme.colorScheme.outlineVariant
+                            .withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Form(
                       key: _formKey,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -98,14 +115,13 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                               width: 68,
                               height: 68,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF14B8A6)
-                                    .withValues(alpha: 0.12),
+                                color: goldColor.withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.local_hospital_rounded,
                                 size: 34,
-                                color: Color(0xFF14B8A6),
+                                color: goldColor,
                               ),
                             ),
                           ),
@@ -136,11 +152,11 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                             Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFEF2F2),
+                                color: theme.colorScheme.errorContainer.withValues(alpha: 0.4),
                                 borderRadius: BorderRadius.circular(
                                     AppDimensions.radiusMd),
                                 border:
-                                    Border.all(color: const Color(0xFFFECACA)),
+                                    Border.all(color: theme.colorScheme.error.withValues(alpha: 0.2)),
                               ),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,24 +212,24 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                               hintText: 'Örn: INV-8F92A1...',
                               prefixIcon: const Icon(Icons.vpn_key_rounded),
                               filled: true,
-                              fillColor: const Color(0xFFF8FAFC),
+                              fillColor: theme.colorScheme.surfaceContainerHigh,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
                                     AppDimensions.radiusMd),
                                 borderSide:
-                                    BorderSide(color: Colors.grey.shade300),
+                                    BorderSide(color: theme.colorScheme.outlineVariant),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
                                     AppDimensions.radiusMd),
                                 borderSide:
-                                    BorderSide(color: Colors.grey.shade300),
+                                    BorderSide(color: theme.colorScheme.outlineVariant),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
                                     AppDimensions.radiusMd),
-                                borderSide: const BorderSide(
-                                    color: Color(0xFF14B8A6), width: 2),
+                                borderSide: BorderSide(
+                                    color: theme.colorScheme.primary, width: 2),
                               ),
                             ),
                             validator: (value) {
@@ -232,7 +248,8 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                             child: FilledButton(
                                 onPressed: isValidating ? null : _onValidate,
                                 style: FilledButton.styleFrom(
-                                  backgroundColor: const Color(0xFF14B8A6),
+                                  backgroundColor: theme.colorScheme.primary,
+                                  foregroundColor: theme.colorScheme.onPrimary,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(
                                         AppDimensions.radiusMd),
@@ -275,11 +292,11 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
                               ),
                               TextButton(
                                 onPressed: () => context.go('/login'),
-                                child: const Text(
+                                child: Text(
                                   'Giriş Yap',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF14B8A6),
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -295,6 +312,7 @@ class _VetInviteCodeScreenState extends State<VetInviteCodeScreen> {
           );
         },
       ),
+    ),
     );
   }
 
