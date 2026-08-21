@@ -576,35 +576,23 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               child: Icon(Icons.pets, color: Colors.teal.shade700, size: 24),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
                 Text(
-                  'AI Sağlık Asistanı',
+                  'VetTrack AI',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.onSurface,
                   ),
                 ),
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF10B981),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'VetTrack AI • Çevrimiçi',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
+                const SizedBox(width: 8),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ],
             ),
@@ -716,25 +704,13 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Aktif Bağlam: ${_activePet?.name ?? 'Evcil Hayvan'}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
-                                color: theme.colorScheme.onSurface,
-                              ),
-                            ),
-                            Text(
-                              'Sorular seçili patililer özelinde yanıtlanır',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          "Sorular '${_activePet?.name ?? 'Evcil Hayvan'}' özelinde yanıtlanacaktır",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
                       ),
                       InkWell(
@@ -974,8 +950,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
     final questions = [
       'Kedi Aşı Takvimi',
       'Mama Önerisi Al',
-      'Sağlık Kontrolü Planla',
-      'Veteriner Randevusu',
+      'Tüy Bakımı Nasıl Yapılır?',
+      'Zararlı Gıdalar Nelerdir?',
     ];
 
     return Center(
@@ -984,42 +960,45 @@ class _AIChatbotViewState extends State<AIChatbotView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.85,
-              ),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerLowest,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                  bottomLeft: Radius.circular(4),
-                  bottomRight: Radius.circular(16),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.85,
                 ),
-                border: Border.all(
-                    color: theme.colorScheme.outlineVariant
-                        .withValues(alpha: 0.3)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLowest,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(4),
+                    bottomRight: Radius.circular(16),
                   ),
-                ],
-              ),
-              child: Text(
-                'Size nasıl yardımcı olabilirim?',
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface,
-                  fontSize: 15.0,
+                  border: Border.all(
+                      color: theme.colorScheme.outlineVariant
+                          .withValues(alpha: 0.3)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Size nasıl yardımcı olabilirim?',
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 15.0,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 24),
             SizedBox(
-              width: 320,
+              width: 300,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -1033,13 +1012,12 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                                   _onSendPressed();
                                 },
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.orange.shade500,
-                            side: BorderSide(color: Colors.orange.shade400),
-                            backgroundColor:
-                                theme.colorScheme.surfaceContainerLowest,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            foregroundColor: const Color(0xFFA53B1C),
+                            side: const BorderSide(color: Color(0xFFFFCBB8), width: 1.2),
+                            backgroundColor: const Color(0xFFFFEEE8),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: Text(

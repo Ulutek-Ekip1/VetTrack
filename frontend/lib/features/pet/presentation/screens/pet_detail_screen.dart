@@ -234,47 +234,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               pet.gender == Gender.male
                   ? 'Erkek'
                   : (pet.gender == Gender.female ? 'Dişi' : 'Bilinmiyor')),
-          Divider(height: 24, color: theme.colorScheme.outlineVariant),
-          Text('Ek Detaylar',
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurfaceVariant)),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-              'Doğum Tarihi',
-              pet.birthDate != null
-                  ? '${pet.birthDate!.day.toString().padLeft(2, '0')}.${pet.birthDate!.month.toString().padLeft(2, '0')}.${pet.birthDate!.year}'
-                  : 'Bilinmiyor'),
           _buildInfoRow(
             'Kilo',
             pet.weight != null ? '${pet.weight} kg' : 'Bilinmiyor',
-          ),
-          _buildInfoRow(
-            'Mikroçip No',
-            pet.microchipNo ?? 'Belirtilmemiş',
-          ),
-          _buildInfoRow(
-            'Kısırlaştırma',
-            pet.isSpayedOrNeutered == true
-                ? 'Evet'
-                : (pet.isSpayedOrNeutered == false ? 'Hayır' : 'Bilinmiyor'),
-          ),
-          _buildInfoRow(
-            'Kan Grubu',
-            pet.bloodType ?? 'Belirtilmemiş',
-          ),
-          _buildInfoRow(
-            'Renk',
-            pet.color ?? 'Belirtilmemiş',
-          ),
-          _buildInfoRow(
-            'Alerjiler',
-            pet.allergies ?? 'Yok',
-          ),
-          _buildInfoRow(
-            'Kronik Rahatsızlıklar',
-            pet.chronicIllnesses ?? 'Yok',
           ),
           const SizedBox(height: 24),
           Row(

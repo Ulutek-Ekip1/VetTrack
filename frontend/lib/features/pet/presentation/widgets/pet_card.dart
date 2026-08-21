@@ -30,78 +30,67 @@ class _PetCardState extends State<PetCard> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.pet.name,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFE8DE),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.key_rounded,
-                  color: Color(0xFFD95D38),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Eşsiz Kimlik Kodu',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFEEE8),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFFFCBB8),
-                  ),
-                ),
-                child: SelectableText(
-                  widget.pet.uniqueCode,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFFA53B1C),
-                    letterSpacing: 2.0,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
+        child: Stack(
+          clipBehavior: Clip.antiAlias,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Kapat'),
+                  Text(
+                    widget.pet.name,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
+                  const SizedBox(height: 20),
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFFE8DE),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.key_rounded,
+                      color: Color(0xFFD95D38),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Eşsiz Kimlik Kodu',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFEEE8),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFFFFCBB8),
+                      ),
+                    ),
+                    child: SelectableText(
+                      widget.pet.uniqueCode,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFFA53B1C),
+                        letterSpacing: 2.0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
                     child: FilledButton.icon(
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: widget.pet.uniqueCode));
@@ -125,7 +114,7 @@ class _PetCardState extends State<PetCard> {
                       style: FilledButton.styleFrom(
                         backgroundColor: const Color(0xFFD95D38),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -136,8 +125,17 @@ class _PetCardState extends State<PetCard> {
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -256,35 +254,35 @@ class _PetCardState extends State<PetCard> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.tertiaryContainer,
+                              color: const Color(0xFFFFEEE8),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: theme.colorScheme.tertiary.withValues(alpha: 0.5),
+                                color: const Color(0xFFFFCBB8),
                                 width: 1.2,
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.tag_rounded,
                                   size: 16,
-                                  color: theme.colorScheme.onTertiaryContainer,
+                                  color: Color(0xFFA53B1C),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   widget.pet.uniqueCode,
                                   style: theme.textTheme.labelLarge?.copyWith(
-                                    color: theme.colorScheme.onTertiaryContainer,
+                                    color: const Color(0xFFA53B1C),
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 0.5,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                Icon(
+                                const Icon(
                                   Icons.open_in_full,
                                   size: 14,
-                                  color: theme.colorScheme.onTertiaryContainer,
+                                  color: Color(0xFFA53B1C),
                                 ),
                               ],
                             ),

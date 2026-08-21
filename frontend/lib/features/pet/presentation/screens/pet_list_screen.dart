@@ -25,6 +25,9 @@ class _PetListScreenState extends State<PetListScreen> {
     super.initState();
     context.read<PetCubit>().fetchPets();
     _searchController.addListener(() {
+      if (mounted) {
+        setState(() {}); // Clear butonunun anlık güncellenmesi için
+      }
       if (_debounce?.isActive ?? false) _debounce!.cancel();
       _debounce = Timer(const Duration(milliseconds: 300), () {
         if (mounted) {
@@ -137,6 +140,17 @@ class _PetListScreenState extends State<PetListScreen> {
                             Icons.search,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear_rounded),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                )
+                              : null,
                           filled: true,
                           fillColor: theme.colorScheme.surfaceContainerLowest,
                           contentPadding: const EdgeInsets.symmetric(
@@ -210,6 +224,7 @@ class _PetListScreenState extends State<PetListScreen> {
                                   bool deleteConfirmed = false;
                                   await showDialog(
                                     context: context,
+                                    barrierDismissible: false,
                                     builder: (dialogContext) => AlertDialog(
                                       title: const Text('Evcil Hayvanı Sil'),
                                       content: Text(
