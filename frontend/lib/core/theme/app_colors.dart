@@ -6,7 +6,7 @@ class AppColors {
   // ===========================================================================
   // Surface
   static const Color surface = Color(0xFFFAF8FF);
-  static const Color surfaceDim = Color(0xFFD2D9F4);
+  static const Color surfaceDim = Color(0xFFFFFFFF);
   static const Color surfaceBright = Color(0xFFFAF8FF);
   static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
   static const Color surfaceContainerLow = Color(0xFFF2F3FF);

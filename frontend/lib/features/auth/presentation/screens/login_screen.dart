@@ -70,7 +70,10 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: BlocConsumer<AuthCubit, AuthState>(
+              child: Center(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width > 600 ? 460 : double.infinity,
+                  child: BlocConsumer<AuthCubit, AuthState>(
                 listener: (context, state) {
                   final error = state.errorMessage;
                   if (error != null) {
@@ -543,6 +546,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   );
                 },
+              ),
+                ),
               ),
             ),
           ),

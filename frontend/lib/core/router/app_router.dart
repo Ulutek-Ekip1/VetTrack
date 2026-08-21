@@ -161,14 +161,22 @@ class AppRouter {
           }
           return AppRoutes.welcome;
         }
+        final user = authState.user;
+
+        // Mobil panel yalnız hayvan sahiplerine (owner) açıktır.
+        // Veterinerlerin mobil kısıtlamayı davet rotalarıyla atlatmaması için bu kontrol davet rotalarından önce değerlendirilir.
+        if (AppPlatform.isMobileExperience && user.role == UserRole.vet) {
+          if (location == AppRoutes.vetMobileWarning) {
+            return null;
+          }
+          return AppRoutes.vetMobileWarning;
+        }
 
         // 2. Davet rotaları (/vet/invite, /vet/invite/register):
         // Kullanıcı giriş yapmış olsa bile (owner veya vet) davet bağlantısını açıp kliniğe bağlanabilmelidir.
         if (isInviteRoute) {
           return null;
         }
-
-        final user = authState.user;
 
         // 3. Web klinik paneli yalnız veterinerlere açıktır.
         // Eğer kullanıcı Web üzerinde owner rolündeyse (aktif klinik üyeliği yoksa) /no-clinic sayfasına yönlendirilir.
@@ -195,14 +203,6 @@ class AppRouter {
         // Vet rolündeki kullanıcı hayvan sahibi paneline erişemez (/owner/*)
         if (user.role == UserRole.vet && location.startsWith('/owner')) {
           return AppRoutes.vetSearch;
-        }
-
-        // Mobil panel yalnız hayvan sahiplerine (owner) açıktır.
-        if (AppPlatform.isMobileExperience && user.role == UserRole.vet) {
-          if (location == AppRoutes.vetMobileWarning) {
-            return null;
-          }
-          return AppRoutes.vetMobileWarning;
         }
         return null;
       },
@@ -280,7 +280,10 @@ class AppRouter {
         //Hayvan Sahibi StatefulShellRoute
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
-            return OwnerShellScreen(navigationShell: navigationShell);
+            return BlocProvider<ProfileCubit>.value(
+              value: sl<ProfileCubit>()..fetchProfile(),
+              child: OwnerShellScreen(navigationShell: navigationShell),
+            );
           },
           branches: [
             StatefulShellBranch(
@@ -288,10 +291,7 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.ownerHome,
                   name: 'ownerHome',
-                  builder: (context, state) => BlocProvider<ProfileCubit>(
-                    create: (context) => sl<ProfileCubit>()..fetchProfile(),
-                    child: const HomePage(),
-                  ),
+                  builder: (context, state) => const HomePage(),
                 ),
               ],
             ),
@@ -390,18 +390,12 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.ownerProfile,
                   name: 'ownerProfile',
-                  builder: (context, state) => BlocProvider<ProfileCubit>(
-                    create: (context) => sl<ProfileCubit>()..fetchProfile(),
-                    child: const OwnerProfileScreen(),
-                  ),
+                  builder: (context, state) => const OwnerProfileScreen(),
                   routes: [
                     GoRoute(
                       path: 'edit',
                       name: 'editProfile',
-                      builder: (context, state) => BlocProvider<ProfileCubit>(
-                        create: (context) => sl<ProfileCubit>(),
-                        child: const EditProfileScreen(),
-                      ),
+                      builder: (context, state) => const EditProfileScreen(),
                     ),
                   ],
                 ),

@@ -14,11 +14,16 @@ class PetTreatmentHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tedaviler & Reçeteler'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Tedaviler & Reçeteler',
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: BlocBuilder<TreatmentCubit, TreatmentState>(
         builder: (context, state) {
@@ -54,8 +59,8 @@ class PetTreatmentHistoryScreen extends StatelessWidget {
                         treatment.description!.isNotEmpty,
                     trailing: hasAttachment
                         ? IconButton(
-                            icon: const Icon(Icons.open_in_new,
-                                color: Colors.teal),
+                            icon: Icon(Icons.open_in_new,
+                                color: theme.colorScheme.primary),
                             tooltip: 'Eki Görüntüle',
                             onPressed: () async {
                               final uri = Uri.parse(treatment.attachmentUrl!);

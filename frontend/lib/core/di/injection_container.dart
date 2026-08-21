@@ -154,7 +154,7 @@ Future<void> init() async {
     ),
   );
 
-  sl.registerFactory(
+  sl.registerLazySingleton<ProfileCubit>(
     () => ProfileCubit(
         getOwnerProfile: sl(),
         updateOwnerProfile: sl(),

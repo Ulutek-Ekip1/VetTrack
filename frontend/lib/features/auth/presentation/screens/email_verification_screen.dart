@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -7,10 +8,65 @@ import 'package:vettrack_frontend/features/auth/widgets/verification.dart';
 import '../cubit/auth_cubit.dart';
 import '../../../../core/router/app_router.dart';
 
-
-class EmailVerificationScreen extends StatelessWidget {
+class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key, required this.email});
   final String email;
+
+  @override
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
+}
+
+class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
+  Timer? _cooldownTimer;
+  int _cooldownSeconds = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCooldown();
+  }
+
+  @override
+  void dispose() {
+    _cooldownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startCooldown() {
+    setState(() {
+      _cooldownSeconds = 60;
+    });
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_cooldownSeconds > 1) {
+        setState(() {
+          _cooldownSeconds--;
+        });
+      } else {
+        timer.cancel();
+        setState(() {
+          _cooldownSeconds = 0;
+        });
+      }
+    });
+  }
+
+  void _resendEmail() {
+    if (widget.email.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Doğrulama yapılacak e-posta adresi bulunamadı.'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+    _startCooldown();
+    context.read<AuthCubit>().resendVerificationEmail(widget.email.trim());
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -41,6 +97,8 @@ class EmailVerificationScreen extends StatelessWidget {
               },
               builder: (context, state) {
                 final isLoading = state is AuthLoading;
+                final isButtonDisabled =
+                    isLoading || _cooldownSeconds > 0;
 
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -72,17 +130,48 @@ class EmailVerificationScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    Text(
-                      "Hesabınızı aktifleştirmek için gelen kutunuzu kontrol edin.",
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    if (widget.email.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text.rich(
+                          TextSpan(
+                            text: "Hesabınızı aktifleştirmek için\n",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              height: 1.4,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: widget.email,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "\nadresinin gelen kutusunu kontrol edin.",
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    else
+                      Text(
+                        "Hesabınızı aktifleştirmek için gelen kutunuzu kontrol edin.",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
 
                     const SizedBox(height: 28),
 
-                    // Spam Bilgilendirme Kutusu (Solunda Bilgi İkonu Var)
+                    // Spam Bilgilendirme Kutusu
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -139,7 +228,7 @@ class EmailVerificationScreen extends StatelessWidget {
                     // Tek Ana Buton: Giriş ekranına dön
                     SizedBox(
                       width: double.infinity,
-                      height: 48,
+                      height: 52,
                       child: ElevatedButton(
                         onPressed: () {
                           context.go(AppRoutes.login);
@@ -148,15 +237,19 @@ class EmailVerificationScreen extends StatelessWidget {
                           backgroundColor: theme.colorScheme.primary,
                           foregroundColor: theme.colorScheme.onPrimary,
                           elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: Text(
-                          "Giriş ekranına dön",
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            "Giriş Ekranına Dön",
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -175,13 +268,7 @@ class EmailVerificationScreen extends StatelessWidget {
                     const SizedBox(height: 4),
 
                     TextButton.icon(
-                      onPressed: isLoading
-                          ? null
-                          : () {
-                              context
-                                  .read<AuthCubit>()
-                                  .resendVerificationEmail(email);
-                            },
+                      onPressed: isButtonDisabled ? null : _resendEmail,
                       icon: isLoading
                           ? SizedBox(
                               width: 16,
@@ -194,12 +281,18 @@ class EmailVerificationScreen extends StatelessWidget {
                           : Icon(
                               Icons.refresh_rounded,
                               size: 18,
-                              color: theme.colorScheme.secondary,
+                              color: isButtonDisabled
+                                  ? theme.colorScheme.outline
+                                  : theme.colorScheme.secondary,
                             ),
                       label: Text(
-                        "E-postayı tekrar gönder",
+                        _cooldownSeconds > 0
+                            ? "E-postayı tekrar gönder (${_cooldownSeconds}sn)"
+                            : "E-postayı tekrar gönder",
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: theme.colorScheme.secondary,
+                          color: isButtonDisabled
+                              ? theme.colorScheme.outline
+                              : theme.colorScheme.secondary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
