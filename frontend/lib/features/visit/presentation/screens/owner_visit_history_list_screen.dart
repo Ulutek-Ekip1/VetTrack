@@ -10,11 +10,16 @@ class OwnerVisitHistoryListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ziyaret & Muayene Geçmişi'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Ziyaret & Muayene Geçmişi',
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: BlocBuilder<VisitCubit, VisitState>(
         builder: (context, state) {
@@ -42,9 +47,9 @@ class OwnerVisitHistoryListScreen extends StatelessWidget {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12.0),
                   child: ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: Colors.teal,
-                      child: Icon(Icons.history_edu, color: Colors.white),
+                    leading: CircleAvatar(
+                      backgroundColor: theme.colorScheme.primaryContainer,
+                      child: Icon(Icons.history_edu, color: theme.colorScheme.onPrimaryContainer),
                     ),
                     title: Text(
                       'Ziyaret #${visit.id.toShortId()} - ${visit.chiefComplaint ?? 'Genel Kontrol'}',

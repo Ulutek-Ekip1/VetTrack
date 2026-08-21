@@ -20,6 +20,7 @@ class VetProfileScreen extends StatelessWidget {
           final user = state is Authenticated ? state.user : null;
           final userName = user?.name ?? 'Klinik Hekimi';
           final userEmail = user?.email ?? 'E-posta belirtilmemiş';
+          final userInitial = userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : 'V';
 
           return LayoutBuilder(
             builder: (context, constraints) {
@@ -37,11 +38,13 @@ class VetProfileScreen extends StatelessWidget {
                           CircleAvatar(
                             radius: 40,
                             backgroundColor:
-                                theme.colorScheme.secondaryContainer,
-                            child: Icon(
-                              Icons.local_hospital,
-                              size: 40,
-                              color: theme.colorScheme.secondary,
+                                theme.colorScheme.primary.withValues(alpha: 0.15),
+                            child: Text(
+                              userInitial,
+                              style: theme.textTheme.headlineLarge?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),

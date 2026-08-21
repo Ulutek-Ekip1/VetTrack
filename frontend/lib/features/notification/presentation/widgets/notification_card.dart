@@ -18,8 +18,11 @@ class NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryBlue = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
 
     final bool isRead = notification.isRead;
+
+    final treatmentColor = isDark ? const Color(0xFFFB7185) : const Color(0xFFE11D48);
 
     final (iconData, iconColor, iconBgColor) = switch (notification.type) {
       "SYSTEM" => (
@@ -34,8 +37,8 @@ class NotificationCard extends StatelessWidget {
         ),
       "TREATMENT" => (
           Icons.healing_rounded,
-          const Color(0xFF10B981),
-          const Color(0xFF10B981).withValues(alpha: 0.15),
+          treatmentColor,
+          treatmentColor.withValues(alpha: isDark ? 0.2 : 0.15),
         ),
       "RECOMMENDATION" => (
           Icons.tips_and_updates_rounded,
