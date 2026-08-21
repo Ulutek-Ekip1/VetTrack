@@ -1253,7 +1253,13 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   children: msg.quickReplies.map((reply) {
                     return ActionChip(
                       label: Text(reply),
-                      onPressed: () => _sendMessage(text: reply),
+                      onPressed: () {
+                        final cubit = context.read<AiChatCubit>();
+                        if (!cubit.state.isSending) {
+                          cubit.sendMessage(reply);
+                          _scrollToBottom();
+                        }
+                      },
                       backgroundColor: Colors.white.withValues(alpha: 0.9),
                       labelStyle: const TextStyle(color: Color(0xFFB91C1C), fontSize: 12, fontWeight: FontWeight.bold),
                       shape: RoundedRectangleBorder(
@@ -1328,7 +1334,13 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                 children: msg.quickReplies.map((reply) {
                   return ActionChip(
                     label: Text(reply),
-                    onPressed: () => _sendMessage(text: reply),
+                    onPressed: () {
+                      final cubit = context.read<AiChatCubit>();
+                      if (!cubit.state.isSending) {
+                        cubit.sendMessage(reply);
+                        _scrollToBottom();
+                      }
+                    },
                     backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                     labelStyle: TextStyle(color: theme.colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold),
                     shape: RoundedRectangleBorder(
