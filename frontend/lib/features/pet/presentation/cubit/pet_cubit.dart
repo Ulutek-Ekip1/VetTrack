@@ -72,8 +72,9 @@ class PetCubit extends Cubit<PetState> {
       if (petPhotoUrl != null) {
         await updatePetPhotoUseCase.call(photoPath: petPhotoUrl, id: newPet.id);
       }
-      await fetchPets();
+      final pets = await getPetsUseCase.call();
       emit(const PetActionSuccess(message: 'Pet başarıyla eklendi'));
+      emit(PetLoaded(pets: pets));
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }
@@ -94,7 +95,8 @@ class PetCubit extends Cubit<PetState> {
           }
           emit(PetLoaded(pets: currentList));
         } else {
-          await fetchPets();
+          final pets = await getPetsUseCase.call();
+          emit(PetLoaded(pets: pets));
         }
       } else {
         emit(const PetError(message: 'Pet bulunamadı'));
@@ -148,8 +150,9 @@ class PetCubit extends Cubit<PetState> {
         );
       }
 
-      await fetchPets();
+      final pets = await getPetsUseCase.call();
       emit(const PetActionSuccess(message: 'Pet başarıyla güncellendi'));
+      emit(PetLoaded(pets: pets));
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }
@@ -165,8 +168,9 @@ class PetCubit extends Cubit<PetState> {
         id: id,
         photoPath: photoPath,
       );
-      await fetchPets();
+      final pets = await getPetsUseCase.call();
       emit(const PetActionSuccess(message: 'Pet fotoğrafı güncellendi'));
+      emit(PetLoaded(pets: pets));
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }
@@ -176,8 +180,9 @@ class PetCubit extends Cubit<PetState> {
     emit(PetActionLoading());
     try {
       await deletePetUseCase.call(id);
-      await fetchPets();
+      final pets = await getPetsUseCase.call();
       emit(const PetActionSuccess(message: 'Pet silindi'));
+      emit(PetLoaded(pets: pets));
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }

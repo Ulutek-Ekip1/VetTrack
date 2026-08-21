@@ -157,11 +157,11 @@ class _PetCardState extends State<PetCard> {
         duration: const Duration(milliseconds: 120),
         transform: Matrix4.diagonal3Values(_scale, _scale, 1.0),
         transformAlignment: Alignment.center,
-        margin: const EdgeInsets.only(bottom: 16.0),
+        margin: const EdgeInsets.only(bottom: 20.0),
         child: Container(
-          height: 220,
+          height: 250,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24.0),
+            borderRadius: BorderRadius.circular(28.0),
             color: theme.colorScheme.surfaceContainerHighest,
             image: hasPhoto
                 ? DecorationImage(

@@ -54,8 +54,14 @@ class PetModel extends PetEntity {
     final DateTime? parsedBirthDate =
         birthDateStr != null ? DateTime.parse(birthDateStr) : null;
 
-    final double? parsedWeight =
-        json['weight'] != null ? (json['weight'] as num).toDouble() : null;
+    double? parsedWeight;
+    if (json['weight'] != null) {
+      if (json['weight'] is num) {
+        parsedWeight = (json['weight'] as num).toDouble();
+      } else {
+        parsedWeight = double.tryParse(json['weight'].toString());
+      }
+    }
 
     final bool? parsedSpayed =
         json['isSpayedOrNeutered'] as bool? ?? json['neutered'] as bool?;
@@ -127,9 +133,17 @@ class PetWeightModel extends PetWeightEntity {
   });
 
   factory PetWeightModel.fromJson(Map<String, dynamic> json) {
+    double parsedW = 0.0;
+    if (json['weight'] != null) {
+      if (json['weight'] is num) {
+        parsedW = (json['weight'] as num).toDouble();
+      } else {
+        parsedW = double.tryParse(json['weight'].toString()) ?? 0.0;
+      }
+    }
     return PetWeightModel(
       date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
-      weight: (json['weight'] as num).toDouble(),
+      weight: parsedW,
     );
   }
 

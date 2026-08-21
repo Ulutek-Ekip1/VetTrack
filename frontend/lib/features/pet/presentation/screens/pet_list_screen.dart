@@ -118,7 +118,7 @@ class _PetListScreenState extends State<PetListScreen> {
                 onRefresh: () => context.read<PetCubit>().fetchPets(),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
                   child: Column(
                     children: [
                       // Arama Çubuğu
