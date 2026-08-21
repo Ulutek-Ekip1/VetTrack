@@ -163,12 +163,6 @@ class FirebaseMessagingService {
           'Yeni Bildirim';
       final body = message.data['body'] ?? message.notification?.body ?? '';
       _notificationEvents.add(null);
-      TopNotification.show(
-        title: title,
-        body: body,
-        type: message.data['type'] ?? 'SYSTEM',
-        onTap: () => _handleNotificationClick(message),
-      );
       unawaited(_showForegroundSystemNotification(message, title, body));
     });
   }
