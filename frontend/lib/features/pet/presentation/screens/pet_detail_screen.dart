@@ -56,30 +56,6 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               color: theme.colorScheme.onSurface, size: 20),
           onPressed: () => context.pop(),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.auto_awesome, color: theme.colorScheme.primary),
-            tooltip: "AI'ya Sor",
-            onPressed: () {
-              final petState = context.read<PetCubit>().state;
-              if (petState is PetLoaded) {
-                try {
-                  final pet =
-                      petState.pets.firstWhere((p) => p.id == widget.petId);
-                  context.push('/chatbot', extra: pet);
-                } catch (_) {
-                  context.push('/chatbot?petId=${widget.petId}');
-                }
-              } else {
-                context.push('/chatbot?petId=${widget.petId}');
-              }
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurface),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: BlocBuilder<PetCubit, PetState>(
         builder: (context, state) {
@@ -148,20 +124,26 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                             ),
                           ),
                           const SizedBox(height: 12),
-                          // AI'ya Sor Aksiyon Butonu
-                          ElevatedButton.icon(
+                          FilledButton.icon(
                             onPressed: () =>
                                 context.push('/chatbot', extra: pet),
-                            icon: const Icon(Icons.auto_awesome, size: 18),
-                            label: Text('${pet.name} İçin AI\'ya Sor'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFECE5),
-                              foregroundColor: const Color(0xFFD9531E),
+                            icon: const Icon(Icons.auto_awesome_rounded,
+                                size: 18),
+                            label: Text('${pet.name} için AI\'ya Sor'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFFFFEEE8),
+                              foregroundColor: const Color(0xFFC84F2C),
                               elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20)),
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
+                                horizontal: 18,
+                                vertical: 12,
+                              ),
+                              shape: const StadiumBorder(
+                                side: BorderSide(color: Color(0xFFFFD1C2)),
+                              ),
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
