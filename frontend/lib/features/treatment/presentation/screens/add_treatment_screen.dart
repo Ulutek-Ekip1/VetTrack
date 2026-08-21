@@ -32,10 +32,125 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
     super.dispose();
   }
 
+  bool get _showDosageField =>
+      _selectedCategory == 'Aşı' || _selectedCategory == 'İlaç';
+
+  String get _titleLabel {
+    switch (_selectedCategory) {
+      case 'Aşı':
+        return 'Aşı Adı';
+      case 'İlaç':
+        return 'İlaç / Reçete Adı';
+      case 'Operasyon':
+        return 'Operasyon / Ameliyat Adı';
+      case 'Röntgen':
+        return 'Çekim / Röntgen Adı';
+      case 'Laboratuvar':
+        return 'Tahlil / Test Adı';
+      case 'Not':
+        return 'Not Başlığı';
+      default:
+        return 'İşlem Adı';
+    }
+  }
+
+  String get _titleHint {
+    switch (_selectedCategory) {
+      case 'Aşı':
+        return 'Örn: Karma Aşı, Kuduz Aşısı';
+      case 'İlaç':
+        return 'Örn: Amoksisilin 250mg, Veteriner Şurup';
+      case 'Operasyon':
+        return 'Örn: Dişi Kısırlaştırma, Kırık Operasyonu';
+      case 'Röntgen':
+        return 'Örn: Göğüs Röntgeni, Sol Arka Bacak';
+      case 'Laboratuvar':
+        return 'Örn: Tam Kan Sayımı (Hemogram), Biyokimya';
+      case 'Not':
+        return 'Örn: Genel Muayene Değerlendirmesi';
+      default:
+        return 'Örn: Yapılan işlem adı';
+    }
+  }
+
+  IconData get _titleIcon {
+    switch (_selectedCategory) {
+      case 'Aşı':
+        return Icons.vaccines_rounded;
+      case 'İlaç':
+        return Icons.medication_rounded;
+      case 'Operasyon':
+        return Icons.content_cut_rounded;
+      case 'Röntgen':
+        return Icons.camera_rounded;
+      case 'Laboratuvar':
+        return Icons.science_rounded;
+      case 'Not':
+        return Icons.note_alt_rounded;
+      default:
+        return Icons.medical_services_rounded;
+    }
+  }
+
+  String get _notesLabel {
+    switch (_selectedCategory) {
+      case 'Aşı':
+        return 'Uygulama Notları & Açıklama';
+      case 'İlaç':
+        return 'Kullanım Talimatı ve Reçete Notları';
+      case 'Operasyon':
+        return 'Operasyon Notları & Detaylar';
+      case 'Röntgen':
+        return 'Röntgen Bulguları ve Değerlendirme';
+      case 'Laboratuvar':
+        return 'Tahlil Sonuçları & Değerlendirme';
+      case 'Not':
+        return 'Açıklama ve Detaylar';
+      default:
+        return 'Açıklama ve Detaylar';
+    }
+  }
+
+  String get _notesHint {
+    switch (_selectedCategory) {
+      case 'Aşı':
+        return 'Örn: Sağ kürek kemiği altı SC uygulandı. Yan etki gözlenmedi.';
+      case 'İlaç':
+        return 'Örn: Günde 2 defa tok karnına verilecek. 7 gün sürecek.';
+      case 'Operasyon':
+        return 'Örn: Anestezi altında başarıyla yapıldı. Dikişler 10 gün sonra alınacak.';
+      case 'Röntgen':
+        return 'Örn: Sol femurda kırık hattı izlendi, eklem aralığı normal.';
+      case 'Laboratuvar':
+        return 'Örn: WBC ve RBC değerleri normal referans aralığında.';
+      case 'Not':
+        return 'Örn: Hasta sahibine evde bakım talimatları aktarıldı.';
+      default:
+        return 'Açıklama ekleyebilirsiniz...';
+    }
+  }
+
+  String get _titleValidationError {
+    switch (_selectedCategory) {
+      case 'Aşı':
+        return 'Lütfen aşı adını girin';
+      case 'İlaç':
+        return 'Lütfen ilaç adını girin';
+      case 'Operasyon':
+        return 'Lütfen operasyon adını girin';
+      case 'Röntgen':
+        return 'Lütfen röntgen / çekim adını girin';
+      case 'Laboratuvar':
+        return 'Lütfen tahlil / test adını girin';
+      default:
+        return 'Lütfen başlık bilgisini girin';
+    }
+  }
+
   void _onSaveTreatment() {
     if (_formKey.currentState!.validate()) {
       final description = [
-        if (_dosageController.text.trim().isNotEmpty)
+        if (_showDosageField && _dosageController.text.trim().isNotEmpty)
           'Doz/Sıklık: ${_dosageController.text.trim()}',
         if (_notesController.text.trim().isNotEmpty)
           'Açıklama: ${_notesController.text.trim()}',
@@ -134,7 +249,7 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
-                                  Icons.medical_services_rounded,
+                                  _titleIcon,
                                   color: theme.colorScheme.primary,
                                   size: 26,
                                 ),
@@ -145,7 +260,7 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Tedavi & Reçete Girişi',
+                                      'Medikal İşlem Girişi',
                                       style: theme.textTheme.titleMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -226,13 +341,13 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Tedavi Adı / Aşı Adı
+                          // Dinamik İşlem / Tedavi Adı
                           TextFormField(
                             controller: _treatmentTitleController,
                             decoration: InputDecoration(
-                              labelText: 'Tedavi / Aşı Adı',
-                              hintText: 'Örn: Karma Aşı, Amoksisilin 250mg',
-                              prefixIcon: const Icon(Icons.medication_rounded),
+                              labelText: _titleLabel,
+                              hintText: _titleHint,
+                              prefixIcon: Icon(_titleIcon),
                               filled: true,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -247,42 +362,44 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
                               contentPadding: const EdgeInsets.all(16),
                             ),
                             validator: (val) => val == null || val.trim().isEmpty
-                                ? 'Lütfen tedavi adını girin'
+                                ? _titleValidationError
                                 : null,
                           ),
                           const SizedBox(height: 16),
 
-                          // Doz / Kullanım Sıklığı
-                          TextFormField(
-                            controller: _dosageController,
-                            decoration: InputDecoration(
-                              labelText: 'Doz / Kullanım Sıklığı',
-                              hintText: 'Örn: Günde 2 defa 1 tablet (7 gün)',
-                              prefixIcon:
-                                  const Icon(Icons.medical_services_outlined),
-                              filled: true,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: theme.colorScheme.outline
-                                      .withValues(alpha: 0.5),
+                          // Sadece Aşı ve İlaç seçildiğinde görünen Doz / Kullanım Sıklığı
+                          if (_showDosageField) ...[
+                            TextFormField(
+                              controller: _dosageController,
+                              decoration: InputDecoration(
+                                labelText: 'Doz / Kullanım Sıklığı',
+                                hintText: 'Örn: Günde 2 defa 1 tablet (7 gün)',
+                                prefixIcon: const Icon(
+                                    Icons.medical_services_outlined),
+                                filled: true,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.outline
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.all(16),
                               ),
-                              contentPadding: const EdgeInsets.all(16),
                             ),
-                          ),
-                          const SizedBox(height: 16),
+                            const SizedBox(height: 16),
+                          ],
 
-                          // Kullanım Talimatı ve Açıklama
+                          // Dinamik Kullanım Talimatı ve Açıklama Notu
                           TextFormField(
                             controller: _notesController,
                             maxLines: 3,
                             decoration: InputDecoration(
-                              labelText: 'Kullanım Talimatı ve Açıklama',
-                              hintText: 'Örn: Yemekten sonra tok karnına verilecek.',
+                              labelText: _notesLabel,
+                              hintText: _notesHint,
                               alignLabelWithHint: true,
                               prefixIcon: const Padding(
                                 padding: EdgeInsets.only(bottom: 40),
@@ -367,7 +484,7 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
                                       label: Text(
                                         isLoading
                                             ? 'Kaydediliyor...'
-                                            : 'Tedaviyi Kaydet',
+                                            : 'İşlemi Kaydet',
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
@@ -392,4 +509,5 @@ class _AddTreatmentScreenState extends State<AddTreatmentScreen> {
     );
   }
 }
+
 
