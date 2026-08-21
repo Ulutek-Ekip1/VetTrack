@@ -19,7 +19,7 @@ class PetVisitHistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Geçmiş Ziyaretler (Pet #$petId)',
+          'Geçmiş Ziyaretler (${petId.toShortId()})',
           style: theme.textTheme.headlineSmall?.copyWith(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.bold,
