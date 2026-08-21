@@ -33,6 +33,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // Sayfa açıldığında pet listesini tazele
     context.read<PetCubit>().fetchPets();
     context.read<NotificationCubit>().loadNotifications();
+    if (context.read<ProfileCubit>().state is ProfileInitial) {
+      context.read<ProfileCubit>().fetchProfile();
+    }
     _checkAndPromptNotificationPermission();
   }
 
