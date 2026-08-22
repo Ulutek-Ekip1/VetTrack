@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'custom_bottom_sheet.dart';
 
 /// Helper function to display generic image picker bottom sheet.
@@ -52,22 +55,115 @@ class ImagePickerBottomSheet extends StatefulWidget {
 class _ImagePickerBottomSheetState extends State<ImagePickerBottomSheet> {
   final ImagePicker _picker = ImagePicker();
 
+  void _showPermissionDeniedDialog(String feature) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('$feature İzni Gerekli'),
+        content: Text(
+          'Fotoğraf seçebilmek için lütfen ayarlardan $feature iznini etkinleştirin.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              openAppSettings();
+            },
+            child: const Text('Ayarları Aç'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _pickImage(ImageSource source) async {
+    if (!kIsWeb) {
+      if (source == ImageSource.camera) {
+        final cameraStatus = await Permission.camera.request();
+        if (cameraStatus.isPermanentlyDenied) {
+          if (!mounted) return;
+          _showPermissionDeniedDialog('Kamera');
+          return;
+        } else if (!cameraStatus.isGranted) {
+          return;
+        }
+      } else {
+        var photosStatus = await Permission.photos.request();
+        if (photosStatus.isDenied) {
+          photosStatus = await Permission.storage.request();
+        }
+        if (photosStatus.isPermanentlyDenied) {
+          if (!mounted) return;
+          _showPermissionDeniedDialog('Galeri');
+          return;
+        }
+      }
+    }
+
     final XFile? image = await _picker.pickImage(source: source);
 
     if (!mounted) return;
     if (image == null) return;
 
-    final file = File(image.path);
-    final fileSizeInBytes = file.lengthSync();
-    final extension = image.path.toLowerCase();
+    // Fotoğraf Kırpma & Ayarlama (Cropper)
+    String finalPath = image.path;
+    try {
+      final theme = Theme.of(context);
+      final CroppedFile? croppedFile = await ImageCropper().cropImage(
+        sourcePath: image.path,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Resmi Düzenle & Kırp',
+            toolbarColor: theme.colorScheme.primary,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: false,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9,
+              CropAspectRatioPreset.original,
+            ],
+          ),
+          IOSUiSettings(
+            title: 'Resmi Düzenle & Kırp',
+            aspectRatioPresets: [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9,
+              CropAspectRatioPreset.original,
+            ],
+          ),
+          WebUiSettings(
+            context: context,
+            presentStyle: WebPresentStyle.dialog,
+          ),
+        ],
+      );
+      if (croppedFile != null) {
+        finalPath = croppedFile.path;
+      }
+    } catch (e) {
+      debugPrint('Fotoğraf kırpıcı çalıştırılamadı (orijinal resim kullanılıyor): $e');
+      finalPath = image.path;
+    }
+
+    if (!mounted) return;
+
+    final file = File(finalPath);
+    final fileSizeInBytes = file.existsSync() ? file.lengthSync() : 0;
+    final extension = finalPath.toLowerCase();
 
     final maxBytes = widget.maxFileSizeMB * 1024 * 1024;
-    final isSizeValid = fileSizeInBytes <= maxBytes;
-    final isExtensionValid = widget.allowedExtensions.any((ext) => extension.endsWith(ext));
+    final isSizeValid = kIsWeb || fileSizeInBytes == 0 || fileSizeInBytes <= maxBytes;
+    final isExtensionValid = widget.allowedExtensions.any((ext) => extension.endsWith(ext)) || kIsWeb;
 
     if (isSizeValid && isExtensionValid) {
-      widget.onPhotoSelected(image.path);
+      widget.onPhotoSelected(finalPath);
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

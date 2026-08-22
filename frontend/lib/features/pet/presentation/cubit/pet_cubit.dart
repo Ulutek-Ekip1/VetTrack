@@ -72,19 +72,32 @@ class PetCubit extends Cubit<PetState> {
       if (petPhotoUrl != null) {
         await updatePetPhotoUseCase.call(photoPath: petPhotoUrl, id: newPet.id);
       }
+      final pets = await getPetsUseCase.call();
       emit(const PetActionSuccess(message: 'Pet başarıyla eklendi'));
-      fetchPets();
+      emit(PetLoaded(pets: pets));
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }
   }
 
   Future<void> getPetById({required String id}) async {
-    emit(PetLoading());
     try {
       final pet = await getPetByIdUseCase.call(id: id);
       if (pet != null) {
-        emit(PetLoaded(pets: [pet]));
+        final currentState = state;
+        if (currentState is PetLoaded) {
+          final currentList = List<PetEntity>.from(currentState.pets);
+          final index = currentList.indexWhere((p) => p.id == id);
+          if (index != -1) {
+            currentList[index] = pet;
+          } else {
+            currentList.add(pet);
+          }
+          emit(PetLoaded(pets: currentList));
+        } else {
+          final pets = await getPetsUseCase.call();
+          emit(PetLoaded(pets: pets));
+        }
       } else {
         emit(const PetError(message: 'Pet bulunamadı'));
       }
@@ -137,8 +150,9 @@ class PetCubit extends Cubit<PetState> {
         );
       }
 
+      final pets = await getPetsUseCase.call();
       emit(const PetActionSuccess(message: 'Pet başarıyla güncellendi'));
-      fetchPets();
+      emit(PetLoaded(pets: pets));
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }
@@ -154,8 +168,9 @@ class PetCubit extends Cubit<PetState> {
         id: id,
         photoPath: photoPath,
       );
+      final pets = await getPetsUseCase.call();
       emit(const PetActionSuccess(message: 'Pet fotoğrafı güncellendi'));
-      fetchPets();
+      emit(PetLoaded(pets: pets));
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }
@@ -165,8 +180,9 @@ class PetCubit extends Cubit<PetState> {
     emit(PetActionLoading());
     try {
       await deletePetUseCase.call(id);
+      final pets = await getPetsUseCase.call();
       emit(const PetActionSuccess(message: 'Pet silindi'));
-      fetchPets();
+      emit(PetLoaded(pets: pets));
     } catch (e) {
       emit(PetActionError(message: e.toString()));
     }

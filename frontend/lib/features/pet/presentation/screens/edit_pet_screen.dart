@@ -225,14 +225,25 @@ class _EditPetScreenState extends State<EditPetScreen> {
               children: [
                 Center(
                   child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
                       Container(
-                        width: 120,
-                        height: 120,
+                        width: 160,
+                        height: 160,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.grey.shade400),
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                            width: 2.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
                           image: _localPhotoUrl != null &&
                                   _localPhotoUrl!.isNotEmpty
                               ? DecorationImage(
@@ -248,44 +259,61 @@ class _EditPetScreenState extends State<EditPetScreen> {
                         child: (_localPhotoUrl == null ||
                                     _localPhotoUrl!.isEmpty) &&
                                 (_photoUrl == null || _photoUrl!.isEmpty)
-                            ? const Icon(Icons.camera_alt,
-                                size: 40, color: Color(0xFF434655))
+                            ? Center(
+                                child: Icon(
+                                  Icons.add_a_photo_outlined,
+                                  size: 48,
+                                  color: theme.colorScheme.primary.withValues(alpha: 0.6),
+                                ),
+                              )
                             : null,
                       ),
                       Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: () {
-                              showImagePickerBottomSheet(
-                                context: context,
-                                title: 'Dost resmi',
-                                onPhotoSelected: (url) {
-                                  setState(() {
-                                    if (url == null) {
-                                      isDeleted = true;
-                                      _localPhotoUrl = _photoUrl = null;
-                                    } else {
-                                      _localPhotoUrl = url;
-                                      isDeleted = false;
-                                    }
-                                  });
-                                },
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: primaryBlue,
-                                shape: BoxShape.circle,
+                        bottom: -6,
+                        right: -6,
+                        child: GestureDetector(
+                          onTap: () {
+                            showImagePickerBottomSheet(
+                              context: context,
+                              title: 'Dost resmi',
+                              onPhotoSelected: (url) {
+                                setState(() {
+                                  if (url == null) {
+                                    isDeleted = true;
+                                    _localPhotoUrl = _photoUrl = null;
+                                  } else {
+                                    _localPhotoUrl = url;
+                                    isDeleted = false;
+                                  }
+                                });
+                              },
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: primaryBlue,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: theme.colorScheme.surface,
+                                width: 2.5,
                               ),
-                              child: const Icon(
-                                Icons.camera_alt_outlined,
-                                color: Colors.white,
-                                size: 18,
-                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 6,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
                             ),
-                          )),
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

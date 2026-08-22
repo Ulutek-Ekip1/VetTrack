@@ -25,9 +25,6 @@ class _PetListScreenState extends State<PetListScreen> {
     super.initState();
     context.read<PetCubit>().fetchPets();
     _searchController.addListener(() {
-      if (mounted) {
-        setState(() {}); // Clear butonunun anlık güncellenmesi için
-      }
       if (_debounce?.isActive ?? false) _debounce!.cancel();
       _debounce = Timer(const Duration(milliseconds: 300), () {
         if (mounted) {
@@ -121,7 +118,7 @@ class _PetListScreenState extends State<PetListScreen> {
                 onRefresh: () => context.read<PetCubit>().fetchPets(),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
                   child: Column(
                     children: [
                       // Arama Çubuğu
@@ -140,17 +137,6 @@ class _PetListScreenState extends State<PetListScreen> {
                             Icons.search,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear_rounded),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() {
-                                      _searchQuery = '';
-                                    });
-                                  },
-                                )
-                              : null,
                           filled: true,
                           fillColor: theme.colorScheme.surfaceContainerLowest,
                           contentPadding: const EdgeInsets.symmetric(
@@ -181,10 +167,17 @@ class _PetListScreenState extends State<PetListScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // Hayvan Kartları Listesi
-                      ListView.builder(
+                      // Hayvan Kartları Grid Listesi (3:4 Portre Poster)
+                      GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount:
+                              MediaQuery.of(context).size.width >= 600 ? 3 : 2,
+                          crossAxisSpacing: 14,
+                          mainAxisSpacing: 14,
+                          childAspectRatio: 0.74,
+                        ),
                         itemCount: filteredPets.length,
                         itemBuilder: (context, index) {
                           final pet = filteredPets[index];
@@ -202,70 +195,7 @@ class _PetListScreenState extends State<PetListScreen> {
                                 ),
                               );
                             },
-                            child: Dismissible(
-                              key: Key('pet-dismiss-${pet.id}'),
-                              background: _buildSwipeBackground(
-                                context: context,
-                                alignment: Alignment.centerLeft,
-                                color: theme.colorScheme.secondary,
-                                icon: Icons.edit,
-                                label: 'Düzenle',
-                              ),
-                              secondaryBackground: _buildSwipeBackground(
-                                context: context,
-                                alignment: Alignment.centerRight,
-                                color: theme.colorScheme.error,
-                                icon: Icons.delete_forever,
-                                label: 'Sil',
-                              ),
-                              confirmDismiss: (direction) async {
-                                if (direction == DismissDirection.endToStart) {
-                                  // Silme
-                                  bool deleteConfirmed = false;
-                                  await showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (dialogContext) => AlertDialog(
-                                      title: const Text('Evcil Hayvanı Sil'),
-                                      content: Text(
-                                          '${pet.name} isimli evcil hayvanı silmek istediğinize emin misiniz?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(dialogContext).pop(),
-                                          child: const Text('İptal'),
-                                        ),
-                                        FilledButton(
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor:
-                                                theme.colorScheme.error,
-                                            foregroundColor:
-                                                theme.colorScheme.onError,
-                                          ),
-                                          onPressed: () {
-                                            deleteConfirmed = true;
-                                            Navigator.of(dialogContext).pop();
-                                          },
-                                          child: const Text('Sil'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                  if (deleteConfirmed && context.mounted) {
-                                    context
-                                        .read<PetCubit>()
-                                        .deletePet(id: pet.id);
-                                    return true;
-                                  }
-                                  return false;
-                                } else {
-                                  // Düzenleme
-                                  context.push('/owner/pets/${pet.id}/edit');
-                                  return false;
-                                }
-                              },
-                              child: PetCard(pet: pet),
-                            ),
+                            child: PetCard(pet: pet),
                           );
                         },
                       ),
@@ -278,63 +208,44 @@ class _PetListScreenState extends State<PetListScreen> {
             return const SizedBox.shrink();
           },
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            context.push(AppRoutes.addPet);
-          },
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
-          icon: const Icon(Icons.add),
-          label: const Text(
-            'Yeni Hayvan Ekle',
-            style: TextStyle(fontWeight: FontWeight.bold),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: theme.colorScheme.primaryContainer,
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () {
+                context.push(AppRoutes.addPet);
+              },
+              splashColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+              highlightColor: theme.colorScheme.primary.withValues(alpha: 0.08),
+              child: Center(
+                child: Icon(
+                  Icons.add_rounded,
+                  color: theme.colorScheme.onPrimaryContainer,
+                  size: 28,
+                ),
+              ),
+            ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSwipeBackground({
-    required BuildContext context,
-    required Alignment alignment,
-    required Color color,
-    required IconData icon,
-    required String label,
-  }) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14.0),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      alignment: alignment,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: alignment == Alignment.centerLeft
-            ? [
-                Icon(icon, color: Colors.white, size: 22),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ]
-            : [
-                Text(
-                  label,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(icon, color: Colors.white, size: 22),
-              ],
       ),
     );
   }
@@ -391,11 +302,11 @@ class SkeletonLoadingView extends StatelessWidget {
                 child: Row(
                   children: [
                     Container(
-                      width: 64,
-                      height: 64,
+                      width: 84,
+                      height: 84,
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerHighest,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                     const SizedBox(width: 16),
