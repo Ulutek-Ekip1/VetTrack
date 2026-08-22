@@ -11,6 +11,7 @@ import '../cubit/auth_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/router/app_router.dart';
 import 'faq_bottom_sheet.dart';
+
 class OwnerProfileScreen extends StatelessWidget {
   const OwnerProfileScreen({super.key});
 
@@ -57,8 +58,12 @@ class OwnerProfileScreen extends StatelessWidget {
                     elevation: 0,
                     color: theme.colorScheme.surfaceContainerLowest,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                      side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLg),
+                      side: BorderSide(
+                          color: theme.colorScheme.outlineVariant
+                              .withValues(alpha: 0.5),
+                          width: 1),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
@@ -92,7 +97,8 @@ class OwnerProfileScreen extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                                    color: theme.colorScheme.secondaryContainer
+                                        .withValues(alpha: 0.3),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -121,8 +127,12 @@ class OwnerProfileScreen extends StatelessWidget {
                     elevation: 0,
                     color: theme.colorScheme.surfaceContainerLowest,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                      side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLg),
+                      side: BorderSide(
+                          color: theme.colorScheme.outlineVariant
+                              .withValues(alpha: 0.5),
+                          width: 1),
                     ),
                     child: Column(
                       children: [
@@ -139,7 +149,7 @@ class OwnerProfileScreen extends StatelessWidget {
                           icon: Icons.pets_outlined,
                           title: 'Evcil Hayvanlarım',
                           subtitle: 'Kayıtlı evcil hayvanların listesi',
-                          onTap: () => context.push('/owner/pets'),
+                          onTap: () => context.go(AppRoutes.ownerPets),
                         ),
                       ],
                     ),
@@ -154,8 +164,12 @@ class OwnerProfileScreen extends StatelessWidget {
                     elevation: 0,
                     color: theme.colorScheme.surfaceContainerLowest,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                      side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLg),
+                      side: BorderSide(
+                          color: theme.colorScheme.outlineVariant
+                              .withValues(alpha: 0.5),
+                          width: 1),
                     ),
                     child: BlocBuilder<ThemeCubit, ThemeMode>(
                       builder: (context, themeMode) {
@@ -176,7 +190,8 @@ class OwnerProfileScreen extends StatelessWidget {
                           icon: Icons.palette_outlined,
                           title: 'Uygulama Teması',
                           subtitle: themeSubtitle,
-                          onTap: () => _showThemeSelectionDialog(context, themeMode),
+                          onTap: () =>
+                              _showThemeSelectionDialog(context, themeMode),
                         );
                       },
                     ),
@@ -191,8 +206,12 @@ class OwnerProfileScreen extends StatelessWidget {
                     elevation: 0,
                     color: theme.colorScheme.surfaceContainerLowest,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                      side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLg),
+                      side: BorderSide(
+                          color: theme.colorScheme.outlineVariant
+                              .withValues(alpha: 0.5),
+                          width: 1),
                     ),
                     child: Column(
                       children: [
@@ -201,7 +220,7 @@ class OwnerProfileScreen extends StatelessWidget {
                           icon: Icons.help_outline,
                           title: 'Sıkça Sorulan Sorular',
                           subtitle: 'Uygulama kullanımı hakkında yardımlar',
-                          onTap: () => showFAQBottomSheet(context), 
+                          onTap: () => showFAQBottomSheet(context),
                         ),
                         _buildDivider(context),
                         _buildProfileTile(
@@ -236,7 +255,8 @@ class OwnerProfileScreen extends StatelessWidget {
                     icon: const Icon(Icons.logout),
                     label: const Text(
                       'Hesaptan Çıkış Yap',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
 
@@ -324,7 +344,6 @@ class OwnerProfileScreen extends StatelessWidget {
       },
     );
   }
-
 
   Widget _buildSectionHeader(BuildContext context, String title) {
     final theme = Theme.of(context);
@@ -415,9 +434,13 @@ class OwnerProfileScreen extends StatelessWidget {
               children: [
                 // Tutamaç & Başlık
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                   decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5))),
+                    border: Border(
+                        bottom: BorderSide(
+                            color: theme.colorScheme.outlineVariant
+                                .withValues(alpha: 0.5))),
                   ),
                   child: Column(
                     children: [
@@ -435,7 +458,8 @@ class OwnerProfileScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.secondary.withValues(alpha: 0.1),
+                              color: theme.colorScheme.secondary
+                                  .withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -478,19 +502,22 @@ class OwnerProfileScreen extends StatelessWidget {
                       ),
                       _buildPolicySection(
                         context: context,
-                        title: '2. Evcil Hayvan Sağlık ve Tıbbi Kayıtlarının İşlenme Esasları',
+                        title:
+                            '2. Evcil Hayvan Sağlık ve Tıbbi Kayıtlarının İşlenme Esasları',
                         content:
                             'Sistem üzerinde kayıt altına alınan evcil hayvan kimlik (çip numarası, ırk, doğum tarihi), aşı takvimi, muayene bulguları, teşhis, tedavi, reçete ve ağırlık geçmişi verileri; veteriner hekimlik hizmetlerinin sürekliliğini sağlamak, hasta takibini yürütmek ve acil müdahale süreçlerini desteklemek amacıyla işlenmekte ve yetkili klinik personeli ile paylaşılmaktadır.',
                       ),
                       _buildPolicySection(
                         context: context,
-                        title: '3. Bilgi Güvenliği, Şifreleme ve Altyapı Tedbirleri',
+                        title:
+                            '3. Bilgi Güvenliği, Şifreleme ve Altyapı Tedbirleri',
                         content:
                             'VetTrack sistemleri üzerindeki tüm ağ trafiği aktarım sırasında TLS 1.3 şifreleme protokolü ile korunmaktadır. Kullanıcı kimlik doğrulama süreçleri ES256 asimetrik anahtar imzalı JSON Web Token (JWT) standartlarına tabi olup, şifre ve kritik güvenlik parametreleri SHA-256 kriptografik özetleme yöntemleri ile muhafaza edilmektedir. Yetkisiz erişimleri engellemek adına rol tabanlı erişim kontrolü (RBAC) ve nesne düzeyinde yetki denetimleri uygulanmaktadır.',
                       ),
                       _buildPolicySection(
                         context: context,
-                        title: '4. Yapay Zekâ Destekli Sağlık Danışmanlığı Sorumluluk Reddi',
+                        title:
+                            '4. Yapay Zekâ Destekli Sağlık Danışmanlığı Sorumluluk Reddi',
                         content:
                             'Uygulama içerisinde sunulan yapay zekâ (AI) destekli ön değerlendirme ve bilgilendirme hizmeti, kesin klinik teşhis ve tedavi niteliği taşımamaktadır. Yapay zekâ yanıtları yalnızca genel bilgilendirme ve acil durum yönlendirmesi amacına matuftur. Nihai klinik teşhis ve tedavi protokolleri münhasıran yetkili veteriner hekimin sorumluluğundadır. AI modülüne iletilen metinler ticari amaçlarla üçüncü şahıslara aktarılmamakta veya satılmamaktadır.',
                       ),
@@ -506,7 +533,8 @@ class OwnerProfileScreen extends StatelessWidget {
                           onPressed: () => Navigator.of(context).pop(),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: theme.colorScheme.onSurface,
-                            side: BorderSide(color: theme.colorScheme.outlineVariant),
+                            side: BorderSide(
+                                color: theme.colorScheme.outlineVariant),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 40,
                               vertical: 12,
@@ -536,7 +564,10 @@ class OwnerProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPolicySection({required BuildContext context, required String title, required String content}) {
+  Widget _buildPolicySection(
+      {required BuildContext context,
+      required String title,
+      required String content}) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -638,7 +669,8 @@ class _OwnerProfileAvatar extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary,
                     shape: BoxShape.circle,
-                    border: Border.all(color: theme.colorScheme.surface, width: 2),
+                    border:
+                        Border.all(color: theme.colorScheme.surface, width: 2),
                   ),
                   child: Icon(
                     Icons.camera_alt,
@@ -654,4 +686,3 @@ class _OwnerProfileAvatar extends StatelessWidget {
     );
   }
 }
-
