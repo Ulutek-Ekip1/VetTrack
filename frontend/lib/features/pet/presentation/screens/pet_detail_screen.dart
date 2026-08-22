@@ -1290,7 +1290,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                               ? theme.colorScheme.onSurfaceVariant
                               : (diff > 0
                                   ? const Color(0xFF22C55E)
-                                  : const Color(0xFF3B82F6)),
+                                  : const Color(0xFFEF4444)),
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -1315,7 +1315,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                             ? theme.colorScheme.onSurface
                             : (diff > 0
                                 ? const Color(0xFF22C55E)
-                                : const Color(0xFF3B82F6)),
+                                : const Color(0xFFEF4444)),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
