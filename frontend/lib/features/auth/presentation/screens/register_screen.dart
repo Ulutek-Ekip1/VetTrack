@@ -148,8 +148,10 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: Container(
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -675,26 +677,29 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
                                               color: theme.colorScheme.onPrimary,
                                             ),
                                           )
-                                        : Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                'Kayıt Ol',
-                                                style: theme
-                                                    .textTheme.titleMedium
-                                                    ?.copyWith(
-                                                  color: theme.colorScheme.onPrimary,
-                                                  fontWeight: FontWeight.bold,
+                                        : FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Kayıt Ol',
+                                                  style: theme
+                                                      .textTheme.titleMedium
+                                                      ?.copyWith(
+                                                    color: theme.colorScheme.onPrimary,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Icon(
-                                                Icons.arrow_forward,
-                                                size: 20,
-                                                color: theme.colorScheme.onPrimary,
-                                              ),
-                                            ],
+                                                const SizedBox(width: 8),
+                                                Icon(
+                                                  Icons.arrow_forward,
+                                                  size: 20,
+                                                  color: theme.colorScheme.onPrimary,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                   ),
                                 ),
@@ -749,6 +754,7 @@ verilerimin işlenmesine ve kampanya/bilgilendirme iletileri gönderilmesine
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

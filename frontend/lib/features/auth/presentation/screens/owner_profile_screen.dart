@@ -11,8 +11,19 @@ import '../cubit/auth_state.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/router/app_router.dart';
 import 'faq_bottom_sheet.dart';
-class OwnerProfileScreen extends StatelessWidget {
+class OwnerProfileScreen extends StatefulWidget {
   const OwnerProfileScreen({super.key});
+
+  @override
+  State<OwnerProfileScreen> createState() => _OwnerProfileScreenState();
+}
+
+class _OwnerProfileScreenState extends State<OwnerProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<ProfileCubit>().fetchProfile();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +53,24 @@ class OwnerProfileScreen extends StatelessWidget {
             );
           }
         },
-        child: BlocBuilder<AuthCubit, AuthState>(
-          builder: (context, state) {
-            final user = state is Authenticated ? state.user : null;
-            final userName = user?.name ?? 'Hayvan Sahibi';
-            final userEmail = user?.email ?? 'eposta@vettrack.com';
+        child: BlocBuilder<ProfileCubit, ProfileState>(
+          builder: (context, profileState) {
+            String userName = 'Hayvan Sahibi';
+            String userEmail = 'eposta@vettrack.com';
+
+            if (profileState is ProfileLoaded) {
+              userName = profileState.profile.name;
+              if (profileState.profile.surname != null && profileState.profile.surname!.isNotEmpty) {
+                userName += ' ${profileState.profile.surname}';
+              }
+              userEmail = profileState.profile.email;
+            } else {
+              final authState = context.read<AuthCubit>().state;
+              if (authState is Authenticated) {
+                userName = authState.user.name;
+                userEmail = authState.user.email;
+              }
+            }
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(AppDimensions.containerMargin),
@@ -614,17 +638,17 @@ class _OwnerProfileAvatar extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 36,
-                backgroundColor: theme.colorScheme.primaryContainer,
+                backgroundColor: theme.colorScheme.primary,
                 backgroundImage: avatarImage,
                 child: isUploading
-                    ? const CircularProgressIndicator(strokeWidth: 2)
+                    ? const CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
                     : (avatarImage == null
                         ? Text(
                             userName.isNotEmpty
                                 ? userName[0].toUpperCase()
                                 : 'U',
                             style: theme.textTheme.headlineMedium?.copyWith(
-                              color: theme.colorScheme.primary,
+                              color: theme.colorScheme.onPrimary,
                               fontWeight: FontWeight.bold,
                             ),
                           )

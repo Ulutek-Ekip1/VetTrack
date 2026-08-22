@@ -98,26 +98,29 @@ class WelcomeScreen extends StatelessWidget {
                                           borderRadius: BorderRadius.circular(16),
                                         ),
                                       ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            AppPlatform.isVetWebExperience
-                                                ? 'Personel Girişi'
-                                                : 'Giriş Yap',
-                                            style:
-                                                theme.textTheme.titleMedium?.copyWith(
-                                              color: theme.colorScheme.onPrimary,
-                                              fontWeight: FontWeight.bold,
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              AppPlatform.isVetWebExperience
+                                                  ? 'Personel Girişi'
+                                                  : 'Giriş Yap',
+                                              style:
+                                                  theme.textTheme.titleMedium?.copyWith(
+                                                color: theme.colorScheme.onPrimary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Icon(
-                                            Icons.login_rounded,
-                                            size: 20,
-                                            color: theme.colorScheme.onPrimary,
-                                          ),
-                                        ],
+                                            const SizedBox(width: 8),
+                                            Icon(
+                                              Icons.login_rounded,
+                                              size: 20,
+                                              color: theme.colorScheme.onPrimary,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -146,28 +149,31 @@ class WelcomeScreen extends StatelessWidget {
                                           borderRadius: BorderRadius.circular(16),
                                         ),
                                       ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            AppPlatform.isVetWebExperience
-                                                ? 'Davet Kodu ile Katıl'
-                                                : 'Kayıt Ol',
-                                            style:
-                                                theme.textTheme.titleMedium?.copyWith(
-                                              color: theme.colorScheme.onSecondaryContainer,
-                                              fontWeight: FontWeight.bold,
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              AppPlatform.isVetWebExperience
+                                                  ? 'Davet Kodu ile Katıl'
+                                                  : 'Kayıt Ol',
+                                              style:
+                                                  theme.textTheme.titleMedium?.copyWith(
+                                                color: theme.colorScheme.onSecondaryContainer,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Icon(
-                                            AppPlatform.isVetWebExperience
-                                                ? Icons.vpn_key_rounded
-                                                : Icons.person_add_rounded,
-                                            size: 20,
-                                            color: theme.colorScheme.onSecondaryContainer,
-                                          ),
-                                        ],
+                                            const SizedBox(width: 8),
+                                            Icon(
+                                              AppPlatform.isVetWebExperience
+                                                  ? Icons.vpn_key_rounded
+                                                  : Icons.person_add_rounded,
+                                              size: 20,
+                                              color: theme.colorScheme.onSecondaryContainer,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -237,25 +243,28 @@ class WelcomeScreen extends StatelessWidget {
                                                   color: theme.colorScheme.primary,
                                                 ),
                                               )
-                                            : Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Image.asset(
-                                                    "assets/icons/google_g.png",
-                                                    height: 20,
-                                                    width: 20,
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Text(
-                                                    'Google ile Hızlı Giriş',
-                                                    style: theme.textTheme.titleMedium
-                                                        ?.copyWith(
-                                                      color: theme.colorScheme.onSurface,
-                                                      fontWeight: FontWeight.bold,
+                                            : FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Image.asset(
+                                                      "assets/icons/google_g.png",
+                                                      height: 20,
+                                                      width: 20,
                                                     ),
-                                                  ),
-                                                ],
+                                                    const SizedBox(width: 12),
+                                                    Text(
+                                                      'Google ile Hızlı Giriş',
+                                                      style: theme.textTheme.titleMedium
+                                                          ?.copyWith(
+                                                        color: theme.colorScheme.onSurface,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                       ),
                                     ),

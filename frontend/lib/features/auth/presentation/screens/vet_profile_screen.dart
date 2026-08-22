@@ -37,12 +37,11 @@ class VetProfileScreen extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 40,
-                            backgroundColor:
-                                theme.colorScheme.primary.withValues(alpha: 0.15),
+                            backgroundColor: theme.colorScheme.primary,
                             child: Text(
                               userInitial,
                               style: theme.textTheme.headlineLarge?.copyWith(
-                                color: theme.colorScheme.primary,
+                                color: theme.colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

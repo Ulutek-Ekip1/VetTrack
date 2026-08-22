@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/di/injection_container.dart';
@@ -47,6 +48,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
 
   String? _activePetId;
   PetEntity? _activePet;
+  bool _showDisclaimer = true;
 
   @override
   void initState() {
@@ -167,8 +169,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              cubit.state.errorMessage ??
-                  'Sohbet silinirken bir hata oluştu.',
+              cubit.state.errorMessage ?? 'Sohbet silinirken bir hata oluştu.',
             ),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.red.shade700,
@@ -232,8 +233,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              cubit.state.errorMessage ??
-                  'Geçmiş silinirken bir hata oluştu.',
+              cubit.state.errorMessage ?? 'Geçmiş silinirken bir hata oluştu.',
             ),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.red.shade700,
@@ -287,13 +287,16 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                               ],
                             ),
                             IconButton(
-                              icon: Icon(Icons.close, color: theme.colorScheme.onSurface),
-                              onPressed: () => Navigator.pop(bottomSheetContext),
+                              icon: Icon(Icons.close,
+                                  color: theme.colorScheme.onSurface),
+                              onPressed: () =>
+                                  Navigator.pop(bottomSheetContext),
                             ),
                           ],
                         ),
                       ),
-                      Divider(height: 1, color: theme.colorScheme.outlineVariant),
+                      Divider(
+                          height: 1, color: theme.colorScheme.outlineVariant),
 
                       // Body - Yükleme / Hata / Liste Durumları
                       Expanded(
@@ -343,12 +346,15 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+              const Icon(Icons.error_outline,
+                  size: 48, color: Colors.redAccent),
               const SizedBox(height: 12),
               Text(
-                state.historyErrorMessage ?? 'Geçmiş yüklenirken bir hata oluştu.',
+                state.historyErrorMessage ??
+                    'Geçmiş yüklenirken bir hata oluştu.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 14),
+                style:
+                    TextStyle(color: theme.colorScheme.onSurface, fontSize: 14),
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
@@ -371,11 +377,13 @@ class _AIChatbotViewState extends State<AIChatbotView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history_toggle_off, size: 54, color: theme.colorScheme.onSurfaceVariant),
+            Icon(Icons.history_toggle_off,
+                size: 54, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(height: 12),
             Text(
               'Henüz kaydedilmiş sohbet geçmişiniz bulunmuyor.',
-              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 14),
+              style: TextStyle(
+                  color: theme.colorScheme.onSurfaceVariant, fontSize: 14),
             ),
           ],
         ),
@@ -390,8 +398,11 @@ class _AIChatbotViewState extends State<AIChatbotView> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount:
                 state.conversations.length + (state.hasMoreHistory ? 1 : 0),
-            separatorBuilder: (_, __) =>
-                Divider(height: 1, indent: 16, endIndent: 16, color: theme.colorScheme.outlineVariant),
+            separatorBuilder: (_, __) => Divider(
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+                color: theme.colorScheme.outlineVariant),
             itemBuilder: (context, index) {
               if (index == state.conversations.length) {
                 // Daha fazla yükle butonu
@@ -410,7 +421,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                             label: const Text('Daha Fazla Geçmiş Yükle'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: theme.colorScheme.primary,
-                              side: BorderSide(color: theme.colorScheme.primary),
+                              side:
+                                  BorderSide(color: theme.colorScheme.primary),
                             ),
                           ),
                   ),
@@ -423,16 +435,17 @@ class _AIChatbotViewState extends State<AIChatbotView> {
 
               return ListTile(
                 selected: isSelected,
-                selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                selectedTileColor:
+                    theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                 leading: CircleAvatar(
                   backgroundColor: isSelected
                       ? theme.colorScheme.primary
                       : theme.colorScheme.surfaceContainerHighest,
                   child: Icon(
-                    conv.petId != null
-                        ? Icons.pets
-                        : Icons.chat_bubble_outline,
-                    color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.primary,
+                    conv.petId != null ? Icons.pets : Icons.chat_bubble_outline,
+                    color: isSelected
+                        ? theme.colorScheme.onPrimary
+                        : theme.colorScheme.primary,
                     size: 20,
                   ),
                 ),
@@ -534,64 +547,79 @@ class _AIChatbotViewState extends State<AIChatbotView> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: theme.colorScheme.surface,
+        leadingWidth: 48,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: IconButton(
+            icon: Icon(Icons.arrow_back, color: theme.colorScheme.primary),
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
+        ),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.teal.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.pets, color: Colors.teal.shade700, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Row(
+              children: [
+                Text(
+                  'VetTrack AI',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.add_comment_outlined, color: theme.colorScheme.primary),
+            icon: Icon(Icons.add_box, color: theme.colorScheme.primary),
             tooltip: 'Yeni Sohbet',
             onPressed: () {
               context.read<AiChatCubit>().startNewConversation();
             },
           ),
           IconButton(
-            icon: Icon(Icons.history, color: theme.colorScheme.onSurface),
+            icon:
+                Icon(Icons.history, color: theme.colorScheme.onSurfaceVariant),
             tooltip: 'Sohbet Geçmişi',
             onPressed: () => _showHistoryBottomSheet(context),
           ),
+          const SizedBox(width: 8),
         ],
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.secondaryContainer,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.auto_awesome, color: theme.colorScheme.onSecondaryContainer, size: 20),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'AI Sağlık Asistanı',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF10B981),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'VetTrack AI • Çevrimiçi',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+            height: 1.0,
+          ),
         ),
       ),
       body: BlocConsumer<AiChatCubit, AiChatState>(
@@ -639,70 +667,69 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               if (_activePetId != null)
                 Container(
                   margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+                    color: theme.colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color:
+                            theme.colorScheme.primary.withValues(alpha: 0.2)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CircleAvatar(
-                        radius: 18,
-                        backgroundColor: theme.colorScheme.primaryContainer,
-                        backgroundImage: _activePet?.photoUrl != null &&
-                                _activePet!.photoUrl!.isNotEmpty
-                            ? NetworkImage(_activePet!.photoUrl!)
-                            : null,
-                        child: _activePet?.photoUrl == null ||
-                                _activePet!.photoUrl!.isEmpty
-                            ? Icon(Icons.pets, size: 18, color: primaryBlue)
-                            : null,
+                        radius: 16,
+                        backgroundColor: theme.colorScheme.surface,
+                        child: CircleAvatar(
+                          radius: 14,
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          backgroundImage: _activePet?.photoUrl != null &&
+                                  _activePet!.photoUrl!.isNotEmpty
+                              ? NetworkImage(_activePet!.photoUrl!)
+                              : null,
+                          child: _activePet?.photoUrl == null ||
+                                  _activePet!.photoUrl!.isEmpty
+                              ? Icon(Icons.pets, size: 14, color: primaryBlue)
+                              : null,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Aktif Bağlam: ${_activePet?.name ?? 'Evcil Hayvan'}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: theme.colorScheme.onSurface,
-                              ),
-                            ),
-                            Text(
-                              'Sorular ${_activePet?.name ?? 'bu pet'} özelinde yanıtlanır',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          "Sorular '${_activePet?.name ?? 'Evcil Hayvan'}' özelinde yanıtlanacaktır",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
                       ),
-                      Tooltip(
-                        message: 'Genel sohbete dön',
-                        child: InkWell(
-                          onTap: () {
-                            context.read<AiChatCubit>().clearPetContext();
-                            setState(() {
-                              _activePetId = null;
-                              _activePet = null;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: theme.colorScheme.outlineVariant),
-                            ),
-                            child: Icon(Icons.close,
-                                size: 16, color: theme.colorScheme.onSurface),
+                      InkWell(
+                        onTap: () {
+                          context.read<AiChatCubit>().clearPetContext();
+                          setState(() {
+                            _activePetId = null;
+                            _activePet = null;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
                           ),
+                          child: Icon(Icons.close,
+                              size: 16,
+                              color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ),
                     ],
@@ -712,18 +739,11 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               // Sohbet Mesajları Listesi
               Expanded(
                 child: messages.isEmpty
-                    ? SingleChildScrollView(
-                        padding: const EdgeInsets.all(AppDimensions.containerMargin),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 20),
-                            _buildWelcomeBubble(primaryBlue),
-                          ],
-                        ),
-                      )
+                    ? _buildEmptyState(theme, primaryBlue, isSending)
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.all(AppDimensions.containerMargin),
+                        padding:
+                            const EdgeInsets.all(AppDimensions.containerMargin),
                         physics: const BouncingScrollPhysics(),
                         itemCount: messages.length,
                         itemBuilder: (context, index) {
@@ -764,88 +784,56 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   ),
                 ),
 
-              // Öneri Soru Şablonları (Sadece mesaj yoksa gösterilir)
-              if (messages.isEmpty)
-                Container(
-                  height: 45,
-                  margin: const EdgeInsets.only(bottom: 8.0),
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.containerMargin),
-                    children: [
-                      'Kedi aşı takvimi',
-                      'Mama seçimi nasıl olmalı?',
-                      'Kusma neden olur?',
-                      'Tüy dökülmesi normal mi?',
-                    ].map((tag) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: ActionChip(
-                          label: Text(tag),
-                          onPressed: isSending
-                              ? null
-                              : () {
-                                  _messageController.text = tag;
-                                  _onSendPressed();
-                                },
-                          backgroundColor: theme.colorScheme.surface,
-                          labelStyle: TextStyle(
-                              color: primaryBlue,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold),
-                          side: BorderSide(
-                              color: primaryBlue.withValues(alpha: 0.2)),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-
               // Sabit Yasal Bilgilendirme (Disclaimer) Banner'ı
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: theme.brightness == Brightness.dark
-                      ? theme.colorScheme.surfaceContainerHighest
-                      : const Color(0xFFFFFBEB),
-                  border: Border(
-                    top: BorderSide(
-                        color: theme.brightness == Brightness.dark
-                            ? theme.colorScheme.outlineVariant
-                            : const Color(0xFFFDE68A),
-                        width: 1),
+              if (_showDisclaimer)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: Colors.orange.shade400.withValues(alpha: 0.3)),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline,
-                        size: 15,
-                        color: theme.brightness == Brightness.dark
-                            ? theme.colorScheme.primary
-                            : const Color(0xFFB45309)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'YASAL UYARI: Yapay zeka yanıtları yalnızca genel bilgilendirme amaçlıdır. Teşhis veya reçeteli tedavi yerine geçmez.',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          color: theme.brightness == Brightness.dark
-                              ? theme.colorScheme.onSurfaceVariant
-                              : const Color(0xFF92400E),
-                          fontWeight: FontWeight.w500,
-                          height: 1.3,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.warning_amber_rounded,
+                          color: Colors.orange, size: 20),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'YASAL UYARI: ',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange),
+                              ),
+                              TextSpan(
+                                text:
+                                    'Yapay zeka yanıtları yalnızca genel bilgilendirme amaçlıdır. Teşhis veya reçeteli tedavi yerine geçmez.',
+                                style: TextStyle(
+                                    color: Color(0xFF434655), fontSize: 11),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _showDisclaimer = false;
+                          });
+                        },
+                        child: const Icon(Icons.close,
+                            color: Colors.black38, size: 18),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
               // Mesaj Giriş Alanı
               if (rateLimitRemaining > 0)
@@ -864,58 +852,85 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   ),
                 ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 12.0),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerLowest,
-                  border: Border(
-                    top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1.5),
-                  ),
-                ),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                color: theme.colorScheme.surface,
                 child: SafeArea(
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Expanded(
-                        child: TextField(
-                          controller: _messageController,
-                          enabled: !isSending && rateLimitRemaining == 0,
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) {
-                            if (canSend) _onSendPressed();
-                          },
-                          style: TextStyle(color: theme.colorScheme.onSurface),
-                          decoration: InputDecoration(
-                            hintText: isSending
-                                ? 'Yanıt bekleniyor...'
-                                : 'Mesajınızı yazın...',
-                            hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            disabledBorder: InputBorder.none,
-                            fillColor: theme.colorScheme.surfaceContainerHigh,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: Colors.transparent),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 12.0, bottom: 12.0),
+                                child: Icon(
+                                  Icons.attach_file,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  size: 22,
+                                ),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: _messageController,
+                                  enabled:
+                                      !isSending && rateLimitRemaining == 0,
+                                  textInputAction: TextInputAction.send,
+                                  maxLines: 4,
+                                  minLines: 1,
+                                  onSubmitted: (_) {
+                                    if (canSend) _onSendPressed();
+                                  },
+                                  style: TextStyle(
+                                      color: theme.colorScheme.onSurface,
+                                      fontSize: 14),
+                                  decoration: InputDecoration(
+                                    hintText: isSending
+                                        ? 'Yanıt bekleniyor...'
+                                        : 'Mesajınızı yazın...',
+                                    hintStyle: TextStyle(
+                                        color: theme
+                                            .colorScheme.onSurfaceVariant
+                                            .withValues(alpha: 0.7)),
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 14),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: canSend ? _onSendPressed : null,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.all(10),
+                        child: Container(
+                          width: 48,
+                          height: 48,
                           decoration: BoxDecoration(
                             color: canSend
                                 ? primaryBlue
-                                : theme.colorScheme.surfaceContainerHighest,
+                                : theme.colorScheme.primaryContainer
+                                    .withValues(alpha: 0.3),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.send,
                             color: canSend
                                 ? theme.colorScheme.onPrimary
-                                : theme.colorScheme.onSurfaceVariant,
+                                : theme.colorScheme.primary,
                             size: 20,
                           ),
                         ),
@@ -931,40 +946,93 @@ class _AIChatbotViewState extends State<AIChatbotView> {
     );
   }
 
-  Widget _buildWelcomeBubble(Color primaryBlue) {
-    final theme = Theme.of(context);
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12.0),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.82,
-        ),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerLowest,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-            bottomLeft: Radius.circular(4),
-            bottomRight: Radius.circular(16),
-          ),
-          border: Border.all(color: theme.colorScheme.outlineVariant, width: 1.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+  Widget _buildEmptyState(ThemeData theme, Color primaryBlue, bool isSending) {
+    final questions = [
+      'Kedi Aşı Takvimi',
+      'Mama Önerisi Al',
+      'Tüy Bakımı Nasıl Yapılır?',
+      'Zararlı Gıdalar Nelerdir?',
+    ];
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.85,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLowest,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(4),
+                    bottomRight: Radius.circular(16),
+                  ),
+                  border: Border.all(
+                      color: theme.colorScheme.outlineVariant
+                          .withValues(alpha: 0.3)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Size nasıl yardımcı olabilirim?',
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 15.0,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: 300,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...questions.map((tag) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: OutlinedButton(
+                          onPressed: isSending
+                              ? null
+                              : () {
+                                  _messageController.text = tag;
+                                  _onSendPressed();
+                                },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFA53B1C),
+                            side: const BorderSide(color: Color(0xFFFFCBB8), width: 1.2),
+                            backgroundColor: const Color(0xFFFFEEE8),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            tag,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      )),
+                ],
+              ),
             ),
           ],
-        ),
-        child: Text(
-          'Merhaba! Ben VetTrack Yapay Zeka Sağlık Asistanıyım. Evcil hayvanınızın sağlığı, beslenmesi veya aşıları hakkında bana her şeyi sorabilirsiniz. 🐾',
-          style: TextStyle(
-            color: theme.colorScheme.onSurface,
-            fontSize: 14.0,
-            height: 1.4,
-          ),
         ),
       ),
     );
@@ -1029,8 +1097,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                               height: 10,
                               child: CircularProgressIndicator(
                                 strokeWidth: 1.2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white70),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white70),
                               ),
                             ),
                           ),
@@ -1234,7 +1302,7 @@ class _AIChatbotViewState extends State<AIChatbotView> {
               const SizedBox(height: 12),
               // Backend Reply Metni (Aynen gösterilir)
               SelectableText(
-                msg.content,
+                msg.displayContent,
                 style: const TextStyle(
                   color: Color(0xFF7F1D1D),
                   fontSize: 14.0,
@@ -1242,6 +1310,34 @@ class _AIChatbotViewState extends State<AIChatbotView> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              if (msg.quickReplies.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: msg.quickReplies.map((reply) {
+                    return ActionChip(
+                      label: Text(reply),
+                      onPressed: () {
+                        final cubit = context.read<AiChatCubit>();
+                        if (!cubit.state.isSending) {
+                          cubit.sendMessage(reply);
+                          _scrollToBottom();
+                        }
+                      },
+                      backgroundColor: Colors.white.withValues(alpha: 0.9),
+                      labelStyle: const TextStyle(
+                          color: Color(0xFFB91C1C),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: Color(0xFFFCA5A5)),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
@@ -1278,7 +1374,8 @@ class _AIChatbotViewState extends State<AIChatbotView> {
             bottomLeft: Radius.circular(4),
             bottomRight: Radius.circular(16),
           ),
-          border: Border.all(color: theme.colorScheme.outlineVariant, width: 1.0),
+          border:
+              Border.all(color: theme.colorScheme.outlineVariant, width: 1.0),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -1291,13 +1388,44 @@ class _AIChatbotViewState extends State<AIChatbotView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SelectableText(
-              msg.content,
+              msg.displayContent,
               style: TextStyle(
                 color: theme.colorScheme.onSurface,
                 fontSize: 14.0,
                 height: 1.4,
               ),
             ),
+            if (msg.quickReplies.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: msg.quickReplies.map((reply) {
+                  return ActionChip(
+                    label: Text(reply),
+                    onPressed: () {
+                      final cubit = context.read<AiChatCubit>();
+                      if (!cubit.state.isSending) {
+                        cubit.sendMessage(reply);
+                        _scrollToBottom();
+                      }
+                    },
+                    backgroundColor: theme.colorScheme.primaryContainer
+                        .withValues(alpha: 0.3),
+                    labelStyle: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                          color:
+                              theme.colorScheme.primary.withValues(alpha: 0.3)),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
             const SizedBox(height: 6),
             Align(
               alignment: Alignment.centerRight,

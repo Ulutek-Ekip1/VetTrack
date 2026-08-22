@@ -358,6 +358,7 @@ class AppRouter {
                         GoRoute(
                           path: 'treatments',
                           name: 'petTreatments',
+                          parentNavigatorKey: navigatorKey,
                           builder: (context, state) {
                             final petId = state.pathParameters['petId'] ?? '';
                             return BlocProvider<TreatmentCubit>(

@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+    types: [ opened, synchronize, reopened, closed ]
   workflow_dispatch:
 
 concurrency:
@@ -18,6 +19,9 @@ permissions:
 
 jobs:
   build_and_deploy:
+    # PR kapanma event'inde deploy'a gerek yok, sadece preview channel'ı silen
+    # cleanup_preview_channel job'ı çalışsın.
+    if: github.event_name != 'pull_request' || github.event.action != 'closed'
     # Tüm CI çalıştırmaları mevcut production environment secret'larını kullanır.
     # PR'lar preview URL'sine yayınlansa da production yapılandırmasıyla derlenir.
     environment:
@@ -48,25 +52,20 @@ jobs:
       - name: .env Dosyasını Oluştur ve Doğrula
         working-directory: frontend
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
-          if [ ! -s .env ]; then
-            echo "Hata: .env dosyası boş veya ENV_FILE secret'ı tanımlı değil!"
-            exit 1
+          if [ -n "${{ secrets.ENV_FILE }}" ]; then
+            echo "${{ secrets.ENV_FILE }}" > .env
+          else
+            echo "Uyarı: ENV_FILE secret'ı tanımlı değil. Fallback kullanılıyor."
+            echo "API_BASE_URL=https://vettrack-production-fc00.up.railway.app" > .env
+            echo "SUPABASE_URL=https://czxyhovgxlbvsnoybokt.supabase.co" >> .env
+            echo "SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6eHlob3ZneGxidnNub3lib2t0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNDMzOTksImV4cCI6MjEwMDcxOTM5OX0.F5PjzDkqg2ZIRN8AGFtiAwhT9J45gbrvBWHbiemIrzo" >> .env
+            echo "FCM_SERVER_KEY=your-fcm-server-key" >> .env
+            echo "GOOGLE_WEB_CLIENT_ID=875989793108-a1gstg9nh63htu9fl38d7k0cddnki1kr.apps.googleusercontent.com" >> .env
           fi
 
       - name: Web Release Build Al
         working-directory: frontend
         run: flutter build web --release --dart-define-from-file=.env
-
-      # PR'larda geçici önizleme kanalına deploy eder
-      - name: Firebase Hosting Dağıtımı (PR Preview)
-        if: github.event_name == 'pull_request'
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK }}
-          projectId: vettrack-ce0ad
-          entryPoint: frontend
 
       # Main branch'e merge edildiğinde asıl canlı ortama deploy eder
       - name: Firebase Hosting Dağıtımı (Live / Production)
@@ -78,3 +77,31 @@ jobs:
           projectId: vettrack-ce0ad
           channelId: live
           entryPoint: frontend
+
+  # PR kapandığında (merge veya direkt kapatma) o PR'ın açtığı preview channel'ı
+  # siler. Bu adım olmadan her PR kendi channel'ını süresiz biriktiriyor ve
+  # Firebase Hosting'in preview channel kotasını dolduruyor (bkz. #174 CI hatası).
+  cleanup_preview_channel:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR'a Ait Preview Channel'ı Sil
+        env:
+          FIREBASE_SERVICE_ACCOUNT_VETTRACK: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VETTRACK }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT_VETTRACK" > /tmp/firebase-sa.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-sa.json
+
+          CHANNEL_ID=$(npx firebase-tools@latest hosting:channel:list --project vettrack-ce0ad --json \
+            | jq -r --arg prefix "/pr${PR_NUMBER}-" '.result.channels[] | select(.name | contains($prefix)) | .name' \
+            | sed 's#.*/##')
+
+          if [ -n "$CHANNEL_ID" ]; then
+            echo "Siliniyor: $CHANNEL_ID"
+            npx firebase-tools@latest hosting:channel:delete "$CHANNEL_ID" --project vettrack-ce0ad --force
+          else
+            echo "PR #$PR_NUMBER için silinecek preview channel bulunamadı (zaten silinmiş ya da hiç oluşmamış olabilir)."
+          fi
+
+          rm -f /tmp/firebase-sa.json
