@@ -42,9 +42,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(GeminiApiException.class)
     public ResponseEntity<Map<String, Object>> handleGeminiApiException(GeminiApiException ex) {
-        HttpStatus status = ex.getStatusCode() == 429 ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.SERVICE_UNAVAILABLE;
-        return buildResponse(status, ex.getStatusCode() == 429 ? "TOO_MANY_REQUESTS" : "SERVICE_UNAVAILABLE",
-                "Şu an yapay zeka servisimiz yoğun, lütfen birkaç saniye sonra tekrar deneyiniz.");
+        HttpStatus status;
+        String errorCode;
+        String userMessage;
+
+        if (ex.getStatusCode() == 429) {
+            status = HttpStatus.TOO_MANY_REQUESTS;
+            errorCode = "TOO_MANY_REQUESTS";
+            userMessage = "Yapay zeka servisinin anlık kotası aşıldı. Lütfen birkaç saniye sonra tekrar deneyiniz.";
+        } else if (ex.getStatusCode() == 401 || ex.getStatusCode() == 403) {
+            status = HttpStatus.SERVICE_UNAVAILABLE;
+            errorCode = "AI_AUTH_ERROR";
+            userMessage = "Yapay zeka servisi API anahtarı yetkilendirilemedi. Lütfen sistem yapılandırmasını kontrol ediniz.";
+        } else {
+            status = HttpStatus.SERVICE_UNAVAILABLE;
+            errorCode = "SERVICE_UNAVAILABLE";
+            userMessage = "Şu an yapay zeka servisimiz yoğun, lütfen birkaç saniye sonra tekrar deneyiniz.";
+        }
+
+        return buildResponse(status, errorCode, userMessage);
     }
 
     @ExceptionHandler(IdempotencyKeyReusedException.class)

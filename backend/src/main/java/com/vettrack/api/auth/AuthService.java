@@ -95,6 +95,7 @@ public class AuthService {
 
         Map<String, Object> userMetadata = new HashMap<>();
         userMetadata.put("name", request.getName());
+        userMetadata.put("full_name", request.getName());
         userMetadata.put("role", request.getRole());
         if (request.getPhone() != null) {
             userMetadata.put("phone", request.getPhone());
@@ -153,6 +154,7 @@ public class AuthService {
 
         Map<String, Object> userMetadata = new HashMap<>();
         userMetadata.put("name", name);
+        userMetadata.put("full_name", name);
         userMetadata.put("role", "owner");
         if (phone != null) {
             userMetadata.put("phone", phone);

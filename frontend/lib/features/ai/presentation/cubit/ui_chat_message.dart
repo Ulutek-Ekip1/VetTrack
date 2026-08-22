@@ -16,6 +16,25 @@ class UiChatMessage extends Equatable {
   final String? errorType;
   final String createdAt;
 
+  // Parsed content without QUICK_REPLY tag
+  String get displayContent {
+    final quickReplyRegex = RegExp(r'\[QUICK_REPLY:\s*(.*?)\]', dotAll: true);
+    return content.replaceAll(quickReplyRegex, '').trim();
+  }
+
+  // Parsed quick replies list
+  List<String> get quickReplies {
+    final quickReplyRegex = RegExp(r'\[QUICK_REPLY:\s*(.*?)\]', dotAll: true);
+    final match = quickReplyRegex.firstMatch(content);
+    if (match != null && match.groupCount >= 1) {
+      final optionsStr = match.group(1);
+      if (optionsStr != null) {
+        return optionsStr.split('|').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      }
+    }
+    return [];
+  }
+
   const UiChatMessage({
     required this.id,
     this.clientMessageId,

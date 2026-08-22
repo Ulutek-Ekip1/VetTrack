@@ -38,6 +38,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       context.read<ProfileCubit>().fetchProfile();
     }
     _checkAndPromptNotificationPermission();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      sl<FirebaseMessagingService>().flushPendingNavigation();
+    });
   }
 
   @override
@@ -208,7 +211,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 1.35,
+                      childAspectRatio: 1.45,
                       children: [
                         _buildQuickActionCard(
                           context,
@@ -306,10 +309,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           final pets = petState.pets;
                           if (pets.isEmpty) {
                             return Center(
-                              child: Text(
-                                'Kayıtlı evcil hayvanınız bulunmuyor.',
-                                style: theme.textTheme.bodyMedium
-                                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Kayıtlı evcil hayvanınız bulunmuyor.',
+                                    style: theme.textTheme.bodyMedium
+                                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton.icon(
+                                    onPressed: () => context.push('/owner/pets/add'),
+                                    icon: const Icon(Icons.add, size: 18),
+                                    label: const Text('Hemen Ekle'),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: theme.colorScheme.primary,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
                           }
