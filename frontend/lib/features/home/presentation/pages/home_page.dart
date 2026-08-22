@@ -7,6 +7,7 @@ import '../../../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../../../features/auth/presentation/cubit/auth_state.dart';
 import '../../../../features/pet/presentation/cubit/pet_cubit.dart';
 import '../../../../features/pet/presentation/cubit/pet_state.dart';
+import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_state.dart';
@@ -241,8 +242,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             final petState = context.read<PetCubit>().state;
                             if (petState is PetLoaded &&
                                 petState.pets.isNotEmpty) {
-                              context.push(
-                                  '/owner/pets/${petState.pets.first.id}/treatments');
+                              if (petState.pets.length == 1) {
+                                context.push(
+                                    '/owner/pets/${petState.pets.first.id}/treatments');
+                              } else {
+                                _showPetSelectionSheet(context, petState.pets);
+                              }
                             } else {
                               context.go('/owner/pets');
                             }
@@ -545,6 +550,103 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ),
         ),
       ),
+    );
+  }
+
+  void _showPetSelectionSheet(BuildContext context, List<PetEntity> pets) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        final theme = Theme.of(context);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.healing_rounded, color: Color(0xFFF43F5E)),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tedavi Geçmişi',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Lütfen tedavi geçmişini görüntülemek istediğiniz dostunuzu seçin:',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: pets.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final pet = pets[index];
+                      ImageProvider? petImage;
+                      if (pet.photoUrl != null && pet.photoUrl!.isNotEmpty) {
+                        if (pet.photoUrl!.startsWith('http')) {
+                          petImage = NetworkImage(pet.photoUrl!);
+                        } else {
+                          petImage = FileImage(File(pet.photoUrl!));
+                        }
+                      }
+
+                      return ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: theme.colorScheme.outlineVariant
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
+                        leading: CircleAvatar(
+                          radius: 22,
+                          backgroundColor:
+                              theme.colorScheme.primaryContainer,
+                          backgroundImage: petImage,
+                          child: petImage == null
+                              ? Icon(
+                                  Icons.pets_rounded,
+                                  color: theme.colorScheme.primary,
+                                  size: 22,
+                                )
+                              : null,
+                        ),
+                        title: Text(
+                          pet.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${pet.breed ?? 'Evcil Hayvan'}${pet.age != null ? " • ${pet.age} Yaşında" : ""}',
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.push('/owner/pets/${pet.id}/treatments');
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
