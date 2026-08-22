@@ -466,32 +466,69 @@ class _PetDetailScreenState extends State<PetDetailScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Kilo Grafiği',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => _showUpdateWeightDialog(context),
-                    child: Text('+ Kilo Ekle',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: primaryBlue)),
+                  Icon(
+                    Icons.monitor_weight_outlined,
+                    size: 20,
+                    color: primaryBlue,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Kilo Takip Grafiği',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  FilledButton.icon(
+                    onPressed: () => _showUpdateWeightDialog(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: primaryBlue.withValues(alpha: 0.12),
+                      foregroundColor: primaryBlue,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const Icon(Icons.add, size: 14),
+                    label: const Text(
+                      'Kilo Ekle',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   BlocBuilder<WeightHistoryCubit, WeightHistoryState>(
                     builder: (context, state) {
                       if (state is WeightHistoryLoaded &&
                           state.history.isNotEmpty) {
                         return Padding(
-                          padding: const EdgeInsets.only(left: 16.0),
-                          child: GestureDetector(
-                            onTap: () => _showAllWeightsBottomSheet(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: OutlinedButton(
+                            onPressed: () => _showAllWeightsBottomSheet(
                                 context, state.history),
-                            child: Text('Tümü',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryBlue)),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              side: BorderSide(
+                                color: theme.colorScheme.outlineVariant,
+                              ),
+                            ),
+                            child: const Text(
+                              'Tümü',
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         );
                       }
@@ -502,171 +539,25 @@ class _PetDetailScreenState extends State<PetDetailScreen>
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           BlocBuilder<WeightHistoryCubit, WeightHistoryState>(
             builder: (context, state) {
               if (state is WeightHistoryLoading) {
                 return Container(
-                  height: 180,
+                  height: 200,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.colorScheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: theme.colorScheme.outlineVariant
+                            .withValues(alpha: 0.5)),
                   ),
                   child: const CircularProgressIndicator(),
                 );
               } else if (state is WeightHistoryLoaded) {
-                final history = state.history;
-                if (history.isEmpty) {
-                  return Container(
-                    height: 120,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerLowest,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: theme.colorScheme.outlineVariant),
-                    ),
-                    child: Text(
-                      'Kilo geçmişi kaydı bulunmuyor.',
-                      style:
-                          TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13),
-                    ),
-                  );
-                }
-
-                final spots = <FlSpot>[];
-                double minYVal = 0;
-                double maxYVal = 30;
-                double maxXVal = 5;
-
-                final sortedHistory = List<PetWeightEntity>.from(history)
-                  ..sort((a, b) => a.date.compareTo(b.date));
-
-                double minW = sortedHistory[0].weight;
-                double maxW = sortedHistory[0].weight;
-                for (int i = 0; i < sortedHistory.length; i++) {
-                  final record = sortedHistory[i];
-                  spots.add(FlSpot(i.toDouble(), record.weight));
-                  if (record.weight < minW) minW = record.weight;
-                  if (record.weight > maxW) maxW = record.weight;
-                }
-                minYVal = (minW - 2).clamp(0, double.infinity).toDouble();
-                maxYVal = maxW + 2;
-                maxXVal = (spots.length - 1).toDouble();
-                if (maxXVal == 0) maxXVal = 1.0;
-
-                double yRange = maxYVal - minYVal;
-                double yInterval = yRange / 4;
-                if (yInterval <= 0 || yInterval.isNaN || yInterval.isInfinite) {
-                  yInterval = 1.0;
-                }
-
-                double xInterval = 1.0;
-                if (sortedHistory.length > 5) {
-                  xInterval = (sortedHistory.length / 5).ceilToDouble();
-                }
-
-                return Container(
-                  height: 180,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.colorScheme.outlineVariant),
-                  ),
-                  child: LineChart(
-                    LineChartData(
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                        horizontalInterval: yInterval,
-                        getDrawingHorizontalLine: (value) =>
-                            FlLine(color: theme.colorScheme.outlineVariant, strokeWidth: 1),
-                      ),
-                      titlesData: FlTitlesData(
-                        rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false)),
-                        topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false)),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 22,
-                            interval: xInterval,
-                            getTitlesWidget: (value, meta) {
-                              const style = TextStyle(
-                                  color: Color(0xFF737686), fontSize: 10);
-                              final index = value.round();
-                              if (value == index.toDouble() &&
-                                  index >= 0 &&
-                                  index < sortedHistory.length) {
-                                final date = sortedHistory[index].date;
-                                final months = [
-                                  'Oca',
-                                  'Şub',
-                                  'Mar',
-                                  'Nis',
-                                  'May',
-                                  'Haz',
-                                  'Tem',
-                                  'Ağu',
-                                  'Eyl',
-                                  'Eki',
-                                  'Kas',
-                                  'Ara'
-                                ];
-                                return SideTitleWidget(
-                                  axisSide: meta.axisSide,
-                                  child: Text(
-                                      '${months[date.month - 1]} ${date.year}',
-                                      style: style),
-                                );
-                              }
-                              return SideTitleWidget(
-                                  axisSide: meta.axisSide,
-                                  child: const SizedBox.shrink());
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            interval: yInterval,
-                            getTitlesWidget: (value, meta) {
-                              final formatted = value % 1 == 0
-                                  ? value.toInt().toString()
-                                  : value.toStringAsFixed(1);
-                              return Text('$formatted kg',
-                                  style: const TextStyle(
-                                      color: Color(0xFF737686), fontSize: 10));
-                            },
-                            reservedSize: 36,
-                          ),
-                        ),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      minX: 0,
-                      maxX: maxXVal,
-                      minY: minYVal,
-                      maxY: maxYVal,
-                      lineBarsData: [
-                        LineChartBarData(
-                          spots: spots,
-                          isCurved: true,
-                          color: primaryBlue,
-                          barWidth: 2,
-                          isStrokeCapRound: true,
-                          dotData: const FlDotData(show: true),
-                          belowBarData: BarAreaData(
-                            show: true,
-                            color: primaryBlue.withValues(alpha: 0.1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                return _buildEnhancedWeightSection(
+                    context, state.history, theme, primaryBlue);
               } else if (state is WeightHistoryError) {
                 return Container(
                   height: 120,
@@ -855,7 +746,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   borderRadius: BorderRadius.circular(24),
                 ),
               ),
-              onPressed: () {
+              onPressed: () async {
                 final text = controller.text.trim().replaceAll(',', '.');
                 final newW = double.tryParse(text);
                 if (newW == null || newW <= 0) {
@@ -867,20 +758,17 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                   );
                   return;
                 }
+                final petCubit = context.read<PetCubit>();
+                final weightHistoryCubit = context.read<WeightHistoryCubit>();
+
                 Navigator.pop(dialogContext);
-                // Pet verisini güncelle
-                context.read<PetCubit>().updatePet(
-                      id: widget.petId,
-                      weight: newW,
-                    );
-                // Grafik verilerini yenile
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (context.mounted) {
-                    context
-                        .read<WeightHistoryCubit>()
-                        .fetchWeightHistory(widget.petId);
-                  }
-                });
+
+                // Pet verisini güncelle ve tamamlandığında kilo geçmişini garantili olarak çek
+                await petCubit.updatePet(
+                  id: widget.petId,
+                  weight: newW,
+                );
+                weightHistoryCubit.fetchWeightHistory(widget.petId);
               },
               child: const Text('Kaydet'),
             ),
@@ -1202,6 +1090,489 @@ class _PetDetailScreenState extends State<PetDetailScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildEnhancedWeightSection(
+    BuildContext context,
+    List<PetWeightEntity> history,
+    ThemeData theme,
+    Color primaryBlue,
+  ) {
+    if (history.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.scale_outlined,
+              size: 40,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Henüz kilo kaydı bulunmuyor.',
+              style: TextStyle(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () => _showUpdateWeightDialog(context),
+              style: FilledButton.styleFrom(
+                backgroundColor: primaryBlue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('İlk Kiloyu Ekle'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final sortedHistory = List<PetWeightEntity>.from(history)
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    final latestRecord = sortedHistory.last;
+    final latestWeight = latestRecord.weight;
+
+    double? diff;
+    if (sortedHistory.length > 1) {
+      final prevWeight = sortedHistory[sortedHistory.length - 2].weight;
+      diff = latestWeight - prevWeight;
+    }
+
+    final spots = <FlSpot>[];
+    double minW = sortedHistory[0].weight;
+    double maxW = sortedHistory[0].weight;
+    for (int i = 0; i < sortedHistory.length; i++) {
+      final record = sortedHistory[i];
+      if (record.weight < minW) minW = record.weight;
+      if (record.weight > maxW) maxW = record.weight;
+    }
+
+    if (sortedHistory.length == 1) {
+      // 1 adet kilo kaydı olduğunda grafiği yatay çizgi ve belirgin orta noktayla render et
+      spots.add(FlSpot(0.0, latestWeight));
+      spots.add(FlSpot(1.0, latestWeight));
+    } else {
+      for (int i = 0; i < sortedHistory.length; i++) {
+        spots.add(FlSpot(i.toDouble(), sortedHistory[i].weight));
+      }
+    }
+
+    double range = maxW - minW;
+    if (range == 0) {
+      range = 4.0; // Tek kayıt veya eşit kilolarda varsayılan dikey aralık
+    }
+
+    double rawMinY = (minW - (range * 0.25)).clamp(0.0, double.infinity);
+    double rawMaxY = maxW + (range * 0.25);
+    if (rawMaxY - rawMinY < 4.0) {
+      rawMaxY = rawMinY + 4.0;
+    }
+
+    double rawInterval = (rawMaxY - rawMinY) / 4;
+    double yInterval;
+    if (rawInterval <= 0.5) {
+      yInterval = 0.5;
+    } else if (rawInterval <= 1.0) {
+      yInterval = 1.0;
+    } else if (rawInterval <= 2.5) {
+      yInterval = 2.5;
+    } else if (rawInterval <= 5.0) {
+      yInterval = 5.0;
+    } else {
+      yInterval = rawInterval.ceilToDouble();
+    }
+
+    double minYVal = (rawMinY / yInterval).floorToDouble() * yInterval;
+    double maxYVal = (rawMaxY / yInterval).ceilToDouble() * yInterval;
+
+    if (minYVal < 0) minYVal = 0;
+    if (maxYVal <= minYVal) maxYVal = minYVal + (yInterval * 4);
+
+    double maxXVal = (sortedHistory.length == 1)
+        ? 1.0
+        : (sortedHistory.length - 1).toDouble();
+
+    double xInterval = 1.0;
+    if (sortedHistory.length > 5) {
+      xInterval = (sortedHistory.length / 5).ceilToDouble();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.scale_rounded,
+                          size: 14,
+                          color: primaryBlue,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Son Kilo',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${latestWeight.toStringAsFixed(1)} kg',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          diff == null || diff == 0
+                              ? Icons.trending_flat_rounded
+                              : (diff > 0
+                                  ? Icons.trending_up_rounded
+                                  : Icons.trending_down_rounded),
+                          size: 14,
+                          color: diff == null || diff == 0
+                              ? theme.colorScheme.onSurfaceVariant
+                              : (diff > 0
+                                  ? const Color(0xFF22C55E)
+                                  : const Color(0xFF3B82F6)),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Son Değişim',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      diff == null || diff == 0
+                          ? 'Değişim Yok'
+                          : '${diff > 0 ? "+" : ""}${diff.toStringAsFixed(1)} kg',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: diff == null || diff == 0
+                            ? theme.colorScheme.onSurface
+                            : (diff > 0
+                                ? const Color(0xFF22C55E)
+                                : const Color(0xFF3B82F6)),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.bar_chart_rounded,
+                          size: 14,
+                          color: theme.colorScheme.tertiary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Kayıtlar',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${history.length} Ölçüm',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 220,
+          padding: const EdgeInsets.fromLTRB(10, 20, 16, 12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: LineChart(
+            LineChartData(
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: yInterval,
+                getDrawingHorizontalLine: (value) => FlLine(
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+                  strokeWidth: 1,
+                  dashArray: [4, 4],
+                ),
+              ),
+              lineTouchData: LineTouchData(
+                enabled: true,
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipColor: (spot) =>
+                      theme.colorScheme.surfaceContainerHigh,
+                  tooltipRoundedRadius: 12,
+                  tooltipPadding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 6),
+                  tooltipBorder: BorderSide(
+                    color: primaryBlue.withValues(alpha: 0.4),
+                    width: 1,
+                  ),
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      int index = spot.x.round();
+                      if (sortedHistory.length == 1) {
+                        index = 0;
+                      }
+                      if (index >= 0 && index < sortedHistory.length) {
+                        final record = sortedHistory[index];
+                        final dateStr =
+                            '${record.date.day}/${record.date.month}/${record.date.year}';
+                        return LineTooltipItem(
+                          '$dateStr\n${record.weight} kg',
+                          TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        );
+                      }
+                      return null;
+                    }).toList();
+                  },
+                ),
+              ),
+              titlesData: FlTitlesData(
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 24,
+                    interval: xInterval,
+                    getTitlesWidget: (value, meta) {
+                      const style = TextStyle(
+                        color: Color(0xFF737686),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      );
+                      final index = value.round();
+                      if (sortedHistory.length == 1) {
+                        if (index == 0) {
+                          final date = sortedHistory[0].date;
+                          final months = [
+                            'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
+                            'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'
+                          ];
+                          return SideTitleWidget(
+                            axisSide: meta.axisSide,
+                            child: Text(
+                              '${date.day} ${months[date.month - 1]} ${date.year}',
+                              style: style,
+                            ),
+                          );
+                        }
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: const SizedBox.shrink(),
+                        );
+                      }
+
+                      if (value == index.toDouble() &&
+                          index >= 0 &&
+                          index < sortedHistory.length) {
+                        final date = sortedHistory[index].date;
+                        final months = [
+                          'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
+                          'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'
+                        ];
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            '${months[date.month - 1]} ${date.year}',
+                            style: style,
+                          ),
+                        );
+                      }
+                      return SideTitleWidget(
+                        axisSide: meta.axisSide,
+                        child: const SizedBox.shrink(),
+                      );
+                    },
+                  ),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: yInterval,
+                    reservedSize: 46,
+                    getTitlesWidget: (value, meta) {
+                      if (value < minYVal - 0.01 || value > maxYVal + 0.01) {
+                        return const SizedBox.shrink();
+                      }
+                      final formatted = value % 1 == 0
+                          ? value.toInt().toString()
+                          : value.toStringAsFixed(1);
+                      return SideTitleWidget(
+                        axisSide: meta.axisSide,
+                        space: 6,
+                        child: Text(
+                          '$formatted kg',
+                          style: const TextStyle(
+                            color: Color(0xFF737686),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              minX: 0,
+              maxX: maxXVal,
+              minY: minYVal,
+              maxY: maxYVal,
+              lineBarsData: [
+                LineChartBarData(
+                  spots: spots,
+                  isCurved: sortedHistory.length > 1,
+                  curveSmoothness: 0.35,
+                  gradient: LinearGradient(
+                    colors: [
+                      primaryBlue,
+                      theme.colorScheme.tertiary,
+                    ],
+                  ),
+                  barWidth: 3.5,
+                  isStrokeCapRound: true,
+                  dotData: FlDotData(
+                    show: true,
+                    getDotPainter: (spot, percent, barData, index) =>
+                        FlDotCirclePainter(
+                      radius: 4.5,
+                      color: Colors.white,
+                      strokeWidth: 3,
+                      strokeColor: primaryBlue,
+                    ),
+                  ),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    gradient: LinearGradient(
+                      colors: [
+                        primaryBlue.withValues(alpha: 0.28),
+                        primaryBlue.withValues(alpha: 0.0),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
