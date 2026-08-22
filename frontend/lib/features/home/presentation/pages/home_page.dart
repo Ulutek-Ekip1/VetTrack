@@ -9,7 +9,6 @@ import '../../../../features/pet/presentation/cubit/pet_cubit.dart';
 import '../../../../features/pet/presentation/cubit/pet_state.dart';
 import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
 import '../../../../core/constants/app_dimensions.dart';
-import 'package:vettrack_frontend/features/pet/domain/entities/pet_entity.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_cubit.dart';
 import 'package:vettrack_frontend/features/auth/presentation/cubit/profile_state.dart';
 import '../../../../features/notification/presentation/cubit/notification_cubit.dart';
