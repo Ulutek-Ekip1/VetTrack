@@ -62,15 +62,25 @@ class PetTreatmentHistoryScreen extends StatelessWidget {
             return RefreshIndicator(
               onRefresh: () =>
                   context.read<TreatmentCubit>().loadPetTreatments(petId),
-              child: ListView.builder(
+              child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: treatments.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final treatment = treatments[index];
                   final hasAttachment = treatment.attachmentUrl != null &&
                       treatment.attachmentUrl!.isNotEmpty;
 
                   return Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: theme.colorScheme.outlineVariant
+                            .withValues(alpha: 0.5),
+                      ),
+                    ),
                     child: ListTile(
                       leading: const CircleAvatar(
                         child: Icon(Icons.medication),
