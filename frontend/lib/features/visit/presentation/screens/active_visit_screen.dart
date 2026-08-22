@@ -52,14 +52,18 @@ class _ActiveVisitScreenState extends State<ActiveVisitScreen> {
       });
 
   bool _isDeletable(DateTime? createdAt) {
-    if (createdAt == null) return false;
-    final difference = DateTime.now().difference(createdAt.toLocal());
-    return difference.inMinutes < 15;
+    if (createdAt == null) return true;
+    final nowUtc = DateTime.now().toUtc();
+    final createdUtc = createdAt.toUtc();
+    final difference = nowUtc.difference(createdUtc);
+    return difference.inMinutes >= -1 && difference.inMinutes < 15;
   }
 
   int _remainingMinutes(DateTime? createdAt) {
     if (createdAt == null) return 0;
-    final diff = DateTime.now().difference(createdAt.toLocal());
+    final nowUtc = DateTime.now().toUtc();
+    final createdUtc = createdAt.toUtc();
+    final diff = nowUtc.difference(createdUtc);
     final remaining = 15 - diff.inMinutes;
     return remaining > 0 ? remaining : 0;
   }

@@ -9,6 +9,7 @@ import '../../../visit/presentation/cubit/visit_cubit.dart';
 import '../../../visit/presentation/cubit/visit_state.dart';
 import '../../../treatment/presentation/cubit/treatment_cubit.dart';
 import '../../../treatment/presentation/cubit/treatment_state.dart';
+import '../../../treatment/presentation/utils/treatment_category_localization.dart';
 import '../../../recommendation/presentation/cubit/recommendation_cubit.dart';
 import '../../../recommendation/presentation/cubit/recommendation_state.dart';
 import '../../../recommendation/domain/entities/recommendation_entity.dart';
@@ -788,18 +789,21 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             if (treatmentState is TreatmentLoaded) {
               for (var treatment in treatmentState.treatments) {
                 combinedHistory.add({
-                  'date': treatment.createdAt,
+                  'date': treatment.createdAt ?? treatment.startDate ?? DateTime.now(),
                   'title': 'Tedavi: ${treatment.title}',
                   'subtitle':
-                      '${treatment.type} ${treatment.description != null ? "• ${treatment.description}" : ""}',
+                      '${TreatmentCategoryLocalization.typeToCategory(treatment.type)}${treatment.description != null && treatment.description!.isNotEmpty ? " • ${treatment.description}" : ""}',
                   'icon': Icons.healing_outlined,
                 });
               }
             }
 
-            // Sort descending (newest first)
-            combinedHistory.sort((a, b) =>
-                (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+            // Sort descending (newest first) null-safely
+            combinedHistory.sort((a, b) {
+              final dateA = a['date'] as DateTime? ?? DateTime.fromMillisecondsSinceEpoch(0);
+              final dateB = b['date'] as DateTime? ?? DateTime.fromMillisecondsSinceEpoch(0);
+              return dateB.compareTo(dateA);
+            });
 
             final isLoading = visitState is VisitLoading ||
                 treatmentState is TreatmentLoading;

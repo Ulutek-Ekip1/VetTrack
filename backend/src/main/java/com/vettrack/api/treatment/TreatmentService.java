@@ -81,10 +81,7 @@ public class TreatmentService {
 
     @Transactional(readOnly = true)
     public List<TreatmentEntry> getTreatmentsByPet(UUID petId) {
-        return visitRepository.findByPetIdOrderByStartedAtDesc(petId).stream()
-                .flatMap(visit -> treatmentEntryRepository.findByVisitIdOrderByStartDateDesc(visit.getId()).stream())
-                .sorted(Comparator.comparing(TreatmentEntry::getStartDate, Comparator.nullsLast(Comparator.reverseOrder())))
-                .toList();
+        return treatmentEntryRepository.findTreatmentsByPetId(petId);
     }
 
     @Transactional(readOnly = true)
@@ -170,7 +167,7 @@ public class TreatmentService {
     }
 
     private void checkOwnership(TreatmentEntry entry, UUID vetStaffId) {
-        if (!entry.getEnteredBy().equals(vetStaffId)) {
+        if (entry.getEnteredBy() != null && !entry.getEnteredBy().equals(vetStaffId)) {
             throw new AccessDeniedException("Bu tedavi kaydı size ait değil");
         }
     }

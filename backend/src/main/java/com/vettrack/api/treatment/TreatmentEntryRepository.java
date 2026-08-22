@@ -26,6 +26,15 @@ public interface TreatmentEntryRepository extends JpaRepository<TreatmentEntry, 
     /** Birden fazla ziyaretin tedavilerini oluşturulma tarihine göre azalan sırada getirir */
     List<TreatmentEntry> findByVisitIdInOrderByCreatedAtDesc(List<UUID> visitIds);
 
+    /** Pet'in tüm tedavilerini tek sorguda tarihe göre azalan sırada getirir */
+    @Query("""
+            SELECT t FROM TreatmentEntry t, Visit v
+            WHERE t.visitId = v.id
+              AND v.petId = :petId
+            ORDER BY COALESCE(t.createdAt, t.startDate) DESC
+            """)
+    List<TreatmentEntry> findTreatmentsByPetId(@Param("petId") UUID petId);
+
     /**
      * Zamanlanmış bildirim taraması (ScheduledTreatmentNotifier) için hedefli sorgu.
      * findAll() ile tüm tabloyu JVM belleğine çekmek yerine, sadece belirli durumda ve

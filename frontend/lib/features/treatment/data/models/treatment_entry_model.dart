@@ -49,7 +49,12 @@ class TreatmentEntryModel extends TreatmentEntity {
           : (json['end_date'] != null
               ? DateTime.tryParse(json['end_date'] as String)
               : null),
-      editable: (json['editable'] == true || json['isEditable'] == true),
+      editable: (json['editable'] == true ||
+          json['isEditable'] == true ||
+          json['is_editable'] == true ||
+          (json['editable'] == null &&
+              json['isEditable'] == null &&
+              json['is_editable'] == null)),
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String)
           : (json['created_at'] != null
