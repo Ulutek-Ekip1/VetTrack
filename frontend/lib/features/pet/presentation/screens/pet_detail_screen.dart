@@ -703,7 +703,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
             if (visitState is VisitHistoryLoaded) {
               for (var visit in visitState.visits) {
                 combinedHistory.add({
-                  'date': visit.startedAt ?? DateTime.now(),
+                  'date': visit.startedAt,
                   'title':
                       'Muayene: ${visit.chiefComplaint ?? 'Genel Kontrol'}',
                   'subtitle': visit.vetStaffName ?? 'Klinik Hekimi',
